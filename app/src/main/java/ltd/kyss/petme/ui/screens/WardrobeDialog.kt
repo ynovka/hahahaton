@@ -30,7 +30,9 @@ fun WardrobeDialog(
             shape = RoundedCornerShape(24.dp),
             color = Color.White,
             shadowElevation = 8.dp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 480.dp)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),

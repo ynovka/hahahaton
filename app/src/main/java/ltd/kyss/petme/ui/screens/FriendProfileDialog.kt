@@ -53,6 +53,7 @@ fun FriendProfileDialog(
             shadowElevation = 10.dp,
             modifier = Modifier
                 .fillMaxWidth(0.92f)
+                .widthIn(max = 480.dp)
                 .wrapContentHeight()
                 .padding(vertical = 16.dp)
         ) {

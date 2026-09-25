@@ -30,17 +30,23 @@ fun KidBudgetScreen(
 ) {
     val b = state.budget
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
                     listOf(Color(0xFFFFF9C4), Color(0xFFFFF176), Color(0xFFFFD54F))
                 )
-            )
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
+            ),
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 560.dp)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
         // Шапка окна бюджета
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -194,6 +200,7 @@ fun KidBudgetScreen(
             )
         }
     }
+}
 }
 
 @Composable

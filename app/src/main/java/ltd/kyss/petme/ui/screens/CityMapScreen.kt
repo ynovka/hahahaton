@@ -684,14 +684,17 @@ fun TopMapHud(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(12.dp)
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Верхняя карточка с монетами и заголовком
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = Color.White.copy(alpha = 0.94f),
             shadowElevation = 6.dp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 700.dp)
         ) {
             Column(modifier = Modifier.padding(10.dp)) {
                 Row(
