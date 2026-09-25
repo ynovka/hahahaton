@@ -30,6 +30,7 @@ fun RoomScreen(
     viewModel: GameViewModel,
     onOpenBudget: () -> Unit,
     onOpenShop: () -> Unit,
+    onOpenBank: () -> Unit,
     onOpenWardrobe: () -> Unit,
     onOpenPuzzle: (Int) -> Unit
 ) {
@@ -104,6 +105,7 @@ fun RoomScreen(
                 viewModel = viewModel,
                 onOpenWardrobe = onOpenWardrobe,
                 onOpenShop = onOpenShop,
+                onOpenBank = onOpenBank,
                 onOpenPuzzle = onOpenPuzzle
             )
 
@@ -260,6 +262,7 @@ fun RoomStage(
     viewModel: GameViewModel,
     onOpenWardrobe: () -> Unit,
     onOpenShop: () -> Unit,
+    onOpenBank: () -> Unit,
     onOpenPuzzle: (Int) -> Unit
 ) {
     Box(
@@ -310,7 +313,7 @@ fun RoomStage(
                 emoji = "🦫",
                 title = "Бобёр-банкир",
                 fractionX = 0.70f,
-                onClick = onOpenShop
+                onClick = onOpenBank
             )
         }
 

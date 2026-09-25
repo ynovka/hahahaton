@@ -13,7 +13,7 @@ sealed class GameLocation {
 }
 
 /**
- * Персонаж-друг, живущий в одном из домов города.
+ * Персонаж-друг, живущий в одном из домов города (с карточкой дружбы).
  */
 data class FriendCharacter(
     val id: Int,
@@ -23,7 +23,16 @@ data class FriendCharacter(
     val houseName: String,
     val greetingText: String,
     val puzzlePrompt: String,
-    val rewardCoins: Int = 20
+    val rewardCoins: Int = 20,
+    // Система дружбы в стиле Hello Kitty
+    val friendshipLevel: Int = 1,
+    val friendshipExp: Int = 20, // 0..100
+    val favoriteItems: List<String> = listOf("🍎", "🪙", "⭐"),
+    val perkTitle: String = "Помощник в покупках",
+    val perkDescription: String = "Шанс получить скидку 10% в лавке Енотика",
+    val isPerkUnlocked: Boolean = false,
+    val nextLevelReward: String = "Праздничный бантик",
+    val nextLevelRewardEmoji: String = "🎀"
 )
 
 /**

@@ -93,13 +93,17 @@ object GameEngine {
      */
     fun confirmBudget(state: GameState): GameState {
         val b = state.budget
+        if (b.isConfirmed) return state
+        if (b.totalAllocated > state.wallet.coins) {
+            return state.copy(advisorTip = "Сейчас в кошельке меньше монет, чем в плане. Уменьши запланированные суммы.")
+        }
         if (!b.isValid) {
             return state.copy(advisorTip = "Нельзя утвердить пустую миску! Добавь хотя бы немного монет на еду питомцу.")
         }
 
         // Переводим запланированные сбережения прямо в копилку
         val updatedSavings = state.wallet.savings + b.piggyBankCoins
-        val remainingCoins = b.totalStartingCoins - b.piggyBankCoins
+        val remainingCoins = state.wallet.coins - b.piggyBankCoins
 
         return state.copy(
             budget = b.copy(isConfirmed = true),
@@ -109,6 +113,28 @@ object GameEngine {
             ),
             pet = state.pet.copy(mood = PetMood.HAPPY),
             advisorTip = "План утверждён! В копилку отправилось ${b.piggyBankCoins} м. Теперь можно идти гулять по городу и в гости!"
+        )
+    }
+
+    fun selectGoal(state: GameState, goalId: String): GameState {
+        val goal = state.dreamGoals.find { it.id == goalId } ?: return state
+        return state.copy(activeGoalId = goal.id, advisorTip = "Твоя цель: ${goal.title}. Накопленные монеты сохранены.")
+    }
+
+    fun depositSavings(state: GameState, amount: Int): GameState {
+        if (amount <= 0 || amount > state.wallet.coins || amount > Int.MAX_VALUE - state.wallet.savings) return state
+        return state.copy(
+            wallet = state.wallet.copy(coins = state.wallet.coins - amount, savings = state.wallet.savings + amount),
+            pet = state.pet.copy(mood = PetMood.PROUD_SAVER),
+            advisorTip = "В копилку переведено $amount монет. Ты стал ближе к цели!"
+        )
+    }
+
+    fun withdrawSavings(state: GameState, amount: Int): GameState {
+        if (amount <= 0 || amount > state.wallet.savings || amount > Int.MAX_VALUE - state.wallet.coins) return state
+        return state.copy(
+            wallet = state.wallet.copy(coins = state.wallet.coins + amount, savings = state.wallet.savings - amount),
+            advisorTip = "$amount монет возвращены в кошелёк. В копилке осталось ${state.wallet.savings - amount}."
         )
     }
 

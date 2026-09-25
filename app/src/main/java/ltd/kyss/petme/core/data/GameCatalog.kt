@@ -66,7 +66,16 @@ object GameCatalog {
             emoji = "🐻",
             houseName = "Берлога со сладостями",
             greetingText = "Привет, сосед! Я как раз собираюсь на ярмарку за покупками. Поможешь мне?",
-            puzzlePrompt = "«Умная корзина»: что нам ДЕЙСТВИТЕЛЬНО нужно купить в первую очередь?"
+            puzzlePrompt = "«Умная корзина»: что нам ДЕЙСТВИТЕЛЬНО нужно купить в первую очередь?",
+            rewardCoins = 20,
+            friendshipLevel = 1,
+            friendshipExp = 40,
+            favoriteItems = listOf("🍯", "🍎", "🪵"),
+            perkTitle = "Крепкий Запас",
+            perkDescription = "Увеличивает вместимость копилки на 50 монет",
+            isPerkUnlocked = false,
+            nextLevelReward = "Кепка туриста",
+            nextLevelRewardEmoji = "🧢"
         ),
         FriendCharacter(
             id = 2,
@@ -75,7 +84,16 @@ object GameCatalog {
             emoji = "🐿️",
             houseName = "Домик на высоком дубе",
             greetingText = "Ура, ты зашёл! Я собрала сегодня целую кучу лесных орешков!",
-            puzzlePrompt = "«Запасы на зиму»: сколько орешков стоит спрятать в дупло-копилку?"
+            puzzlePrompt = "«Запасы на зиму»: сколько орешков стоит спрятать в дупло-копилку?",
+            rewardCoins = 20,
+            friendshipLevel = 1,
+            friendshipExp = 60,
+            favoriteItems = listOf("🌰", "🍄", "🌲"),
+            perkTitle = "Золотой Орешек",
+            perkDescription = "+10% к монетам в копилке в конце каждого периода",
+            isPerkUnlocked = false,
+            nextLevelReward = "Тёплый шарфик",
+            nextLevelRewardEmoji = "🧣"
         ),
         FriendCharacter(
             id = 3,
@@ -84,7 +102,16 @@ object GameCatalog {
             emoji = "🦝",
             houseName = "Мастерская находок",
             greetingText = "Смотри, какие интересные вещи я приметил в магазине! Только цены разные...",
-            puzzlePrompt = "«Выгодная полка»: какая пачка семечек выгоднее для покупки?"
+            puzzlePrompt = "«Выгодная полка»: какая пачка семечек выгоднее для покупки?",
+            rewardCoins = 20,
+            friendshipLevel = 1,
+            friendshipExp = 30,
+            favoriteItems = listOf("🧼", "🍇", "✨"),
+            perkTitle = "Искусство Торга",
+            perkDescription = "Скидка 15% на игрушки в лавке покупок",
+            isPerkUnlocked = false,
+            nextLevelReward = "Солнечные очки",
+            nextLevelRewardEmoji = "🕶️"
         ),
         FriendCharacter(
             id = 4,
@@ -93,7 +120,16 @@ object GameCatalog {
             emoji = "🦉",
             houseName = "Книжная башня",
             greetingText = "Здравствуй, юный друг! В мире финансов важно быть не только экономным, но и внимательным!",
-            puzzlePrompt = "«Распознай ловушку»: на улице подозрительный незнакомец сулит золотые горы..."
+            puzzlePrompt = "«Распознай ловушку»: на улице подозрительный незнакомец сулит золотые горы...",
+            rewardCoins = 20,
+            friendshipLevel = 1,
+            friendshipExp = 50,
+            favoriteItems = listOf("📚", "🍵", "🕯️"),
+            perkTitle = "Мудрый Совет",
+            perkDescription = "Автоматическая подсказка в сложных задачах",
+            isPerkUnlocked = false,
+            nextLevelReward = "Очки учёного",
+            nextLevelRewardEmoji = "👓"
         ),
         FriendCharacter(
             id = 5,
@@ -102,7 +138,16 @@ object GameCatalog {
             emoji = "🦊",
             houseName = "Уютная нора с камином",
             greetingText = "Привет! Я хочу купить новую раскраску в книжной лавке, но не могу набрать монеты без сдачи.",
-            puzzlePrompt = "«Точный счёт»: сложи нужную сумму из монеток в кошельке!"
+            puzzlePrompt = "«Точный счёт»: сложи нужную сумму из монеток в кошельке!",
+            rewardCoins = 20,
+            friendshipLevel = 1,
+            friendshipExp = 25,
+            favoriteItems = listOf("🎨", "🍓", "🎀"),
+            perkTitle = "Быстрый Кэшбэк",
+            perkDescription = "Возврат +2 монет при любой покупке в лавке",
+            isPerkUnlocked = false,
+            nextLevelReward = "Красный бантик",
+            nextLevelRewardEmoji = "🎀"
         ),
         FriendCharacter(
             id = 6,
@@ -111,7 +156,16 @@ object GameCatalog {
             emoji = "🐰",
             houseName = "Морковный домик",
             greetingText = "Ой-ой! Я катался на самокате, и у меня лопнуло колесо! Что же мне теперь делать?",
-            puzzlePrompt = "«Подушка безопасности»: откуда взять монеты на неожиданный ремонт?"
+            puzzlePrompt = "«Подушка безопасности»: откуда взять монеты на неожиданный ремонт?",
+            rewardCoins = 20,
+            friendshipLevel = 1,
+            friendshipExp = 70,
+            favoriteItems = listOf("🥕", "🛴", "🌿"),
+            perkTitle = "Страховой Резерв",
+            perkDescription = "Бесплатный еженедельный осмотр в больнице",
+            isPerkUnlocked = false,
+            nextLevelReward = "Ошейник с колокольчиком",
+            nextLevelRewardEmoji = "🔔"
         ),
         FriendCharacter(
             id = 7,
@@ -120,7 +174,16 @@ object GameCatalog {
             emoji = "🐶",
             houseName = "Дом с зелёной полянкой",
             greetingText = "Гав! Завтра у меня день рождения, мама дала мне 50 монет на угощения для друзей!",
-            puzzlePrompt = "«Праздничный бюджет»: помоги выбрать торт и сок, не выходя за лимит!"
+            puzzlePrompt = "«Праздничный бюджет»: помоги выбрать торт и сок, не выходя за лимит!",
+            rewardCoins = 20,
+            friendshipLevel = 1,
+            friendshipExp = 80,
+            favoriteItems = listOf("🦴", "🎾", "🎈"),
+            perkTitle = "Праздничный Бонус",
+            perkDescription = "+10 дополнительных монет карманных денег каждый период",
+            isPerkUnlocked = false,
+            nextLevelReward = "Золотая корона",
+            nextLevelRewardEmoji = "👑"
         )
     )
 

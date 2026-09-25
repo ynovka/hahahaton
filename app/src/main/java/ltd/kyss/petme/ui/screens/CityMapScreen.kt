@@ -24,7 +24,8 @@ import ltd.kyss.petme.core.model.PuzzleState
 @Composable
 fun CityMapScreen(
     state: GameState,
-    onSelectLocation: (GameLocation) -> Unit
+    onSelectLocation: (GameLocation) -> Unit,
+    onOpenFriendProfile: (Int) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -139,7 +140,7 @@ fun CityMapScreen(
                     shadowElevation = 2.dp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onSelectLocation(GameLocation.FriendRoom(friend.id)) }
+                        .clickable { onOpenFriendProfile(friend.id) }
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),

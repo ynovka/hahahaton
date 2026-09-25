@@ -8,6 +8,53 @@ import org.junit.Test
 class GameEngineTest {
 
     @Test
+    fun confirmingBudgetTwiceDoesNotCreateMoney() {
+        val confirmed = GameEngine.confirmBudget(GameEngine.createInitialState())
+        assertEquals(confirmed, GameEngine.confirmBudget(confirmed))
+    }
+
+    @Test
+    fun confirmingBudgetPreservesIncomeEarnedBeforeConfirmation() {
+        val initial = GameEngine.createInitialState()
+        val rewarded = GameEngine.claimReward(GameEngine.answerPuzzle(initial, 1, "p1_opt1").first, 1)
+        val confirmed = GameEngine.confirmBudget(rewarded)
+        assertEquals(rewarded.wallet.coins + rewarded.wallet.savings, confirmed.wallet.coins + confirmed.wallet.savings)
+        assertEquals(100, confirmed.wallet.coins)
+    }
+
+    @Test
+    fun confirmingBudgetDoesNotRestoreAlreadySpentCoins() {
+        val purchased = GameEngine.buyShopItem(GameEngine.createInitialState(), "food_kibble")
+        val result = GameEngine.confirmBudget(purchased)
+        assertEquals(purchased.wallet, result.wallet)
+        assertFalse(result.budget.isConfirmed)
+    }
+
+    @Test
+    fun bankTransfersConserveMoneyAndRejectInvalidAmounts() {
+        val initial = GameEngine.createInitialState()
+        val saved = GameEngine.depositSavings(initial, 30)
+        assertEquals(Wallet(70, 30), saved.wallet)
+        assertEquals(Wallet(80, 20), GameEngine.withdrawSavings(saved, 10).wallet)
+        listOf(-1, 0, 101, Int.MAX_VALUE).forEach { amount ->
+            assertEquals(initial, GameEngine.depositSavings(initial, amount))
+        }
+        listOf(-1, 0, 31, Int.MAX_VALUE).forEach { amount ->
+            assertEquals(saved, GameEngine.withdrawSavings(saved, amount))
+        }
+    }
+
+    @Test
+    fun changingGoalPreservesSavingsAndRejectsUnknownGoal() {
+        val saved = GameEngine.depositSavings(GameEngine.createInitialState(), 20)
+        val goal = saved.dreamGoals.last()
+        val changed = GameEngine.selectGoal(saved, goal.id)
+        assertEquals(goal.id, changed.activeGoalId)
+        assertEquals(saved.wallet, changed.wallet)
+        assertEquals(saved, GameEngine.selectGoal(saved, "missing"))
+    }
+
+    @Test
     fun testInitialState() {
         val state = GameEngine.createInitialState()
         assertEquals(1, state.period)

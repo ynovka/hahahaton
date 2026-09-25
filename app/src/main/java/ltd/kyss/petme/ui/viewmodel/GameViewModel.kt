@@ -49,6 +49,18 @@ class GameViewModel : ViewModel() {
         _state.update { GameEngine.buyShopItem(it, itemId) }
     }
 
+    fun selectGoal(goalId: String) {
+        _state.update { GameEngine.selectGoal(it, goalId) }
+    }
+
+    fun depositSavings(amount: Int) {
+        _state.update { GameEngine.depositSavings(it, amount) }
+    }
+
+    fun withdrawSavings(amount: Int) {
+        _state.update { GameEngine.withdrawSavings(it, amount) }
+    }
+
     fun toggleAccessory(accessoryId: String) {
         _state.update { GameEngine.toggleAccessory(it, accessoryId) }
     }

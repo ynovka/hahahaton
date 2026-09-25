@@ -34,15 +34,18 @@ fun PetMeGameApp(viewModel: GameViewModel) {
 
     var showBudgetDialog by remember { mutableStateOf(false) }
     var showShopDialog by remember { mutableStateOf(false) }
+    var showBankDialog by remember { mutableStateOf(false) }
     var showWardrobeDialog by remember { mutableStateOf(false) }
     var activePuzzleFriendId by remember { mutableStateOf<Int?>(null) }
+    var activeFriendProfileId by remember { mutableStateOf<Int?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (state.currentLocation) {
             GameLocation.CityMap -> {
                 CityMapScreen(
                     state = state,
-                    onSelectLocation = { newLoc -> viewModel.changeLocation(newLoc) }
+                    onSelectLocation = { newLoc -> viewModel.changeLocation(newLoc) },
+                    onOpenFriendProfile = { friendId -> activeFriendProfileId = friendId }
                 )
             }
             else -> {
@@ -51,6 +54,7 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                     viewModel = viewModel,
                     onOpenBudget = { showBudgetDialog = true },
                     onOpenShop = { showShopDialog = true },
+                    onOpenBank = { showBankDialog = true },
                     onOpenWardrobe = { showWardrobeDialog = true },
                     onOpenPuzzle = { friendId -> activePuzzleFriendId = friendId }
                 )
@@ -75,6 +79,10 @@ fun PetMeGameApp(viewModel: GameViewModel) {
             )
         }
 
+        if (showBankDialog) {
+            BankDialog(state, viewModel, onDismiss = { showBankDialog = false })
+        }
+
         // Гардероб питомца
         if (showWardrobeDialog) {
             WardrobeDialog(
@@ -91,6 +99,18 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                 state = state,
                 viewModel = viewModel,
                 onDismiss = { activePuzzleFriendId = null }
+            )
+        }
+
+        // Карточка дружбы в стиле Hello Kitty
+        activeFriendProfileId?.let { friendId ->
+            FriendProfileDialog(
+                initialFriendId = friendId,
+                onStartPuzzle = { puzzleFriendId ->
+                    activeFriendProfileId = null
+                    activePuzzleFriendId = puzzleFriendId
+                },
+                onDismiss = { activeFriendProfileId = null }
             )
         }
     }
