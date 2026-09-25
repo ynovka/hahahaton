@@ -1,0 +1,180 @@
+package ltd.kyss.petme.ui.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import ltd.kyss.petme.core.data.GameCatalog
+import ltd.kyss.petme.core.engine.GameState
+import ltd.kyss.petme.core.model.PuzzleState
+import ltd.kyss.petme.ui.viewmodel.GameViewModel
+
+@Composable
+fun KidPuzzleDialog(
+    friendId: Int,
+    state: GameState,
+    viewModel: GameViewModel,
+    onDismiss: () -> Unit
+) {
+    val friend = GameCatalog.friendsList.find { it.id == friendId } ?: return
+    val puzzle = state.puzzles[friendId] ?: return
+
+    var feedbackMessage by remember { mutableStateOf<String?>(null) }
+    var isCorrectAnswer by remember { mutableStateOf<Boolean?>(null) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            shadowElevation = 8.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Иконка и имя друга
+                Text(friend.emoji, fontSize = 48.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    friend.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF37474F)
+                )
+                Text(
+                    puzzle.title,
+                    fontSize = 13.sp,
+                    color = Color(0xFF1E88E5),
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // История / Загадка
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFFF1F8E9),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "«${puzzle.storyPrompt}»",
+                        fontSize = 14.sp,
+                        color = Color(0xFF2E7D32),
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Если задание уже выполнено
+                if (puzzle.state == PuzzleState.COMPLETED) {
+                    Text(
+                        "🎉 Задание уже выполнено! Монеты в кошельке.",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF388E3C),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Вернуться в комнату")
+                    }
+                    return@Column
+                }
+
+                // Если решено, но награда ещё не взята
+                if (puzzle.state == PuzzleState.SOLVED_UNCLAIMED) {
+                    Text(
+                        "✨ Ура! Всё верно!",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2E7D32)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = {
+                            viewModel.claimPuzzleReward(friendId)
+                            onDismiss()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Забрать +${puzzle.rewardCoins} монет 🪙", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                    return@Column
+                }
+
+                // Варианты ответов для ребенка
+                puzzle.options.forEach { option ->
+                    Button(
+                        onClick = {
+                            val success = viewModel.answerPuzzle(friendId, option.id)
+                            isCorrectAnswer = success
+                            feedbackMessage = option.feedbackText
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEDE7F6)),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Text(option.emoji, fontSize = 20.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                option.title,
+                                color = Color(0xFF4A148C),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                }
+
+                // Сообщение обратной связи
+                feedbackMessage?.let { msg ->
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (isCorrectAnswer == true) Color(0xFFE8F5E9) else Color(0xFFFFEBEE),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = msg,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = if (isCorrectAnswer == true) Color(0xFF2E7D32) else Color(0xFFC62828),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                TextButton(onClick = onDismiss) {
+                    Text("Подумать позже", color = Color.Gray)
+                }
+            }
+        }
+    }
+}

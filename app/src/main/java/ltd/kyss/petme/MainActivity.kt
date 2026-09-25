@@ -4,88 +4,94 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import ltd.kyss.petme.core.model.GameLocation
+import ltd.kyss.petme.ui.screens.*
 import ltd.kyss.petme.ui.theme.PetMeTheme
+import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
 class MainActivity : ComponentActivity() {
+
+    private val gameViewModel by lazy { GameViewModel() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             PetMeTheme {
-                PetMeApp()
+                PetMeGameApp(viewModel = gameViewModel)
             }
         }
     }
 }
 
-@PreviewScreenSizes
 @Composable
-fun PetMeApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+fun PetMeGameApp(viewModel: GameViewModel) {
+    val state by viewModel.state.collectAsState()
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            painterResource(it.icon),
-                            contentDescription = it.label
-                        )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
+    var showBudgetDialog by remember { mutableStateOf(false) }
+    var showShopDialog by remember { mutableStateOf(false) }
+    var showWardrobeDialog by remember { mutableStateOf(false) }
+    var activePuzzleFriendId by remember { mutableStateOf<Int?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (state.currentLocation) {
+            GameLocation.CityMap -> {
+                CityMapScreen(
+                    state = state,
+                    onSelectLocation = { newLoc -> viewModel.changeLocation(newLoc) }
+                )
+            }
+            else -> {
+                RoomScreen(
+                    state = state,
+                    viewModel = viewModel,
+                    onOpenBudget = { showBudgetDialog = true },
+                    onOpenShop = { showShopDialog = true },
+                    onOpenWardrobe = { showWardrobeDialog = true },
+                    onOpenPuzzle = { friendId -> activePuzzleFriendId = friendId }
                 )
             }
         }
-    ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Greeting(
-                name = "Android",
-                modifier = Modifier.padding(innerPadding)
+
+        // Окно раскладывания монет по сундучкам (Детский Бюджет)
+        if (showBudgetDialog) {
+            KidBudgetScreen(
+                state = state,
+                viewModel = viewModel,
+                onClose = { showBudgetDialog = false }
             )
         }
-    }
-}
 
-enum class AppDestinations(
-    val label: String,
-    val icon: Int,
-) {
-    HOME("Home", R.drawable.ic_home),
-    FAVORITES("Favorites", R.drawable.ic_favorite),
-    PROFILE("Profile", R.drawable.ic_account_box),
-}
+        // Лавка покупок
+        if (showShopDialog) {
+            ShopDialog(
+                state = state,
+                viewModel = viewModel,
+                onDismiss = { showShopDialog = false }
+            )
+        }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+        // Гардероб питомца
+        if (showWardrobeDialog) {
+            WardrobeDialog(
+                state = state,
+                viewModel = viewModel,
+                onDismiss = { showWardrobeDialog = false }
+            )
+        }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PetMeTheme {
-        Greeting("Android")
+        // Интерактивная головоломка друга
+        activePuzzleFriendId?.let { friendId ->
+            KidPuzzleDialog(
+                friendId = friendId,
+                state = state,
+                viewModel = viewModel,
+                onDismiss = { activePuzzleFriendId = null }
+            )
+        }
     }
 }
