@@ -670,21 +670,28 @@ fun RoomInteractiveStage(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Мягкая овальная тень на полу
-                Canvas(modifier = Modifier.size(54.dp, 10.dp)) {
-                    drawOval(color = Color.Black.copy(alpha = 0.22f))
+                Box(contentAlignment = Alignment.BottomCenter) {
+                    // Мягкая овальная тень на полу под лапками
+                    Canvas(
+                        modifier = Modifier
+                            .size(54.dp, 10.dp)
+                            .offset(y = 3.dp)
+                    ) {
+                        drawOval(color = Color.Black.copy(alpha = 0.22f))
+                    }
+                    AnimatedGameArt(
+                        animationPrefix = "pet_${state.pet.species.id}_walk",
+                        staticAssetName = "pet_${state.pet.species.id}_idle",
+                        fallbackEmoji = state.pet.species.emoji,
+                        isAnimating = isWalking,
+                        flipHorizontally = !facingRight,
+                        modifier = Modifier
+                            .size(68.dp)
+                            .graphicsLayer(scaleY = breatheScale),
+                        fallbackSize = 48.sp
+                    )
                 }
-                AnimatedGameArt(
-                    animationPrefix = "pet_${state.pet.species.id}_walk",
-                    staticAssetName = "pet_${state.pet.species.id}_idle",
-                    fallbackEmoji = state.pet.species.emoji,
-                    isAnimating = isWalking,
-                    flipHorizontally = !facingRight,
-                    modifier = Modifier
-                        .size(68.dp)
-                        .graphicsLayer(scaleY = breatheScale),
-                    fallbackSize = 48.sp
-                )
+                Spacer(Modifier.height(2.dp))
                 Surface(
                     color = Color.White.copy(alpha = 0.90f),
                     shape = RoundedCornerShape(8.dp),
@@ -710,21 +717,28 @@ fun RoomInteractiveStage(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Мягкая овальная тень на полу
-                Canvas(modifier = Modifier.size(64.dp, 12.dp)) {
-                    drawOval(color = Color.Black.copy(alpha = 0.25f))
+                Box(contentAlignment = Alignment.BottomCenter) {
+                    // Мягкая овальная тень на полу под ботиночками
+                    Canvas(
+                        modifier = Modifier
+                            .size(64.dp, 12.dp)
+                            .offset(y = 4.dp)
+                    ) {
+                        drawOval(color = Color.Black.copy(alpha = 0.25f))
+                    }
+                    AnimatedGameArt(
+                        animationPrefix = "hero_walk",
+                        staticAssetName = "hero_idle",
+                        fallbackEmoji = "🚶",
+                        isAnimating = isWalking,
+                        flipHorizontally = !facingRight,
+                        modifier = Modifier
+                            .size(92.dp)
+                            .graphicsLayer(scaleY = breatheScale),
+                        fallbackSize = 64.sp
+                    )
                 }
-                AnimatedGameArt(
-                    animationPrefix = "hero_walk",
-                    staticAssetName = "hero_idle",
-                    fallbackEmoji = "🚶",
-                    isAnimating = isWalking,
-                    flipHorizontally = !facingRight,
-                    modifier = Modifier
-                        .size(92.dp)
-                        .graphicsLayer(scaleY = breatheScale),
-                    fallbackSize = 64.sp
-                )
+                Spacer(Modifier.height(2.dp))
                 Surface(
                     color = SanrioSkyBlue,
                     shape = RoundedCornerShape(8.dp),
@@ -744,7 +758,7 @@ fun RoomInteractiveStage(
 }
 
 /**
- * Интерактивный объект / персонаж в стиле Sanrio (с тенью и плавающей карточкой).
+ * Интерактивный объект / персонаж в стиле Sanrio (с тенью под ногами и плавающей карточкой).
  */
 @Composable
 fun BoxScope.SanrioInteractiveProp(
@@ -788,16 +802,22 @@ fun BoxScope.SanrioInteractiveProp(
                 )
             }
             Spacer(Modifier.height(4.dp))
-            // Мягкая овальная тень под объектом
-            Canvas(modifier = Modifier.size(propSize * 0.7f, 10.dp)) {
-                drawOval(color = Color.Black.copy(alpha = 0.20f))
+            // Персонаж с овальной тенью под ногами
+            Box(contentAlignment = Alignment.BottomCenter) {
+                Canvas(
+                    modifier = Modifier
+                        .size(propSize * 0.75f, 10.dp)
+                        .offset(y = 4.dp)
+                ) {
+                    drawOval(color = Color.Black.copy(alpha = 0.20f))
+                }
+                GameArt(
+                    assetName = assetName,
+                    fallbackEmoji = emoji,
+                    modifier = Modifier.size(propSize),
+                    fallbackSize = 48.sp
+                )
             }
-            GameArt(
-                assetName = assetName,
-                fallbackEmoji = emoji,
-                modifier = Modifier.size(propSize),
-                fallbackSize = 48.sp
-            )
         }
     }
 }
