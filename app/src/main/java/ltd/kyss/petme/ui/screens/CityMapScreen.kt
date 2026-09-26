@@ -24,6 +24,7 @@ import ltd.kyss.petme.core.data.GameCatalog
 import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.GameLocation
 import ltd.kyss.petme.core.model.PuzzleState
+import ltd.kyss.petme.ui.components.GameArt
 
 /**
  * Лёгкая карта города для старых телефонов.
@@ -109,6 +110,7 @@ fun CityMapScreen(
                     x = leftX,
                     y = 64.dp,
                     width = nodeWidth,
+                    assetName = "building_home",
                     emoji = "🏠",
                     title = "Мой дом",
                     subtitle = "Питомец ждёт",
@@ -120,6 +122,7 @@ fun CityMapScreen(
                     x = rightX,
                     y = 82.dp,
                     width = nodeWidth,
+                    assetName = "building_bank",
                     emoji = "🏦",
                     title = "Банк",
                     subtitle = "Копилка",
@@ -131,6 +134,7 @@ fun CityMapScreen(
                     x = leftX,
                     y = 210.dp,
                     width = nodeWidth,
+                    assetName = "building_shop",
                     emoji = "🛒",
                     title = "Магазин",
                     subtitle = "Еда и вещи",
@@ -142,6 +146,7 @@ fun CityMapScreen(
                     x = rightX,
                     y = 230.dp,
                     width = nodeWidth,
+                    assetName = "building_hospital",
                     emoji = "🏥",
                     title = "Больница",
                     subtitle = "Доктор Сова",
@@ -167,6 +172,7 @@ fun CityMapScreen(
                         x = if (index % 2 == 0) leftX else rightX,
                         y = friendY[index].dp,
                         width = nodeWidth,
+                        assetName = "friend_${friend.id}_portrait",
                         emoji = friend.emoji,
                         title = friend.name,
                         subtitle = friend.houseName,
@@ -232,6 +238,7 @@ private fun BoxScope.MapPlaceNode(
     x: Dp,
     y: Dp,
     width: Dp,
+    assetName: String,
     emoji: String,
     title: String,
     subtitle: String,
@@ -255,7 +262,12 @@ private fun BoxScope.MapPlaceNode(
                 modifier = Modifier.size(64.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(emoji, fontSize = 36.sp)
+                    GameArt(
+                        assetName = assetName,
+                        fallbackEmoji = emoji,
+                        modifier = Modifier.size(56.dp),
+                        fallbackSize = 36.sp
+                    )
                 }
             }
             Surface(

@@ -24,9 +24,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import ltd.kyss.petme.core.data.GameCatalog
 import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.*
+import ltd.kyss.petme.ui.components.AnimatedGameArt
+import ltd.kyss.petme.ui.components.GameArt
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
 /**
@@ -218,7 +221,12 @@ private fun PetProfileHeader(state: GameState) {
                 .background(Color(0xFFFFECB3)),
             contentAlignment = Alignment.Center
         ) {
-            Text(state.pet.species.emoji, fontSize = 19.sp)
+            GameArt(
+                assetName = "pet_${state.pet.species.id}_portrait",
+                fallbackEmoji = state.pet.species.emoji,
+                modifier = Modifier.size(28.dp),
+                fallbackSize = 19.sp
+            )
         }
         Spacer(modifier = Modifier.width(5.dp))
         Column {
@@ -345,6 +353,19 @@ fun RoomStage(
             animationSpec = tween(durationMillis = 560),
             label = "petFollow"
         )
+        var isWalking by remember { mutableStateOf(false) }
+        var facingRight by remember { mutableStateOf(true) }
+        var previousTargetX by remember { mutableFloatStateOf(state.heroX) }
+
+        LaunchedEffect(state.heroX) {
+            if (state.heroX != previousTargetX) {
+                facingRight = state.heroX > previousTargetX
+                previousTargetX = state.heroX
+                isWalking = true
+                delay(620)
+                isWalking = false
+            }
+        }
 
         // Вся свободная сцена принимает нажатие: герой идёт в выбранную точку.
         Box(
@@ -380,6 +401,7 @@ fun RoomStage(
         if (state.currentLocation == GameLocation.MyRoom) {
             // Шкаф-гардероб (слева)
             InteractiveProp(
+                assetName = "prop_wardrobe",
                 emoji = "🗄️",
                 title = "Гардероб",
                 xOffset = stageUsableWidth * 0.12f,
@@ -388,6 +410,7 @@ fun RoomStage(
 
             // Миска для корма (по центру)
             InteractiveProp(
+                assetName = if (state.pet.isHungry) "prop_bowl_empty" else "prop_bowl_full",
                 emoji = if (state.pet.isHungry) "🥣" else "🥣✨",
                 title = if (state.pet.isHungry) "Миска (пусто!)" else "Миска (сыт)",
                 xOffset = stageUsableWidth * 0.50f,
@@ -396,6 +419,7 @@ fun RoomStage(
 
             // Копилка на полу (справа)
             InteractiveProp(
+                assetName = "prop_piggy_bank",
                 emoji = "🏺",
                 title = "Копилка (${state.wallet.savings} м.)",
                 xOffset = stageUsableWidth * 0.85f,
@@ -406,6 +430,7 @@ fun RoomStage(
         // Объекты в магазине
         if (state.currentLocation == GameLocation.Shop) {
             InteractiveProp(
+                assetName = "worker_shop_idle",
                 emoji = "🦝",
                 title = "Енотик-продавец",
                 xOffset = stageUsableWidth * 0.70f,
@@ -416,6 +441,7 @@ fun RoomStage(
         // Объекты в банке
         if (state.currentLocation == GameLocation.Bank) {
             InteractiveProp(
+                assetName = "worker_bank_idle",
                 emoji = "🦫",
                 title = "Бобёр-банкир",
                 xOffset = stageUsableWidth * 0.70f,
@@ -425,6 +451,7 @@ fun RoomStage(
 
         if (state.currentLocation == GameLocation.Hospital) {
             InteractiveProp(
+                assetName = "worker_hospital_idle",
                 emoji = "🦉",
                 title = "Доктор Сова",
                 xOffset = stageUsableWidth * 0.70f,
@@ -438,6 +465,7 @@ fun RoomStage(
             val friend = GameCatalog.friendsList.find { it.id == friendId }
             if (friend != null) {
                 InteractiveProp(
+                    assetName = "friend_${friend.id}_idle",
                     emoji = friend.emoji,
                     title = "Поговорить: ${friend.name}",
                     xOffset = stageUsableWidth * 0.75f,
@@ -454,7 +482,15 @@ fun RoomStage(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(state.pet.species.emoji, fontSize = 42.sp)
+                AnimatedGameArt(
+                    animationPrefix = "pet_${state.pet.species.id}_walk",
+                    staticAssetName = "pet_${state.pet.species.id}_idle",
+                    fallbackEmoji = state.pet.species.emoji,
+                    isAnimating = isWalking,
+                    flipHorizontally = !facingRight,
+                    modifier = Modifier.size(54.dp),
+                    fallbackSize = 42.sp
+                )
                 Text(
                     state.pet.name,
                     fontSize = 11.sp,
@@ -472,7 +508,15 @@ fun RoomStage(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("🚶", fontSize = 48.sp)
+                AnimatedGameArt(
+                    animationPrefix = "hero_walk",
+                    staticAssetName = "hero_idle",
+                    fallbackEmoji = "🚶",
+                    isAnimating = isWalking,
+                    flipHorizontally = !facingRight,
+                    modifier = Modifier.size(62.dp),
+                    fallbackSize = 48.sp
+                )
                 Text(
                     "Ты",
                     fontSize = 11.sp,
@@ -486,6 +530,7 @@ fun RoomStage(
 
 @Composable
 fun BoxScope.InteractiveProp(
+    assetName: String,
     emoji: String,
     title: String,
     xOffset: Dp,
@@ -520,7 +565,12 @@ fun BoxScope.InteractiveProp(
                 )
             }
             Spacer(Modifier.height(3.dp))
-            Text(emoji, fontSize = 38.sp)
+            GameArt(
+                assetName = assetName,
+                fallbackEmoji = emoji,
+                modifier = Modifier.size(48.dp),
+                fallbackSize = 38.sp
+            )
         }
     }
 }

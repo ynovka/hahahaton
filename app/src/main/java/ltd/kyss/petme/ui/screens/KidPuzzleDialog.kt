@@ -18,6 +18,7 @@ import androidx.compose.ui.window.Dialog
 import ltd.kyss.petme.core.data.GameCatalog
 import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.PuzzleState
+import ltd.kyss.petme.ui.components.GameArt
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
 @Composable
@@ -49,7 +50,12 @@ fun KidPuzzleDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Иконка и имя друга
-                Text(friend.emoji, fontSize = 48.sp)
+                GameArt(
+                    assetName = "friend_${friend.id}_portrait",
+                    fallbackEmoji = friend.emoji,
+                    modifier = Modifier.size(72.dp),
+                    fallbackSize = 48.sp
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     friend.name,

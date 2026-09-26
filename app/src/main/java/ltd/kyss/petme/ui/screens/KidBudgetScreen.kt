@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.CoinJarType
+import ltd.kyss.petme.ui.components.GameArt
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
 @Composable
@@ -90,7 +91,12 @@ fun KidBudgetScreen(
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(state.pet.species.emoji, fontSize = 29.sp)
+                GameArt(
+                    assetName = "pet_${state.pet.species.id}_portrait",
+                    fallbackEmoji = state.pet.species.emoji,
+                    modifier = Modifier.size(42.dp),
+                    fallbackSize = 29.sp
+                )
                 Spacer(modifier = Modifier.width(7.dp))
                 Column {
                     Text(

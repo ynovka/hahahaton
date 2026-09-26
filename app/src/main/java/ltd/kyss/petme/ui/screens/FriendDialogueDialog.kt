@@ -1,14 +1,15 @@
 package ltd.kyss.petme.ui.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ltd.kyss.petme.core.data.GameCatalog
 import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.PuzzleState
+import ltd.kyss.petme.ui.components.GameArt
 
 @Composable
 fun FriendDialogueDialog(
@@ -24,7 +25,18 @@ fun FriendDialogueDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("${friend.emoji} ${friend.name}") },
+        title = {
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                GameArt(
+                    assetName = "friend_${friend.id}_portrait",
+                    fallbackEmoji = friend.emoji,
+                    modifier = Modifier.size(38.dp),
+                    fallbackSize = 26.sp
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(friend.name)
+            }
+        },
         text = {
             Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
                 Text(if (taskDiscussed) friend.puzzlePrompt else "«${friend.greetingText}»")

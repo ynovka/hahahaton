@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import ltd.kyss.petme.core.data.GameCatalog
 import ltd.kyss.petme.core.engine.GameState
+import ltd.kyss.petme.ui.components.GameArt
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
 @Composable
@@ -50,7 +51,12 @@ fun WardrobeDialog(
                     modifier = Modifier.size(100.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(state.pet.species.emoji, fontSize = 54.sp)
+                        GameArt(
+                            assetName = "pet_${state.pet.species.id}_portrait",
+                            fallbackEmoji = state.pet.species.emoji,
+                            modifier = Modifier.size(92.dp),
+                            fallbackSize = 54.sp
+                        )
                     }
                 }
 

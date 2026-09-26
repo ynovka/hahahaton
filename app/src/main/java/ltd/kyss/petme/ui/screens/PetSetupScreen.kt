@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ltd.kyss.petme.core.model.ColorPattern
 import ltd.kyss.petme.core.model.PetSpecies
+import ltd.kyss.petme.ui.components.GameArt
 
 @Composable
 fun PetSetupScreen(onStartGame: (PetSpecies, ColorPattern, String) -> Unit) {
@@ -75,7 +76,12 @@ fun PetSetupScreen(onStartGame: (PetSpecies, ColorPattern, String) -> Unit) {
                             .background(Color(0xFFFFE8A8), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(selectedSpecies.emoji, fontSize = 50.sp)
+                        GameArt(
+                            assetName = "pet_${selectedSpecies.id}_portrait",
+                            fallbackEmoji = selectedSpecies.emoji,
+                            modifier = Modifier.size(70.dp),
+                            fallbackSize = 50.sp
+                        )
                     }
                     Spacer(Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -208,7 +214,12 @@ private fun PetChoice(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(species.emoji, fontSize = 27.sp)
+            GameArt(
+                assetName = "pet_${species.id}_portrait",
+                fallbackEmoji = species.emoji,
+                modifier = Modifier.size(38.dp),
+                fallbackSize = 27.sp
+            )
             Text(
                 species.title,
                 fontSize = 8.sp,
