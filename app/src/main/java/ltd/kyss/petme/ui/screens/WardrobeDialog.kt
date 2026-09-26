@@ -136,10 +136,16 @@ fun WardrobeDialog(
                                     Surface(
                                         shape = CircleShape,
                                         color = Color.White,
-                                        modifier = Modifier.size(40.dp)
+                                        border = BorderStroke(1.dp, SanrioCardBorder),
+                                        modifier = Modifier.size(42.dp)
                                     ) {
                                         Box(contentAlignment = Alignment.Center) {
-                                            Text(acc.emoji, fontSize = 22.sp)
+                                            GameArt(
+                                                assetName = if (acc.id.startsWith("item_")) acc.id else "item_${acc.id}",
+                                                fallbackEmoji = acc.emoji,
+                                                modifier = Modifier.size(32.dp),
+                                                fallbackSize = 22.sp
+                                            )
                                         }
                                     }
                                     Spacer(modifier = Modifier.width(10.dp))
