@@ -2,72 +2,120 @@ package ltd.kyss.petme.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import ltd.kyss.petme.core.engine.GameState
+import ltd.kyss.petme.ui.components.GameArt
+import ltd.kyss.petme.ui.theme.*
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
+/**
+ * Диалог магазина покупок в стиле Sanrio / Hello Kitty Island Adventure.
+ */
 @Composable
 fun ShopDialog(
     state: GameState,
     viewModel: GameViewModel,
     onDismiss: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             color = Color.White,
-            shadowElevation = 8.dp,
+            border = BorderStroke(3.dp, SanrioCardBorder),
+            shadowElevation = 12.dp,
             modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 480.dp)
+                .fillMaxWidth(0.92f)
+                .widthIn(max = 460.dp)
+                .wrapContentHeight()
+                .padding(vertical = 16.dp)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Заголовок и баланс
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text("🛒 Лавка покупок", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text("В кошельке: ${state.wallet.coins} 🪙", fontSize = 13.sp, color = Color(0xFFF57F17), fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(SanrioPinkBg),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("🛒", fontSize = 22.sp)
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                "Лавка покупок",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SanrioTextDark
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                GameArt("icon_paw_coin", fallbackEmoji = "🪙", modifier = Modifier.size(14.dp), fallbackSize = 11.sp)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    "В кошельке: ${state.wallet.coins}",
+                                    fontSize = 12.sp,
+                                    color = SanrioGoldText,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
-                    IconButton(onClick = onDismiss) {
-                        Text("✕", fontWeight = FontWeight.Bold)
+
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .size(34.dp)
+                            .background(SanrioSkyBlueLight, CircleShape)
+                    ) {
+                        Text("✕", fontWeight = FontWeight.Bold, color = SanrioSkyBlueDark)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(260.dp)
+                        .height(300.dp)
                 ) {
                     items(state.shopItems) { item ->
                         val canAfford = state.wallet.canAfford(item.price)
 
                         Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFFFFFDE7),
-                            border = BorderStroke(1.dp, Color(0xFFFFE082)),
+                            shape = RoundedCornerShape(18.dp),
+                            color = SanrioSkyBlueLight,
+                            border = BorderStroke(1.5.dp, SanrioCardBorder),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp)
+                                .padding(vertical = 5.dp)
                         ) {
                             Row(
                                 modifier = Modifier.padding(10.dp),
@@ -79,16 +127,35 @@ fun ShopDialog(
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     val assetName = if (item.id.startsWith("item_")) item.id else "item_${item.id}"
-                                    ltd.kyss.petme.ui.components.GameArt(
-                                        assetName = assetName,
-                                        fallbackEmoji = item.emoji,
-                                        modifier = Modifier.size(36.dp),
-                                        fallbackSize = 28.sp
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .size(50.dp)
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .background(Color.White)
+                                            .border(1.5.dp, SanrioCardBorder, RoundedCornerShape(14.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        GameArt(
+                                            assetName = assetName,
+                                            fallbackEmoji = item.emoji,
+                                            modifier = Modifier.size(38.dp),
+                                            fallbackSize = 28.sp
+                                        )
+                                    }
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column {
-                                        Text(item.title, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                        Text(item.description, fontSize = 10.sp, color = Color.Gray, maxLines = 2)
+                                        Text(
+                                            item.title,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = SanrioTextDark
+                                        )
+                                        Text(
+                                            item.description,
+                                            fontSize = 10.sp,
+                                            color = SanrioTextSubtitle,
+                                            maxLines = 2
+                                        )
                                     }
                                 }
 
@@ -97,25 +164,38 @@ fun ShopDialog(
                                 Button(
                                     onClick = { viewModel.buyShopItem(item.id) },
                                     enabled = canAfford,
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
-                                    shape = RoundedCornerShape(10.dp),
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = SanrioAccentOrange,
+                                        disabledContainerColor = Color(0xFFCFD8DC)
+                                    ),
+                                    shape = RoundedCornerShape(50),
+                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                                 ) {
-                                    Text("${item.price} 🪙", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        GameArt("icon_paw_coin", fallbackEmoji = "🪙", modifier = Modifier.size(13.dp), fallbackSize = 10.sp)
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        Text(
+                                            "${item.price}",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                Button(
+                OutlinedButton(
                     onClick = onDismiss,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    shape = RoundedCornerShape(50),
+                    border = BorderStroke(1.5.dp, SanrioCardBorder),
+                    modifier = Modifier.fillMaxWidth().height(44.dp)
                 ) {
-                    Text("Выйти из лавки")
+                    Text("Закрыть лавку", color = SanrioTextSubtitle, fontSize = 14.sp)
                 }
             }
         }

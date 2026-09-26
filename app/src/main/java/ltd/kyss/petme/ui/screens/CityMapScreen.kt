@@ -1,7 +1,9 @@
 package ltd.kyss.petme.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,8 +15,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -25,13 +29,11 @@ import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.GameLocation
 import ltd.kyss.petme.core.model.PuzzleState
 import ltd.kyss.petme.ui.components.GameArt
+import ltd.kyss.petme.ui.theme.*
 
 /**
- * Лёгкая карта города для старых телефонов.
- *
- * Здесь нет огромного масштабируемого слоя, постоянных параллакс-анимаций и десятков
- * аппаратных graphicsLayer. Карта остаётся игровой: по улице можно прокручивать город,
- * нажимать на здания и видеть, у кого из друзей доступно задание.
+ * Карта Города в стиле Hello Kitty Island Adventure / Sanrio 3D.
+ * Уютная сказочная дорожка, цветущие лужайки, домики и друзья в форме скверкл-карточек.
  */
 @Composable
 fun CityMapScreen(
@@ -39,16 +41,17 @@ fun CityMapScreen(
     onSelectLocation: (GameLocation) -> Unit,
     onOpenFriendProfile: (Int) -> Unit = {}
 ) {
-    @Suppress("UNUSED_VARIABLE")
-    val profileAction = onOpenFriendProfile
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFB9E7F5))
+            .background(SanrioSkyBlueLight)
     ) {
-        CityMapHeader(state = state)
+        // Шапка карты (Sanrio Pill Header)
+        SanrioCityMapHeader(state = state)
 
         Box(
             modifier = Modifier
@@ -59,116 +62,152 @@ fun CityMapScreen(
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(1080.dp)
+                    .height(1150.dp)
                     .background(
                         Brush.verticalGradient(
-                            listOf(Color(0xFFDDF5FF), Color(0xFFA5D6A7), Color(0xFF81C784))
+                            listOf(
+                                Color(0xFFE1F5FE), // Небо у въезда в город
+                                Color(0xFFC8E6C9), // Зелёные холмы
+                                Color(0xFFA5D6A7), // Центр лужайки
+                                Color(0xFF81C784)  // Улица друзей
+                            )
                         )
                     )
             ) {
-                val nodeWidth = 122.dp
-                val leftX = 14.dp
-                val rightX = (maxWidth - nodeWidth - 14.dp).coerceAtLeast(150.dp)
+                val nodeWidth = if (isLandscape) 160.dp else 140.dp
+                val leftX = if (isLandscape) (maxWidth * 0.15f) else 14.dp
+                val rightX = if (isLandscape) (maxWidth * 0.85f - nodeWidth) else (maxWidth - nodeWidth - 14.dp).coerceAtLeast(160.dp)
 
+                // Пешеходная мощёная улочка города (вместо серого асфальта!)
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .width(64.dp)
+                        .width(76.dp)
                         .fillMaxHeight()
-                        .background(Color(0xFF7C8790))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    Color(0xFFFFECB3), // Тёплый песчаник
+                                    Color(0xFFFFF8E1), // Светлая брусчатка
+                                    Color(0xFFFFECB3)
+                                )
+                            )
+                        )
+                        .border(BorderStroke(2.dp, Color(0xFFFFD54F).copy(alpha = 0.6f)))
                 )
-                repeat(9) { index ->
+
+                // Декоративные плитки брусчатки по центру улочки
+                repeat(11) { index ->
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .offset(y = (54 + index * 118).dp)
-                            .width(5.dp)
-                            .height(62.dp)
-                            .background(Color(0xFFF5E8A8))
+                            .offset(y = (45 + index * 105).dp)
+                            .width(8.dp)
+                            .height(45.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color(0xFFFFCA28))
                     )
                 }
-                listOf(150, 320, 520, 720, 920).forEach { y ->
+
+                // Боковые тропинки к зданиям (с мягким скруглением)
+                listOf(165, 335, 535, 735, 935).forEach { y ->
                     Box(
                         modifier = Modifier
                             .offset(y = y.dp)
                             .fillMaxWidth()
-                            .height(42.dp)
-                            .background(Color(0xFF7C8790))
+                            .height(34.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color(0xFFFFECB3), Color(0xFFFFE082))
+                                )
+                            )
                     )
                 }
 
-                Text(
-                    "☁️       ☀️       ☁️",
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 6.dp),
-                    fontSize = 24.sp,
-                    color = Color.White
-                )
-                MapDistrictLabel("Центр города", 28.dp)
-                MapDistrictLabel("Улица друзей", 350.dp)
+                // Цветущие кусты и ромашки на полянках
+                listOf(
+                    Pair(30.dp, 10.dp), Pair(180.dp, 30.dp), Pair(310.dp, 15.dp),
+                    Pair(120.dp, 470.dp), Pair(260.dp, 650.dp), Pair(40.dp, 840.dp),
+                    Pair(290.dp, 1020.dp)
+                ).forEach { (xOffset, yOffset) ->
+                    Text(
+                        "🌸",
+                        fontSize = 16.sp,
+                        modifier = Modifier.offset(x = xOffset, y = yOffset)
+                    )
+                }
 
-                MapPlaceNode(
+                // Таблички районов
+                SanrioDistrictLabel("⭐ Центр города", 24.dp)
+                SanrioDistrictLabel("🏡 Улица верных друзей", 355.dp)
+
+                // 1. Мой дом
+                SanrioMapNode(
                     x = leftX,
-                    y = 64.dp,
+                    y = 65.dp,
                     width = nodeWidth,
                     assetName = "building_home",
                     emoji = "🏠",
                     title = "Мой дом",
                     subtitle = "Питомец ждёт",
                     badge = "ДОМОЙ",
-                    badgeColor = Color(0xFF2E7D32),
+                    badgeColor = SanrioAccentGreen,
                     onClick = { onSelectLocation(GameLocation.MyRoom) }
                 )
-                MapPlaceNode(
+
+                // 2. Городской Банк
+                SanrioMapNode(
                     x = rightX,
-                    y = 82.dp,
+                    y = 80.dp,
                     width = nodeWidth,
                     assetName = "building_bank",
                     emoji = "🏦",
                     title = "Банк",
-                    subtitle = "Копилка",
+                    subtitle = "Копилка и сейф",
                     badge = "${state.wallet.savings} м.",
-                    badgeColor = Color(0xFF6A4FB3),
+                    badgeColor = SanrioAccentPurple,
                     onClick = { onSelectLocation(GameLocation.Bank) }
                 )
-                MapPlaceNode(
+
+                // 3. Универсальный магазин
+                SanrioMapNode(
                     x = leftX,
-                    y = 210.dp,
+                    y = 220.dp,
                     width = nodeWidth,
                     assetName = "building_shop",
                     emoji = "🛒",
                     title = "Магазин",
-                    subtitle = "Еда и вещи",
-                    badge = "ОТКРЫТО",
-                    badgeColor = Color(0xFFCC6B16),
+                    subtitle = "Еда и наряды",
+                    badge = "ЛАВКА",
+                    badgeColor = SanrioAccentPink,
                     onClick = { onSelectLocation(GameLocation.Shop) }
                 )
-                MapPlaceNode(
+
+                // 4. Больница Доктора Совы
+                SanrioMapNode(
                     x = rightX,
-                    y = 230.dp,
+                    y = 240.dp,
                     width = nodeWidth,
                     assetName = "building_hospital",
                     emoji = "🏥",
                     title = "Больница",
                     subtitle = "Доктор Сова",
                     badge = "ОСМОТР",
-                    badgeColor = Color(0xFFC62828),
+                    badgeColor = SanrioSkyBlueDark,
                     onClick = { onSelectLocation(GameLocation.Hospital) }
                 )
 
-                val friendY = listOf(390, 480, 590, 690, 800, 900, 990)
+                // Домики 7 друзей города
+                val friendY = listOf(400, 500, 610, 715, 820, 925, 1025)
                 GameCatalog.friendsList.forEachIndexed { index, friend ->
                     val puzzle = state.puzzles[friend.id]
-                    val badge = when (puzzle?.state) {
-                        PuzzleState.COMPLETED -> "ГОТОВО"
-                        PuzzleState.SOLVED_UNCLAIMED -> "НАГРАДА"
-                        else -> "+${friend.rewardCoins} м."
+                    val (badgeText, badgeColor) = when (puzzle?.state) {
+                        PuzzleState.COMPLETED -> Pair("ГОТОВО ✓", SanrioAccentGreen)
+                        PuzzleState.SOLVED_UNCLAIMED -> Pair("НАГРАДА 🪙", SanrioAccentOrange)
+                        else -> Pair("+${friend.rewardCoins} м.", SanrioSkyBlueDark)
                     }
-                    val color = when (puzzle?.state) {
-                        PuzzleState.COMPLETED -> Color(0xFF2E7D32)
-                        PuzzleState.SOLVED_UNCLAIMED -> Color(0xFFEF6C00)
-                        else -> Color(0xFF1565C0)
-                    }
-                    MapPlaceNode(
+
+                    SanrioMapNode(
                         x = if (index % 2 == 0) leftX else rightX,
                         y = friendY[index].dp,
                         width = nodeWidth,
@@ -176,8 +215,8 @@ fun CityMapScreen(
                         emoji = friend.emoji,
                         title = friend.name,
                         subtitle = friend.houseName,
-                        badge = badge,
-                        badgeColor = color,
+                        badge = badgeText,
+                        badgeColor = badgeColor,
                         onAvatarClick = { onOpenFriendProfile(friend.id) },
                         onClick = { onSelectLocation(GameLocation.FriendRoom(friend.id)) }
                     )
@@ -188,54 +227,93 @@ fun CityMapScreen(
 }
 
 @Composable
-private fun CityMapHeader(state: GameState) {
+private fun SanrioCityMapHeader(state: GameState) {
     Surface(
-        color = Color(0xFFFDFDFD),
-        shadowElevation = 3.dp,
-        modifier = Modifier.fillMaxWidth()
+        color = Color.White.copy(alpha = 0.96f),
+        border = BorderStroke(2.dp, SanrioCardBorder),
+        shadowElevation = 4.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(20.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🗺️", fontSize = 25.sp)
-            Spacer(Modifier.width(8.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Город", fontSize = 17.sp, fontWeight = FontWeight.Black)
-                Text("Нажми на здание · листай улицу вниз", fontSize = 10.sp, color = Color(0xFF546E7A))
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(SanrioSkyBlueLight),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("🗺️", fontSize = 24.sp)
             }
-            Surface(color = Color(0xFFFFF3C4), shape = RoundedCornerShape(12.dp)) {
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "🪙 ${state.wallet.coins}   🏺 ${state.wallet.savings}",
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold
+                    "Город Финляндия",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = SanrioTextDark
                 )
+                Text(
+                    "Нажми на друга или здание для визита",
+                    fontSize = 10.sp,
+                    color = SanrioTextSubtitle
+                )
+            }
+
+            // Монеты и сбережения
+            Surface(
+                color = SanrioGoldBg,
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.5.dp, SanrioGoldCoin)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    GameArt("icon_paw_coin", fallbackEmoji = "🪙", modifier = Modifier.size(15.dp), fallbackSize = 12.sp)
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text("${state.wallet.coins}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SanrioGoldText)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    GameArt("jar_savings", fallbackEmoji = "🏺", modifier = Modifier.size(15.dp), fallbackSize = 12.sp)
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text("${state.wallet.savings}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SanrioAccentPurple)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun BoxScope.MapDistrictLabel(title: String, y: Dp) {
+private fun BoxScope.SanrioDistrictLabel(title: String, y: Dp) {
     Surface(
-        modifier = Modifier.align(Alignment.TopCenter).offset(y = y),
-        color = Color(0xDDFFFFFF),
-        shape = RoundedCornerShape(12.dp)
+        modifier = Modifier
+            .align(Alignment.TopCenter)
+            .offset(y = y),
+        color = Color.White.copy(alpha = 0.95f),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.5.dp, SanrioCardBorder),
+        shadowElevation = 3.dp
     ) {
         Text(
-            title.uppercase(),
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Black,
-            color = Color(0xFF355D3A),
-            letterSpacing = 0.8.sp
+            title,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = SanrioTextDark
         )
     }
 }
 
+/**
+ * Игровой узел на карте города в форме скверкл-карточки Sanrio.
+ */
 @Composable
-private fun BoxScope.MapPlaceNode(
+private fun BoxScope.SanrioMapNode(
     x: Dp,
     y: Dp,
     width: Dp,
@@ -256,52 +334,72 @@ private fun BoxScope.MapPlaceNode(
         contentAlignment = Alignment.TopCenter
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Круглый аватар с яркой рамкой и мягкой тенью
             Surface(
                 shape = CircleShape,
                 color = Color.White,
-                border = BorderStroke(2.dp, badgeColor),
-                shadowElevation = 5.dp,
+                border = BorderStroke(3.dp, badgeColor),
+                shadowElevation = 6.dp,
                 modifier = Modifier
-                    .size(64.dp)
-                    .then(if (onAvatarClick != null) Modifier.clickable(onClick = onAvatarClick) else Modifier)
+                    .size(72.dp)
+                    .then(
+                        if (onAvatarClick != null) Modifier.clickable(onClick = onAvatarClick)
+                        else Modifier
+                    )
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     GameArt(
                         assetName = assetName,
                         fallbackEmoji = emoji,
-                        modifier = Modifier.size(56.dp),
-                        fallbackSize = 36.sp
+                        modifier = Modifier.size(62.dp),
+                        fallbackSize = 40.sp
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Скверкл-карточка с описанием и кнопкой
             Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = Color(0xF7FFFFFF),
-                shadowElevation = 2.dp,
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White.copy(alpha = 0.97f),
+                border = BorderStroke(1.5.dp, badgeColor.copy(alpha = 0.4f)),
+                shadowElevation = 3.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(title, fontSize = 11.sp, fontWeight = FontWeight.Black, maxLines = 1)
                     Text(
-                        subtitle,
-                        fontSize = 8.sp,
-                        color = Color(0xFF607D8B),
+                        title,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = SanrioTextDark,
                         maxLines = 1,
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        badge,
-                        modifier = Modifier
-                            .padding(top = 2.dp)
-                            .background(badgeColor, RoundedCornerShape(7.dp))
-                            .padding(horizontal = 6.dp, vertical = 2.dp),
-                        fontSize = 7.sp,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White
+                        subtitle,
+                        fontSize = 9.sp,
+                        color = SanrioTextSubtitle,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center
                     )
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Surface(
+                        color = badgeColor,
+                        shape = RoundedCornerShape(10.dp),
+                        shadowElevation = 1.dp
+                    ) {
+                        Text(
+                            badge,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
