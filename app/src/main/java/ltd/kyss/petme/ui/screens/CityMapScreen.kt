@@ -178,6 +178,7 @@ fun CityMapScreen(
                         subtitle = friend.houseName,
                         badge = badge,
                         badgeColor = color,
+                        onAvatarClick = { onOpenFriendProfile(friend.id) },
                         onClick = { onSelectLocation(GameLocation.FriendRoom(friend.id)) }
                     )
                 }
@@ -244,6 +245,7 @@ private fun BoxScope.MapPlaceNode(
     subtitle: String,
     badge: String,
     badgeColor: Color,
+    onAvatarClick: (() -> Unit)? = null,
     onClick: () -> Unit
 ) {
     Box(
@@ -259,7 +261,9 @@ private fun BoxScope.MapPlaceNode(
                 color = Color.White,
                 border = BorderStroke(2.dp, badgeColor),
                 shadowElevation = 5.dp,
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier
+                    .size(64.dp)
+                    .then(if (onAvatarClick != null) Modifier.clickable(onClick = onAvatarClick) else Modifier)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     GameArt(

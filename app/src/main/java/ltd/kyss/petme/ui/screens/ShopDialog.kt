@@ -78,7 +78,13 @@ fun ShopDialog(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Text(item.emoji, fontSize = 28.sp)
+                                    val assetName = if (item.id.startsWith("item_")) item.id else "item_${item.id}"
+                                    ltd.kyss.petme.ui.components.GameArt(
+                                        assetName = assetName,
+                                        fallbackEmoji = item.emoji,
+                                        modifier = Modifier.size(36.dp),
+                                        fallbackSize = 28.sp
+                                    )
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column {
                                         Text(item.title, fontWeight = FontWeight.Bold, fontSize = 13.sp)

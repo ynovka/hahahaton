@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -378,23 +379,55 @@ fun RoomStage(
                     }
                 }
         ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.31f)
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(Color(0xFF9C6B55), Color(0xFF5D4037))
+            val bgAssetName = when (state.currentLocation) {
+                GameLocation.MyRoom -> "bg_room_myroom"
+                GameLocation.Bank -> "bg_room_bank"
+                GameLocation.Hospital -> "bg_room_hospital"
+                GameLocation.Shop -> "bg_room_shop"
+                is GameLocation.FriendRoom -> "bg_room_friend_${(state.currentLocation as GameLocation.FriendRoom).friendId}"
+                else -> null
+            }
+
+            // Атмосферный фон для комнат друзей
+            if (state.currentLocation is GameLocation.FriendRoom) {
+                val friendId = (state.currentLocation as GameLocation.FriendRoom).friendId
+                val friendColors = when (friendId) {
+                    1 -> listOf(Color(0xFFFFF8E1), Color(0xFFFFE082)) // Медовая берлога
+                    2 -> listOf(Color(0xFFE8F5E9), Color(0xFFA5D6A7)) // Дуб и мох
+                    3 -> listOf(Color(0xFFECEFF1), Color(0xFFB0BEC5)) // Мастерская
+                    4 -> listOf(Color(0xFFEDE7F6), Color(0xFFD1C4E9)) // Книжная башня
+                    5 -> listOf(Color(0xFFFBE9E7), Color(0xFFFFAB91)) // Нора с камином
+                    6 -> listOf(Color(0xFFE0F2F1), Color(0xFF80CBC4)) // Морковный домик
+                    else -> listOf(Color(0xFFE1F5FE), Color(0xFF81D4FA)) // Полянка Барбоса
+                }
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Brush.verticalGradient(friendColors))
+                )
+                // Пол для ходьбы
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.28f)
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(Color(0xFF8D6E63), Color(0xFF4E342E))
+                            )
                         )
-                    )
-            )
-            Text(
-                "Нажми на пол — герой подойдёт",
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp),
-                color = Color(0x884E342E),
-                fontSize = 10.sp
-            )
+                )
+            }
+
+            if (bgAssetName != null) {
+                GameArt(
+                    assetName = bgAssetName,
+                    fallbackEmoji = "",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize(),
+                    contentDescription = "Room Background"
+                )
+            }
         }
 
         // Объекты в своей комнате

@@ -26,6 +26,7 @@ fun GameArt(
     modifier: Modifier = Modifier,
     fallbackSize: TextUnit = 40.sp,
     flipHorizontally: Boolean = false,
+    contentScale: ContentScale = ContentScale.Fit,
     contentDescription: String? = null
 ) {
     val resourceId = drawableId(assetName)
@@ -35,7 +36,7 @@ fun GameArt(
         Image(
             painter = painterResource(resourceId),
             contentDescription = contentDescription,
-            contentScale = ContentScale.Fit,
+            contentScale = contentScale,
             modifier = modifier.graphicsLayer(scaleX = flip)
         )
     } else {

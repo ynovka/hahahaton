@@ -127,6 +127,7 @@ fun KidBudgetScreen(
             coins = b.foodAndCareCoins,
             cardColor = Color(0xFFE8F5E9),
             accentColor = Color(0xFF2E7D32),
+            assetName = "jar_needs",
             onMinus = { viewModel.allocateCoins(CoinJarType.FOOD_AND_CARE, -10) },
             onPlus = { viewModel.allocateCoins(CoinJarType.FOOD_AND_CARE, 10) }
         )
@@ -140,6 +141,7 @@ fun KidBudgetScreen(
             coins = b.funAndGamesCoins,
             cardColor = Color(0xFFFCE4EC),
             accentColor = Color(0xFFC2185B),
+            assetName = "jar_fun",
             onMinus = { viewModel.allocateCoins(CoinJarType.FUN_AND_GAMES, -10) },
             onPlus = { viewModel.allocateCoins(CoinJarType.FUN_AND_GAMES, 10) }
         )
@@ -153,6 +155,7 @@ fun KidBudgetScreen(
             coins = b.piggyBankCoins,
             cardColor = Color(0xFFEDE7F6),
             accentColor = Color(0xFF512DA8),
+            assetName = "jar_savings",
             onMinus = { viewModel.allocateCoins(CoinJarType.PIGGY_BANK, -10) },
             onPlus = { viewModel.allocateCoins(CoinJarType.PIGGY_BANK, 10) }
         )
@@ -217,6 +220,7 @@ fun PlayfulJarCard(
     coins: Int,
     cardColor: Color,
     accentColor: Color,
+    assetName: String = "",
     onMinus: () -> Unit,
     onPlus: () -> Unit
 ) {
@@ -233,6 +237,14 @@ fun PlayfulJarCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                if (assetName.isNotEmpty()) {
+                    GameArt(
+                        assetName = assetName,
+                        fallbackEmoji = "🏺",
+                        modifier = Modifier.size(42.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = accentColor)
                     Text(description, fontSize = 9.sp, color = Color.DarkGray, maxLines = 1)
