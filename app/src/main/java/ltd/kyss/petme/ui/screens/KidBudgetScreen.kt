@@ -44,7 +44,7 @@ fun KidBudgetScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .widthIn(max = 560.dp)
-                .padding(16.dp)
+                .padding(10.dp)
                 .verticalScroll(rememberScrollState())
         ) {
         // Шапка окна бюджета
@@ -56,13 +56,13 @@ fun KidBudgetScreen(
             Column {
                 Text(
                     text = "🪙 Раскладываем монетки!",
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF3E2723)
                 )
                 Text(
                     text = "Период #${state.period} • Всего монет: ${b.totalStartingCoins}",
-                    fontSize = 13.sp,
+                    fontSize = 11.sp,
                     color = Color(0xFF5D4037)
                 )
             }
@@ -77,39 +77,40 @@ fun KidBudgetScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(7.dp))
 
         // Персонаж Финни с подсказкой детским языком
         Surface(
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(14.dp),
             color = Color.White,
             shadowElevation = 3.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
-                modifier = Modifier.padding(12.dp),
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(state.pet.species.emoji, fontSize = 40.sp)
-                Spacer(modifier = Modifier.width(10.dp))
+                Text(state.pet.species.emoji, fontSize = 29.sp)
+                Spacer(modifier = Modifier.width(7.dp))
                 Column {
                     Text(
                         "${state.pet.name} подсказывает:",
-                        fontSize = 12.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFE65100)
                     )
                     Text(
                         state.advisorTip,
-                        fontSize = 13.sp,
+                        fontSize = 10.sp,
                         color = Color(0xFF263238),
-                        lineHeight = 17.sp
+                        lineHeight = 13.sp,
+                        maxLines = 2
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // 3 Игровых сундучка / горшочка
 
@@ -124,7 +125,7 @@ fun KidBudgetScreen(
             onPlus = { viewModel.allocateCoins(CoinJarType.FOOD_AND_CARE, 10) }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // 2. Сундучок радостей (Желания)
         PlayfulJarCard(
@@ -137,7 +138,7 @@ fun KidBudgetScreen(
             onPlus = { viewModel.allocateCoins(CoinJarType.FUN_AND_GAMES, 10) }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // 3. Копилка на мечту (Сбережения)
         PlayfulJarCard(
@@ -150,7 +151,7 @@ fun KidBudgetScreen(
             onPlus = { viewModel.allocateCoins(CoinJarType.PIGGY_BANK, 10) }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Индикатор остатка монет
         Surface(
@@ -159,26 +160,26 @@ fun KidBudgetScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Разложено: ${b.totalAllocated} из ${b.totalStartingCoins} м.",
-                    fontSize = 14.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF37474F)
                 )
                 Text(
                     text = if (b.unallocated == 0) "Идеально! ✨" else "Осталось: ${b.unallocated} м.",
-                    fontSize = 14.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (b.unallocated == 0) Color(0xFF2E7D32) else Color(0xFFE65100)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Большая кнопка подтверждения
         Button(
@@ -191,11 +192,11 @@ fun KidBudgetScreen(
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(54.dp)
+                .height(48.dp)
         ) {
             Text(
                 text = if (b.isConfirmed) "План уже утверждён ✅" else "Утвердить и начать игру! ✨",
-                fontSize = 16.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -214,65 +215,57 @@ fun PlayfulJarCard(
     onPlus: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(14.dp),
         color = cardColor,
         border = BorderStroke(1.5.dp, accentColor.copy(alpha = 0.3f)),
         shadowElevation = 2.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Text(
-                title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = accentColor
-            )
-            Text(
-                description,
-                fontSize = 11.sp,
-                color = Color.DarkGray
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Кнопка минус 10
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = accentColor)
+                    Text(description, fontSize = 9.sp, color = Color.DarkGray, maxLines = 1)
+                }
+                Surface(shape = RoundedCornerShape(10.dp), color = Color.White) {
+                    Text(
+                        text = "$coins м.",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 14.sp,
+                        color = accentColor,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Button(
                     onClick = onMinus,
                     colors = ButtonDefaults.buttonColors(containerColor = accentColor.copy(alpha = 0.15f)),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                    modifier = Modifier.weight(1f).height(36.dp)
                 ) {
-                    Text("-10 🪙", color = accentColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("− 10", color = accentColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
 
-                // Количество монет в этом горшочке
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
-                    shadowElevation = 1.dp
-                ) {
-                    Text(
-                        text = "$coins монет",
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 18.sp,
-                        color = accentColor,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                    )
-                }
-
-                // Кнопка плюс 10
                 Button(
                     onClick = onPlus,
                     colors = ButtonDefaults.buttonColors(containerColor = accentColor),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                    modifier = Modifier.weight(1f).height(36.dp)
                 ) {
-                    Text("+10 🪙", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("+ 10", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
             }
         }
