@@ -1,13 +1,17 @@
 package ltd.kyss.petme
 
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import ltd.kyss.petme.core.model.GameLocation
 import ltd.kyss.petme.ui.screens.*
 import ltd.kyss.petme.ui.theme.PetMeTheme
@@ -32,16 +36,37 @@ class MainActivity : ComponentActivity() {
 fun PetMeGameApp(viewModel: GameViewModel) {
     val state by viewModel.state.collectAsState()
 
+    BackHandler(
+        enabled = state.isGameStarted && state.currentLocation != GameLocation.MyRoom
+    ) {
+        viewModel.changeLocation(
+            if (state.currentLocation == GameLocation.CityMap) GameLocation.MyRoom
+            else GameLocation.CityMap
+        )
+    }
+
     var showBudgetDialog by remember { mutableStateOf(false) }
     var showShopDialog by remember { mutableStateOf(false) }
     var showBankDialog by remember { mutableStateOf(false) }
     var showHospitalDialog by remember { mutableStateOf(false) }
     var showFinishPeriodDialog by remember { mutableStateOf(false) }
     var showWardrobeDialog by remember { mutableStateOf(false) }
+    var showCareDialog by remember { mutableStateOf(false) }
+    var showAdvisorDialog by remember { mutableStateOf(false) }
+    var showSettingsDialog by remember { mutableStateOf(false) }
+    var showFinanceDialog by remember { mutableStateOf(false) }
     var activePuzzleFriendId by remember { mutableStateOf<Int?>(null) }
+    var activeFriendDialogueId by remember { mutableStateOf<Int?>(null) }
     var activeFriendProfileId by remember { mutableStateOf<Int?>(null) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val currentDensity = LocalDensity.current
+    CompositionLocalProvider(
+        LocalDensity provides Density(
+            density = currentDensity.density,
+            fontScale = if (state.largeFontEnabled) 1.15f else 1f
+        )
+    ) {
+    Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
         if (!state.isGameStarted) {
             PetSetupScreen(onStartGame = viewModel::startNewGame)
         } else when (state.currentLocation) {
@@ -61,8 +86,12 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                     onOpenBank = { showBankDialog = true },
                     onOpenHospital = { showHospitalDialog = true },
                     onOpenWardrobe = { showWardrobeDialog = true },
+                    onOpenCare = { showCareDialog = true },
+                    onOpenAdvisor = { showAdvisorDialog = true },
+                    onOpenSettings = { showSettingsDialog = true },
+                    onOpenFinance = { showFinanceDialog = true },
                     onFinishPeriod = { showFinishPeriodDialog = true },
-                    onOpenPuzzle = { friendId -> activePuzzleFriendId = friendId }
+                    onOpenFriendDialogue = { friendId -> activeFriendDialogueId = friendId }
                 )
             }
         }
@@ -97,6 +126,22 @@ fun PetMeGameApp(viewModel: GameViewModel) {
             PeriodFinishDialog(state, viewModel, onDismiss = { showFinishPeriodDialog = false })
         }
 
+        if (showCareDialog) {
+            PetCareDialog(state, viewModel, onDismiss = { showCareDialog = false })
+        }
+
+        if (showAdvisorDialog) {
+            AdvisorLessonsDialog(state, viewModel, onDismiss = { showAdvisorDialog = false })
+        }
+
+        if (showSettingsDialog) {
+            SettingsDialog(state, viewModel, onDismiss = { showSettingsDialog = false })
+        }
+
+        if (showFinanceDialog) {
+            FinanceHistoryDialog(state, onDismiss = { showFinanceDialog = false })
+        }
+
         // Гардероб питомца
         if (showWardrobeDialog) {
             WardrobeDialog(
@@ -116,6 +161,18 @@ fun PetMeGameApp(viewModel: GameViewModel) {
             )
         }
 
+        activeFriendDialogueId?.let { friendId ->
+            FriendDialogueDialog(
+                friendId = friendId,
+                state = state,
+                onStartPuzzle = {
+                    activeFriendDialogueId = null
+                    activePuzzleFriendId = friendId
+                },
+                onDismiss = { activeFriendDialogueId = null }
+            )
+        }
+
         // Карточка дружбы в стиле Hello Kitty
         activeFriendProfileId?.let { friendId ->
             FriendProfileDialog(
@@ -127,5 +184,6 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                 onDismiss = { activeFriendProfileId = null }
             )
         }
+    }
     }
 }

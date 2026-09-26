@@ -39,10 +39,21 @@ object GameEngine {
         return state.copy(heroX = newX)
     }
 
+    /** Перемещение в точку сцены, выбранную нажатием игрока. */
+    fun moveHeroTo(state: GameState, normalizedX: Float): GameState {
+        return state.copy(heroX = normalizedX.coerceIn(0.08f, 0.92f))
+    }
+
     /**
      * Переход между комнатами и картой города.
      */
     fun changeLocation(state: GameState, newLocation: GameLocation): GameState {
+        if (state.currentLocation == GameLocation.MyRoom &&
+            newLocation == GameLocation.CityMap &&
+            !state.budget.isConfirmed
+        ) {
+            return state.copy(advisorTip = "Перед выходом составь финансовый план на этот период. Так ты заранее решишь, сколько можно потратить и отложить.")
+        }
         val tip = when (newLocation) {
             GameLocation.MyRoom -> "Ты дома с любимым питомцем! Можно заглянуть в гардероб или выйти в город."
             GameLocation.CityMap -> "Карта города! Выбирай, к кому пойти в гости: к друзьям, в Банк, Магазин или Больницу."
@@ -58,6 +69,55 @@ object GameEngine {
             currentLocation = newLocation,
             heroX = 0.2f, // Появляется у входа
             advisorTip = tip
+        )
+    }
+
+    fun completeLesson(state: GameState, lessonId: String): GameState {
+        val lesson = GameCatalog.financialLessons.find { it.id == lessonId } ?: return state
+        if (lessonId in state.completedLessonIds) return state
+        return state.copy(
+            completedLessonIds = state.completedLessonIds + lessonId,
+            advisorTip = "Урок пройден: «${lesson.title}». ${lesson.shortRule}"
+        )
+    }
+
+    fun careForPet(state: GameState, action: PetCareAction): GameState {
+        if (action in state.pet.completedCareActions) {
+            return state.copy(advisorTip = "${action.title} уже выполнено в этом периоде. Питомец доволен заботой!")
+        }
+
+        val requiredCategory = when (action) {
+            PetCareAction.FEED -> ItemCategory.MANDATORY_FOOD
+            PetCareAction.WASH -> ItemCategory.MANDATORY_CARE
+            PetCareAction.PLAY -> ItemCategory.WANT_TOY
+        }
+        val item = state.inventory.firstOrNull { it.category == requiredCategory }
+            ?: return state.copy(
+                advisorTip = when (action) {
+                    PetCareAction.FEED -> "Дома нет корма. Купи корм в Лавке Енотика и возвращайся к миске."
+                    PetCareAction.WASH -> "Для ухода нужен шампунь или расчёска из Лавки Енотика."
+                    PetCareAction.PLAY -> "Сначала купи питомцу игрушку. Игрушки не расходуются и останутся дома."
+                }
+            )
+
+        val consumesItem = action != PetCareAction.PLAY
+        val updatedInventory = if (consumesItem) {
+            state.inventory.toMutableList().also { it.remove(item) }
+        } else state.inventory
+
+        val updatedPet = when (action) {
+            PetCareAction.FEED -> state.pet.copy(isHungry = false, mood = PetMood.HAPPY)
+            PetCareAction.WASH -> state.pet.copy(cleanliness = 100, mood = PetMood.HAPPY)
+            PetCareAction.PLAY -> state.pet.copy(happiness = 100, mood = PetMood.PLAYFUL)
+        }.copy(
+            completedCareActions = state.pet.completedCareActions + action,
+            growthPoints = state.pet.growthPoints + 1
+        )
+
+        return state.copy(
+            inventory = updatedInventory,
+            pet = updatedPet,
+            advisorTip = "${action.emoji} ${action.title}: ${item.title}. Забота выполнена, питомец получил +1 очко роста!"
         )
     }
 
@@ -129,6 +189,9 @@ object GameEngine {
                 savings = updatedSavings
             ),
             pet = state.pet.copy(mood = PetMood.HAPPY),
+            transactions = if (b.piggyBankCoins > 0) {
+                state.transactions + MoneyTransaction(state.period, "По плану в копилку", -b.piggyBankCoins, MoneyTransactionType.SAVINGS_IN, "🏺")
+            } else state.transactions,
             isPeriodFinished = false,
             periodReport = null,
             advisorTip = "План утверждён! В копилку отправилось ${b.piggyBankCoins} м. Теперь можно идти гулять по городу и в гости!"
@@ -145,6 +208,7 @@ object GameEngine {
         return state.copy(
             wallet = state.wallet.copy(coins = state.wallet.coins - amount, savings = state.wallet.savings + amount),
             pet = state.pet.copy(mood = PetMood.PROUD_SAVER),
+            transactions = state.transactions + MoneyTransaction(state.period, "Пополнение копилки", -amount, MoneyTransactionType.SAVINGS_IN, "🏺"),
             advisorTip = "В копилку переведено $amount монет. Ты стал ближе к цели!"
         )
     }
@@ -153,6 +217,7 @@ object GameEngine {
         if (amount <= 0 || amount > state.wallet.savings || amount > Int.MAX_VALUE - state.wallet.coins) return state
         return state.copy(
             wallet = state.wallet.copy(coins = state.wallet.coins + amount, savings = state.wallet.savings - amount),
+            transactions = state.transactions + MoneyTransaction(state.period, "Снятие из копилки", amount, MoneyTransactionType.SAVINGS_OUT, "👛"),
             advisorTip = "$amount монет возвращены в кошелёк. В копилке осталось ${state.wallet.savings - amount}."
         )
     }
@@ -197,6 +262,7 @@ object GameEngine {
                 mood = PetMood.HAPPY,
                 growthPoints = state.pet.growthPoints + 1
             ),
+            transactions = state.transactions + MoneyTransaction(state.period, "Лечение питомца", -TREATMENT_COST, MoneyTransactionType.EXPENSE, "🏥"),
             advisorTip = "Процедура прошла отлично! Питомец здоров, а ты заранее учёл важный расход на заботу."
         )
     }
@@ -244,6 +310,7 @@ object GameEngine {
             puzzles = state.puzzles + (friendId to updatedPuzzle),
             wallet = updatedWallet,
             pet = updatedPet,
+            transactions = state.transactions + MoneyTransaction(state.period, "Награда за задание", puzzle.rewardCoins, MoneyTransactionType.INCOME, "🎯"),
             advisorTip = "Ура! Ты получил +${puzzle.rewardCoins} монет за смекалку! Питомец гордится тобой! 🎉"
         )
     }
@@ -253,6 +320,9 @@ object GameEngine {
      */
     fun buyShopItem(state: GameState, itemId: String): GameState {
         val item = state.shopItems.find { it.id == itemId } ?: return state
+        if (item.wardrobeItem != null && item.wardrobeItem.id in state.pet.unlockedWardrobeIds) {
+            return state.copy(advisorTip = "«${item.title}» уже есть в гардеробе. Выбери другую покупку.")
+        }
         if (!state.wallet.canAfford(item.price)) {
             val missing = item.price - state.wallet.coins
             return state.copy(
@@ -265,15 +335,6 @@ object GameEngine {
 
         var updatedPet = state.pet
 
-        // Если куплена еда — кормим питомца!
-        if (item.category == ItemCategory.MANDATORY_FOOD) {
-            updatedPet = updatedPet.copy(
-                isHungry = false,
-                mood = PetMood.HAPPY,
-                growthPoints = updatedPet.growthPoints + 1
-            )
-        }
-
         // Если куплена вещь для гардероба — разблокируем в шкафу!
         if (item.wardrobeItem != null) {
             val unlocked = updatedPet.unlockedWardrobeIds + item.wardrobeItem.id
@@ -284,6 +345,7 @@ object GameEngine {
             wallet = state.wallet.copy(coins = newCoins),
             inventory = updatedInventory,
             pet = updatedPet,
+            transactions = state.transactions + MoneyTransaction(state.period, item.title, -item.price, MoneyTransactionType.EXPENSE, item.emoji),
             advisorTip = "Успешная покупка: «${item.title}» за ${item.price} монет! ${item.description}"
         )
     }
@@ -344,6 +406,15 @@ object GameEngine {
             report.append("✅ Решены задания у друзей (+1 очко роста)\n")
         }
 
+        if (PetCareAction.WASH in state.pet.completedCareActions) {
+            pointsEarned += 1
+            report.append("✅ Питомец чистый и ухоженный (+1 очко роста)\n")
+        }
+        if (PetCareAction.PLAY in state.pet.completedCareActions) {
+            pointsEarned += 1
+            report.append("✅ Вы нашли время поиграть вместе (+1 очко роста)\n")
+        }
+
         val totalPoints = state.pet.growthPoints + pointsEarned
 
         // Проверяем стадию роста (Малыш -> Подросший -> Взрослый)
@@ -362,10 +433,16 @@ object GameEngine {
             wallet = state.wallet.copy(coins = newCoins),
             budget = BudgetDistribution(totalStartingCoins = newCoins, isConfirmed = false),
             puzzles = GameCatalog.createInitialPuzzles(),
+            transactions = if (nextAllowance > 0) {
+                state.transactions + MoneyTransaction(nextPeriod, "Карманные деньги", nextAllowance, MoneyTransactionType.INCOME, "🪙")
+            } else state.transactions,
             pet = state.pet.copy(
                 growthPoints = totalPoints,
                 growthStage = newGrowthStage,
-                isHungry = true // В новом периоде снова нужно покормить
+                isHungry = true,
+                cleanliness = (state.pet.cleanliness - 30).coerceAtLeast(30),
+                happiness = (state.pet.happiness - 20).coerceAtLeast(40),
+                completedCareActions = emptySet()
             ),
             isPeriodFinished = true,
             periodReport = report.toString(),

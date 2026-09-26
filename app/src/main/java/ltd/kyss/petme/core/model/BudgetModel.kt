@@ -56,6 +56,18 @@ data class Wallet(
     fun canWithdrawFromSavings(amount: Int): Boolean = savings >= amount
 }
 
+enum class MoneyTransactionType {
+    INCOME, EXPENSE, SAVINGS_IN, SAVINGS_OUT
+}
+
+data class MoneyTransaction(
+    val period: Int,
+    val title: String,
+    val amount: Int,
+    val type: MoneyTransactionType,
+    val emoji: String
+)
+
 /**
  * Распределение монет по игровым горшочкам в начале периода.
  */

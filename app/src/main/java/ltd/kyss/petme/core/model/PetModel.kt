@@ -62,6 +62,12 @@ enum class PetHealth(val title: String, val emoji: String) {
     NEEDS_TREATMENT("Нужно лечение", "🩹")
 }
 
+enum class PetCareAction(val title: String, val emoji: String) {
+    FEED("Покормить", "🥣"),
+    WASH("Искупать и расчесать", "🫧"),
+    PLAY("Поиграть", "🎾")
+}
+
 /**
  * Типы предметов гардероба.
  */
@@ -96,6 +102,9 @@ data class PetProfile(
     val isHungry: Boolean = false,
     val health: PetHealth = PetHealth.HEALTHY,
     val lastCheckupPeriod: Int = 0,
+    val cleanliness: Int = 70,
+    val happiness: Int = 70,
+    val completedCareActions: Set<PetCareAction> = emptySet(),
     val equippedAccessories: Map<AccessorySlot, String> = emptyMap(), // slot -> itemId
     val unlockedWardrobeIds: Set<String> = emptySet()
 )

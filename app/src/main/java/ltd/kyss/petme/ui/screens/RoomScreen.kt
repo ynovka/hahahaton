@@ -1,10 +1,13 @@
 package ltd.kyss.petme.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -38,8 +42,12 @@ fun RoomScreen(
     onOpenBank: () -> Unit,
     onOpenHospital: () -> Unit,
     onOpenWardrobe: () -> Unit,
+    onOpenCare: () -> Unit,
+    onOpenAdvisor: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenFinance: () -> Unit,
     onFinishPeriod: () -> Unit,
-    onOpenPuzzle: (Int) -> Unit
+    onOpenFriendDialogue: (Int) -> Unit
 ) {
     val location = state.currentLocation
 
@@ -72,37 +80,52 @@ fun RoomScreen(
                 .widthIn(max = 840.dp) // Адаптивное ограничение для планшетов
         ) {
             // Верхняя плашка состояния (адаптивна для узких и широких экранов)
-            TopGameBar(state = state, onOpenBudget = onOpenBudget)
+            TopGameBar(
+                state = state,
+                onOpenBudget = onOpenBudget,
+                onOpenAdvisor = onOpenAdvisor,
+                onOpenSettings = onOpenSettings,
+                onOpenFinance = onOpenFinance
+            )
 
-            // Заголовок локации и кнопка выхода на карту города
+            // Компактная строка локации: игровая сцена должна занимать большую часть экрана.
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 6.dp),
-                shape = RoundedCornerShape(16.dp),
+                    .padding(horizontal = 10.dp, vertical = 3.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = Color.White.copy(alpha = 0.88f),
-                shadowElevation = 2.dp
+                shadowElevation = 1.dp
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = roomTitle,
-                        fontSize = 16.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF37474F),
-                        maxLines = 1
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f)
                     )
 
-                    Button(
+                    FilledTonalButton(
                         onClick = { viewModel.changeLocation(GameLocation.CityMap) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF7043)),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = Color(0xFFFFCCBC),
+                            contentColor = Color(0xFF8D2B12)
+                        ),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 9.dp, vertical = 3.dp),
+                        modifier = Modifier.heightIn(min = 34.dp)
                     ) {
-                        Text("🗺️ В город", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            if (location == GameLocation.MyRoom) "🚪 В город" else "🗺️ Карта",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -122,107 +145,64 @@ fun RoomScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
             // 2D Игровая сцена с персонажами и объектами интерьера (адаптивная ширина!)
             RoomStage(
+                modifier = Modifier.weight(1f),
                 state = state,
                 viewModel = viewModel,
                 onOpenWardrobe = onOpenWardrobe,
                 onOpenShop = onOpenShop,
                 onOpenBank = onOpenBank,
                 onOpenHospital = onOpenHospital,
-                onOpenPuzzle = onOpenPuzzle
+                onOpenCare = onOpenCare,
+                onOpenFriendDialogue = onOpenFriendDialogue
             )
 
-            // Пол комнаты
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(Color(0xFF5D4037))
-            )
-
-            // Кнопки управления перемещением героя (адаптивные под пальцы на любом телефоне и планшете)
-            MovementControls(
-                onMoveLeft = { viewModel.moveHero(-0.06f) },
-                onMoveRight = { viewModel.moveHero(0.06f) }
-            )
         }
     }
 }
 
-/**
- * Адаптивная верхняя плашка:
- * На узких смартфонах (< 380dp) аккуратно разбивается на две компактные строки.
- * На стандартных телефонах и планшетах отображается в одну гармоничную строку.
- */
 @Composable
-fun TopGameBar(state: GameState, onOpenBudget: () -> Unit) {
+fun TopGameBar(
+    state: GameState,
+    onOpenBudget: () -> Unit,
+    onOpenAdvisor: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenFinance: () -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(20.dp),
-        color = Color.White,
-        shadowElevation = 4.dp
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = Color.White.copy(alpha = 0.94f),
+        shadowElevation = 2.dp
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(10.dp)) {
-            val isNarrowScreen = maxWidth < 380.dp
-
-            if (isNarrowScreen) {
-                // Двустрочная раскладка для маленьких экранов
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        PetProfileHeader(state = state)
-                        Button(
-                            onClick = onOpenBudget,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 3.dp)
-                        ) {
-                            Text("Бюджет 📊", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CoinsPill(coins = state.wallet.coins)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        SavingsPill(savings = state.wallet.savings, onClick = onOpenBudget)
-                    }
-                }
-            } else {
-                // Однострочная раскладка для стандартных телефонов и планшетов
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    PetProfileHeader(state = state)
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CoinsPill(coins = state.wallet.coins)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        SavingsPill(savings = state.wallet.savings, onClick = onOpenBudget)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Button(
-                            onClick = onOpenBudget,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                        ) {
-                            Text("Бюджет 📊", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            PetProfileHeader(state = state)
+            Spacer(modifier = Modifier.weight(1f))
+            CoinsPill(coins = state.wallet.coins, onClick = onOpenFinance)
+            Spacer(modifier = Modifier.width(4.dp))
+            SavingsPill(savings = state.wallet.savings, onClick = onOpenBudget)
+            IconButton(onClick = onOpenAdvisor, modifier = Modifier.size(30.dp)) {
+                Text("💡", fontSize = 15.sp)
+            }
+            IconButton(onClick = onOpenSettings, modifier = Modifier.size(30.dp)) {
+                Text("⚙️", fontSize = 15.sp)
+            }
+            FilledTonalButton(
+                onClick = onOpenBudget,
+                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 2.dp),
+                modifier = Modifier.heightIn(min = 32.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = Color(0xFFC8E6C9),
+                    contentColor = Color(0xFF1B5E20)
+                )
+            ) {
+                Text("План", fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -233,23 +213,24 @@ private fun PetProfileHeader(state: GameState) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(32.dp)
                 .clip(CircleShape)
                 .background(Color(0xFFFFECB3)),
             contentAlignment = Alignment.Center
         ) {
-            Text(state.pet.species.emoji, fontSize = 22.sp)
+            Text(state.pet.species.emoji, fontSize = 19.sp)
         }
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(5.dp))
         Column {
             Text(
-                "${state.pet.name} (${state.pet.growthStage.title})",
+                state.pet.name,
                 fontWeight = FontWeight.Bold,
-                fontSize = 13.sp
+                fontSize = 11.sp,
+                maxLines = 1
             )
             Text(
                 "${state.pet.mood.emoji} ${state.pet.mood.title}",
-                fontSize = 11.sp,
+                fontSize = 9.sp,
                 color = Color.Gray
             )
         }
@@ -257,21 +238,22 @@ private fun PetProfileHeader(state: GameState) {
 }
 
 @Composable
-private fun CoinsPill(coins: Int) {
+private fun CoinsPill(coins: Int, onClick: () -> Unit) {
     Surface(
         color = Color(0xFFFFF9C4),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🪙", fontSize = 13.sp)
-            Spacer(modifier = Modifier.width(4.dp))
+            Text("🪙", fontSize = 11.sp)
+            Spacer(modifier = Modifier.width(2.dp))
             Text(
                 "$coins",
                 fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
+                fontSize = 11.sp,
                 color = Color(0xFFF57F17)
             )
         }
@@ -286,15 +268,15 @@ private fun SavingsPill(savings: Int, onClick: () -> Unit) {
         modifier = Modifier.clickable { onClick() }
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🏺", fontSize = 13.sp)
-            Spacer(modifier = Modifier.width(4.dp))
+            Text("🏺", fontSize = 11.sp)
+            Spacer(modifier = Modifier.width(2.dp))
             Text(
                 "$savings",
                 fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
+                fontSize = 11.sp,
                 color = Color(0xFF512DA8)
             )
         }
@@ -306,23 +288,24 @@ fun AdvisorBubble(text: String) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
+            .padding(horizontal = 10.dp, vertical = 2.dp),
+        shape = RoundedCornerShape(12.dp),
         color = Color(0xFFFFFDE7),
         border = BorderStroke(1.dp, Color(0xFFFFD54F)),
-        shadowElevation = 2.dp
+        shadowElevation = 0.dp
     ) {
         Row(
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("💡", fontSize = 20.sp)
-            Spacer(modifier = Modifier.width(8.dp))
+            Text("💡", fontSize = 14.sp)
+            Spacer(modifier = Modifier.width(5.dp))
             Text(
                 text = text,
-                fontSize = 13.sp,
+                fontSize = 10.sp,
                 color = Color(0xFF4E342E),
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                maxLines = 2
             )
         }
     }
@@ -335,27 +318,69 @@ fun AdvisorBubble(text: String) {
  */
 @Composable
 fun RoomStage(
+    modifier: Modifier = Modifier,
     state: GameState,
     viewModel: GameViewModel,
     onOpenWardrobe: () -> Unit,
     onOpenShop: () -> Unit,
     onOpenBank: () -> Unit,
     onOpenHospital: () -> Unit,
-    onOpenPuzzle: (Int) -> Unit
+    onOpenCare: () -> Unit,
+    onOpenFriendDialogue: (Int) -> Unit
 ) {
     BoxWithConstraints(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .height(250.dp)
+            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
     ) {
         // Динамическая адаптивная ширина под любой экран (от 320dp смартфона до 900dp планшета)
         val stageUsableWidth = (maxWidth - 75.dp).coerceAtLeast(200.dp)
+        val animatedHeroX by animateFloatAsState(
+            targetValue = state.heroX,
+            animationSpec = tween(durationMillis = 430),
+            label = "heroWalk"
+        )
+        val animatedPetX by animateFloatAsState(
+            targetValue = (state.heroX + 0.12f).coerceIn(0.04f, 0.96f),
+            animationSpec = tween(durationMillis = 560),
+            label = "petFollow"
+        )
+
+        // Вся свободная сцена принимает нажатие: герой идёт в выбранную точку.
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.White.copy(alpha = 0.08f))))
+                .pointerInput(Unit) {
+                    detectTapGestures { point ->
+                        if (size.width > 0) viewModel.moveHeroTo(point.x / size.width.toFloat())
+                    }
+                }
+        ) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.31f)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color(0xFF9C6B55), Color(0xFF5D4037))
+                        )
+                    )
+            )
+            Text(
+                "Нажми на пол — герой подойдёт",
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp),
+                color = Color(0x884E342E),
+                fontSize = 10.sp
+            )
+        }
 
         // Объекты в своей комнате
         if (state.currentLocation == GameLocation.MyRoom) {
             // Шкаф-гардероб (слева)
             InteractiveProp(
-                emoji = "🚪👗",
+                emoji = "🗄️",
                 title = "Гардероб",
                 xOffset = stageUsableWidth * 0.12f,
                 onClick = onOpenWardrobe
@@ -366,7 +391,7 @@ fun RoomStage(
                 emoji = if (state.pet.isHungry) "🥣" else "🥣✨",
                 title = if (state.pet.isHungry) "Миска (пусто!)" else "Миска (сыт)",
                 xOffset = stageUsableWidth * 0.50f,
-                onClick = onOpenShop
+                onClick = onOpenCare
             )
 
             // Копилка на полу (справа)
@@ -374,7 +399,7 @@ fun RoomStage(
                 emoji = "🏺",
                 title = "Копилка (${state.wallet.savings} м.)",
                 xOffset = stageUsableWidth * 0.85f,
-                onClick = onOpenShop
+                onClick = onOpenBank
             )
         }
 
@@ -414,19 +439,18 @@ fun RoomStage(
             if (friend != null) {
                 InteractiveProp(
                     emoji = friend.emoji,
-                    title = "${friend.name} (Задание)",
+                    title = "Поговорить: ${friend.name}",
                     xOffset = stageUsableWidth * 0.75f,
-                    onClick = { onOpenPuzzle(friendId) }
+                    onClick = { onOpenFriendDialogue(friendId) }
                 )
             }
         }
 
         // Питомец (бегает рядом с героем)
-        val petX = (state.heroX + 0.12f).coerceIn(0.04f, 0.96f)
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(x = stageUsableWidth * petX, y = (-10).dp),
+                .offset(x = stageUsableWidth * animatedPetX, y = (-18).dp),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -444,7 +468,7 @@ fun RoomStage(
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(x = stageUsableWidth * state.heroX, y = (-10).dp),
+                .offset(x = stageUsableWidth * animatedHeroX, y = (-18).dp),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -461,24 +485,24 @@ fun RoomStage(
 }
 
 @Composable
-fun InteractiveProp(
+fun BoxScope.InteractiveProp(
     emoji: String,
     title: String,
     xOffset: Dp,
+    bottomPadding: Dp = 38.dp,
     onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
-            .fillMaxHeight()
+            .align(Alignment.BottomStart)
             .offset(x = xOffset)
             .clickable { onClick() },
         contentAlignment = Alignment.BottomCenter
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = bottomPadding).widthIn(max = 100.dp)
         ) {
-            Text(emoji, fontSize = 38.sp)
             Surface(
                 color = Color.White.copy(alpha = 0.92f),
                 shape = RoundedCornerShape(8.dp),
@@ -488,49 +512,15 @@ fun InteractiveProp(
                     text = title,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    modifier = Modifier
+                        .widthIn(max = 96.dp)
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun MovementControls(onMoveLeft: () -> Unit, onMoveRight: () -> Unit) {
-    Surface(
-        color = Color(0xFF4E342E),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                onClick = onMoveLeft,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300)),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(52.dp)
-                    .padding(end = 10.dp)
-            ) {
-                Text("◀ Налево", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3E2723))
-            }
-
-            Button(
-                onClick = onMoveRight,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300)),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(52.dp)
-                    .padding(start = 10.dp)
-            ) {
-                Text("Направо ▶", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3E2723))
-            }
+            Spacer(Modifier.height(3.dp))
+            Text(emoji, fontSize = 38.sp)
         }
     }
 }

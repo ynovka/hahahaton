@@ -12,6 +12,15 @@ sealed class GameLocation {
     data class FriendRoom(val friendId: Int) : GameLocation()
 }
 
+data class FinancialLesson(
+    val id: String,
+    val title: String,
+    val emoji: String,
+    val explanation: String,
+    val shortRule: String,
+    val relatedFriendId: Int? = null
+)
+
 /**
  * Персонаж-друг, живущий в одном из домов города (с карточкой дружбы).
  */

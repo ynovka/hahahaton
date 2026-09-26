@@ -19,6 +19,10 @@ data class GameState(
     val dreamGoals: List<DreamGoal> = GameCatalog.dreamGoals,
     val activeGoalId: String = "goal_castle",
     val inventory: List<ShopItem> = emptyList(),
+    val transactions: List<MoneyTransaction> = listOf(
+        MoneyTransaction(1, "Стартовые карманные деньги", 100, MoneyTransactionType.INCOME, "🪙")
+    ),
+    val completedLessonIds: Set<String> = emptySet(),
     val advisorTip: String = "Привет! Давай разложим монетки по горшочкам: на вкусный корм, радости и в копилку на мечту! ✨",
     val isPeriodFinished: Boolean = false,
     val periodReport: String? = null,

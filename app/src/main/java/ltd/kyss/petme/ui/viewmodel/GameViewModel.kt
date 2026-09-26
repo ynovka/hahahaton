@@ -11,6 +11,7 @@ import ltd.kyss.petme.core.model.CoinJarType
 import ltd.kyss.petme.core.model.ColorPattern
 import ltd.kyss.petme.core.model.GameLocation
 import ltd.kyss.petme.core.model.PetSpecies
+import ltd.kyss.petme.core.model.PetCareAction
 
 class GameViewModel : ViewModel() {
 
@@ -25,8 +26,20 @@ class GameViewModel : ViewModel() {
         _state.update { GameEngine.moveHero(it, deltaX) }
     }
 
+    fun moveHeroTo(normalizedX: Float) {
+        _state.update { GameEngine.moveHeroTo(it, normalizedX) }
+    }
+
     fun changeLocation(location: GameLocation) {
         _state.update { GameEngine.changeLocation(it, location) }
+    }
+
+    fun completeLesson(lessonId: String) {
+        _state.update { GameEngine.completeLesson(it, lessonId) }
+    }
+
+    fun careForPet(action: PetCareAction) {
+        _state.update { GameEngine.careForPet(it, action) }
     }
 
     fun allocateCoins(jar: CoinJarType, delta: Int) {

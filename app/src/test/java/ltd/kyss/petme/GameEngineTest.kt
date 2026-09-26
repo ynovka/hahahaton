@@ -23,6 +23,25 @@ class GameEngineTest {
     }
 
     @Test
+    fun leavingHomeRequiresConfirmedFinancialPlan() {
+        val initial = GameEngine.startNewGame(
+            GameEngine.createInitialState(), PetSpecies.CAT, ColorPattern.CLASSIC, "Финни"
+        )
+        assertEquals(GameLocation.MyRoom, GameEngine.changeLocation(initial, GameLocation.CityMap).currentLocation)
+        val confirmed = GameEngine.confirmBudget(initial)
+        assertEquals(GameLocation.CityMap, GameEngine.changeLocation(confirmed, GameLocation.CityMap).currentLocation)
+    }
+
+    @Test
+    fun companionLessonCanOnlyBeCompletedOnce() {
+        val initial = GameEngine.createInitialState()
+        val completed = GameEngine.completeLesson(initial, "budget")
+        assertTrue("budget" in completed.completedLessonIds)
+        assertEquals(completed, GameEngine.completeLesson(completed, "budget"))
+        assertEquals(initial, GameEngine.completeLesson(initial, "missing"))
+    }
+
+    @Test
     fun confirmingBudgetTwiceDoesNotCreateMoney() {
         val confirmed = GameEngine.confirmBudget(GameEngine.createInitialState())
         assertEquals(confirmed, GameEngine.confirmBudget(confirmed))
@@ -182,8 +201,26 @@ class GameEngineTest {
         state = GameEngine.buyShopItem(state, "food_kibble")
 
         assertEquals(coinsBefore - 25, state.wallet.coins)
-        assertFalse(state.pet.isHungry) // Питомец накормлен!
+        assertTrue(state.pet.isHungry)
+        assertTrue(state.inventory.any { it.id == "food_kibble" })
+
+        state = GameEngine.careForPet(state, PetCareAction.FEED)
+        assertFalse(state.pet.isHungry)
+        assertFalse(state.inventory.any { it.id == "food_kibble" })
         assertEquals(PetMood.HAPPY, state.pet.mood)
+    }
+
+    @Test
+    fun careNeedsSuppliesAndCannotAwardGrowthTwicePerPeriod() {
+        val initial = GameEngine.createInitialState().copy(pet = PetProfile(isHungry = true))
+        assertEquals(initial.pet, GameEngine.careForPet(initial, PetCareAction.FEED).pet)
+
+        val withToy = GameEngine.buyShopItem(initial, "toy_ball")
+        val played = GameEngine.careForPet(withToy, PetCareAction.PLAY)
+        assertEquals(100, played.pet.happiness)
+        assertEquals(withToy.pet.growthPoints + 1, played.pet.growthPoints)
+        assertTrue(played.inventory.any { it.id == "toy_ball" })
+        assertEquals(played.pet, GameEngine.careForPet(played, PetCareAction.PLAY).pet)
     }
 
     @Test
@@ -220,6 +257,12 @@ class GameEngineTest {
         // Двигаем персонажа сильно влево
         state = GameEngine.moveHero(state, -10.0f)
         assertTrue(state.heroX >= 0.08f)
+
+        state = GameEngine.moveHeroTo(state, 2.0f)
+        assertEquals(0.92f, state.heroX)
+
+        state = GameEngine.moveHeroTo(state, 0.35f)
+        assertEquals(0.35f, state.heroX)
 
         // Двигаем персонажа сильно вправо
         state = GameEngine.moveHero(state, 10.0f)
