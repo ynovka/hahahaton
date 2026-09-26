@@ -12,47 +12,50 @@ import ltd.kyss.petme.core.model.ColorPattern
 import ltd.kyss.petme.core.model.GameLocation
 import ltd.kyss.petme.core.model.PetSpecies
 import ltd.kyss.petme.core.model.PetCareAction
+import ltd.kyss.petme.core.persistence.GameStateStorage
 
-class GameViewModel : ViewModel() {
+class GameViewModel(
+    private val storage: GameStateStorage
+) : ViewModel() {
 
-    private val _state = MutableStateFlow(GameEngine.createInitialState())
+    private val _state = MutableStateFlow(storage.load() ?: GameEngine.createInitialState())
     val state: StateFlow<GameState> = _state.asStateFlow()
 
     fun startNewGame(species: PetSpecies, pattern: ColorPattern, petName: String) {
-        _state.update { GameEngine.startNewGame(it, species, pattern, petName) }
+        updateState { GameEngine.startNewGame(it, species, pattern, petName) }
     }
 
     fun moveHero(deltaX: Float) {
-        _state.update { GameEngine.moveHero(it, deltaX) }
+        updateState { GameEngine.moveHero(it, deltaX) }
     }
 
     fun moveHeroTo(normalizedX: Float) {
-        _state.update { GameEngine.moveHeroTo(it, normalizedX) }
+        updateState { GameEngine.moveHeroTo(it, normalizedX) }
     }
 
     fun changeLocation(location: GameLocation) {
-        _state.update { GameEngine.changeLocation(it, location) }
+        updateState { GameEngine.changeLocation(it, location) }
     }
 
     fun completeLesson(lessonId: String) {
-        _state.update { GameEngine.completeLesson(it, lessonId) }
+        updateState { GameEngine.completeLesson(it, lessonId) }
     }
 
     fun careForPet(action: PetCareAction) {
-        _state.update { GameEngine.careForPet(it, action) }
+        updateState { GameEngine.careForPet(it, action) }
     }
 
     fun allocateCoins(jar: CoinJarType, delta: Int) {
-        _state.update { GameEngine.allocateCoins(it, jar, delta) }
+        updateState { GameEngine.allocateCoins(it, jar, delta) }
     }
 
     fun confirmBudget() {
-        _state.update { GameEngine.confirmBudget(it) }
+        updateState { GameEngine.confirmBudget(it) }
     }
 
     fun answerPuzzle(friendId: Int, optionId: String): Boolean {
         var isSuccess = false
-        _state.update { current ->
+        updateState { current ->
             val (newState, success) = GameEngine.answerPuzzle(current, friendId, optionId)
             isSuccess = success
             newState
@@ -61,50 +64,61 @@ class GameViewModel : ViewModel() {
     }
 
     fun claimPuzzleReward(friendId: Int) {
-        _state.update { GameEngine.claimReward(it, friendId) }
+        updateState { GameEngine.claimReward(it, friendId) }
     }
 
     fun buyShopItem(itemId: String) {
-        _state.update { GameEngine.buyShopItem(it, itemId) }
+        updateState { GameEngine.buyShopItem(it, itemId) }
     }
 
     fun selectGoal(goalId: String) {
-        _state.update { GameEngine.selectGoal(it, goalId) }
+        updateState { GameEngine.selectGoal(it, goalId) }
     }
 
     fun depositSavings(amount: Int) {
-        _state.update { GameEngine.depositSavings(it, amount) }
+        updateState { GameEngine.depositSavings(it, amount) }
     }
 
     fun withdrawSavings(amount: Int) {
-        _state.update { GameEngine.withdrawSavings(it, amount) }
+        updateState { GameEngine.withdrawSavings(it, amount) }
     }
 
     fun runHospitalCheckup() {
-        _state.update { GameEngine.runHospitalCheckup(it) }
+        updateState { GameEngine.runHospitalCheckup(it) }
     }
 
     fun treatPet() {
-        _state.update { GameEngine.treatPet(it) }
+        updateState { GameEngine.treatPet(it) }
     }
 
     fun toggleAccessory(accessoryId: String) {
-        _state.update { GameEngine.toggleAccessory(it, accessoryId) }
+        updateState { GameEngine.toggleAccessory(it, accessoryId) }
     }
 
     fun finishPeriod() {
-        _state.update { GameEngine.finishPeriod(it) }
+        updateState { GameEngine.finishPeriod(it) }
     }
 
     fun resetDemo() {
-        _state.update { GameEngine.resetDemo() }
+        updateState { GameEngine.resetDemo() }
     }
 
     fun toggleSound() {
-        _state.update { it.copy(soundEnabled = !it.soundEnabled) }
+        updateState { it.copy(soundEnabled = !it.soundEnabled) }
     }
 
     fun toggleLargeFont() {
-        _state.update { it.copy(largeFontEnabled = !it.largeFontEnabled) }
+        updateState { it.copy(largeFontEnabled = !it.largeFontEnabled) }
+    }
+
+    override fun onCleared() {
+        storage.save(_state.value)
+        super.onCleared()
+    }
+
+    private fun updateState(reducer: (GameState) -> GameState) {
+        _state.update { current ->
+            reducer(current).also(storage::save)
+        }
     }
 }

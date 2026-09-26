@@ -13,13 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import ltd.kyss.petme.core.model.GameLocation
+import ltd.kyss.petme.core.persistence.GameStateStorage
 import ltd.kyss.petme.ui.screens.*
 import ltd.kyss.petme.ui.theme.PetMeTheme
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
 class MainActivity : ComponentActivity() {
 
-    private val gameViewModel by lazy { GameViewModel() }
+    private val gameViewModel by lazy { GameViewModel(GameStateStorage(applicationContext)) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
