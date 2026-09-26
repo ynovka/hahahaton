@@ -103,6 +103,21 @@ class GameEngineTest {
     }
 
     @Test
+    fun periodCannotBeFinishedTwiceForDuplicateAllowance() {
+        val initial = GameEngine.createInitialState()
+        val rewarded = GameEngine.claimReward(GameEngine.answerPuzzle(initial, 1, "p1_opt1").first, 1)
+        val confirmed = GameEngine.confirmBudget(rewarded)
+        val finished = GameEngine.finishPeriod(confirmed)
+        assertEquals(finished, GameEngine.finishPeriod(finished))
+        assertEquals(2, finished.period)
+        assertTrue(finished.puzzles.values.all { it.state == PuzzleState.AVAILABLE })
+
+        val nextConfirmed = GameEngine.confirmBudget(finished)
+        assertFalse(nextConfirmed.isPeriodFinished)
+        assertNull(nextConfirmed.periodReport)
+    }
+
+    @Test
     fun testInitialState() {
         val state = GameEngine.createInitialState()
         assertEquals(1, state.period)

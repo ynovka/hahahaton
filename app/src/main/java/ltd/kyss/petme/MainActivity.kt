@@ -36,6 +36,7 @@ fun PetMeGameApp(viewModel: GameViewModel) {
     var showShopDialog by remember { mutableStateOf(false) }
     var showBankDialog by remember { mutableStateOf(false) }
     var showHospitalDialog by remember { mutableStateOf(false) }
+    var showFinishPeriodDialog by remember { mutableStateOf(false) }
     var showWardrobeDialog by remember { mutableStateOf(false) }
     var activePuzzleFriendId by remember { mutableStateOf<Int?>(null) }
     var activeFriendProfileId by remember { mutableStateOf<Int?>(null) }
@@ -60,6 +61,7 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                     onOpenBank = { showBankDialog = true },
                     onOpenHospital = { showHospitalDialog = true },
                     onOpenWardrobe = { showWardrobeDialog = true },
+                    onFinishPeriod = { showFinishPeriodDialog = true },
                     onOpenPuzzle = { friendId -> activePuzzleFriendId = friendId }
                 )
             }
@@ -89,6 +91,10 @@ fun PetMeGameApp(viewModel: GameViewModel) {
 
         if (showHospitalDialog) {
             HospitalDialog(state, viewModel, onDismiss = { showHospitalDialog = false })
+        }
+
+        if (showFinishPeriodDialog) {
+            PeriodFinishDialog(state, viewModel, onDismiss = { showFinishPeriodDialog = false })
         }
 
         // Гардероб питомца

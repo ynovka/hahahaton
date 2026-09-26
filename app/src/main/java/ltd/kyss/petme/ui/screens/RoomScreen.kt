@@ -38,6 +38,7 @@ fun RoomScreen(
     onOpenBank: () -> Unit,
     onOpenHospital: () -> Unit,
     onOpenWardrobe: () -> Unit,
+    onFinishPeriod: () -> Unit,
     onOpenPuzzle: (Int) -> Unit
 ) {
     val location = state.currentLocation
@@ -108,6 +109,18 @@ fun RoomScreen(
 
             // Облачко с советом/репликой помощника Финни
             AdvisorBubble(text = state.advisorTip)
+
+            if (location == GameLocation.MyRoom && state.budget.isConfirmed && !state.isPeriodFinished) {
+                OutlinedButton(
+                    onClick = onFinishPeriod,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 4.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("📋 Подвести итоги периода #${state.period}", fontWeight = FontWeight.Bold)
+                }
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 

@@ -129,6 +129,8 @@ object GameEngine {
                 savings = updatedSavings
             ),
             pet = state.pet.copy(mood = PetMood.HAPPY),
+            isPeriodFinished = false,
+            periodReport = null,
             advisorTip = "План утверждён! В копилку отправилось ${b.piggyBankCoins} м. Теперь можно идти гулять по городу и в гости!"
         )
     }
@@ -312,6 +314,7 @@ object GameEngine {
      * Завершение текущего периода и переход к следующему (1..5).
      */
     fun finishPeriod(state: GameState): GameState {
+        if (state.isPeriodFinished) return state
         if (!state.budget.isConfirmed) {
             return state.copy(advisorTip = "Сначала нужно утвердить план монет на этот период!")
         }
@@ -351,13 +354,14 @@ object GameEngine {
         }
 
         val nextPeriod = (state.period + 1).coerceAtMost(5)
-        val nextAllowance = 100 // Карманные деньги на новый период
+        val nextAllowance = if (state.period < 5) 100 else 0
         val newCoins = state.wallet.coins + nextAllowance
 
         return state.copy(
             period = nextPeriod,
             wallet = state.wallet.copy(coins = newCoins),
             budget = BudgetDistribution(totalStartingCoins = newCoins, isConfirmed = false),
+            puzzles = GameCatalog.createInitialPuzzles(),
             pet = state.pet.copy(
                 growthPoints = totalPoints,
                 growthStage = newGrowthStage,
@@ -365,7 +369,11 @@ object GameEngine {
             ),
             isPeriodFinished = true,
             periodReport = report.toString(),
-            advisorTip = "Ура! Период #${state.period} завершён! Получено +$pointsEarned очков роста. Карманные деньги на новый период: +$nextAllowance монет! ✨"
+            advisorTip = if (state.period < 5) {
+                "Ура! Период #${state.period} завершён! Получено +$pointsEarned очков роста. Карманные деньги на новый период: +$nextAllowance монет! ✨"
+            } else {
+                "Все пять периодов пройдены! Питомец вырос, а твои финансовые решения сохранены в итогах. 🎉"
+            }
         )
     }
 
