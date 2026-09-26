@@ -35,12 +35,15 @@ fun PetMeGameApp(viewModel: GameViewModel) {
     var showBudgetDialog by remember { mutableStateOf(false) }
     var showShopDialog by remember { mutableStateOf(false) }
     var showBankDialog by remember { mutableStateOf(false) }
+    var showHospitalDialog by remember { mutableStateOf(false) }
     var showWardrobeDialog by remember { mutableStateOf(false) }
     var activePuzzleFriendId by remember { mutableStateOf<Int?>(null) }
     var activeFriendProfileId by remember { mutableStateOf<Int?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        when (state.currentLocation) {
+        if (!state.isGameStarted) {
+            PetSetupScreen(onStartGame = viewModel::startNewGame)
+        } else when (state.currentLocation) {
             GameLocation.CityMap -> {
                 CityMapScreen(
                     state = state,
@@ -55,6 +58,7 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                     onOpenBudget = { showBudgetDialog = true },
                     onOpenShop = { showShopDialog = true },
                     onOpenBank = { showBankDialog = true },
+                    onOpenHospital = { showHospitalDialog = true },
                     onOpenWardrobe = { showWardrobeDialog = true },
                     onOpenPuzzle = { friendId -> activePuzzleFriendId = friendId }
                 )
@@ -81,6 +85,10 @@ fun PetMeGameApp(viewModel: GameViewModel) {
 
         if (showBankDialog) {
             BankDialog(state, viewModel, onDismiss = { showBankDialog = false })
+        }
+
+        if (showHospitalDialog) {
+            HospitalDialog(state, viewModel, onDismiss = { showHospitalDialog = false })
         }
 
         // Гардероб питомца

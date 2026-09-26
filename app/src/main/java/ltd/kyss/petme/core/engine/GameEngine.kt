@@ -9,10 +9,27 @@ import ltd.kyss.petme.core.model.*
  */
 object GameEngine {
 
+    const val TREATMENT_COST = 30
+
     /**
      * Создание начального состояния игры.
      */
     fun createInitialState(): GameState = GameState()
+
+    fun startNewGame(
+        state: GameState,
+        species: PetSpecies,
+        pattern: ColorPattern,
+        petName: String
+    ): GameState {
+        val safeName = petName.trim().take(16).ifBlank { "Финни" }
+        return state.copy(
+            isGameStarted = true,
+            pet = PetProfile(name = safeName, species = species, pattern = pattern),
+            currentLocation = GameLocation.MyRoom,
+            advisorTip = "Знакомься: $safeName! Сначала составь план на период, а потом отправляйся исследовать город."
+        )
+    }
 
     /**
      * Перемещение персонажа в комнате (влево/вправо).
@@ -135,6 +152,50 @@ object GameEngine {
         return state.copy(
             wallet = state.wallet.copy(coins = state.wallet.coins + amount, savings = state.wallet.savings - amount),
             advisorTip = "$amount монет возвращены в кошелёк. В копилке осталось ${state.wallet.savings - amount}."
+        )
+    }
+
+    fun runHospitalCheckup(state: GameState): GameState {
+        if (state.pet.lastCheckupPeriod == state.period) {
+            return state.copy(advisorTip = "Доктор Сова уже осматривала питомца в этом периоде.")
+        }
+
+        val plannedCareCase = state.period % 2 == 0
+        val health = if (plannedCareCase) PetHealth.NEEDS_TREATMENT else state.pet.health
+        val tip = if (health == PetHealth.NEEDS_TREATMENT) {
+            "Осмотр завершён: питомцу нужна простая процедура за $TREATMENT_COST монет. Это плановая ситуация, а не наказание."
+        } else {
+            "Осмотр завершён: питомец здоров! Регулярная забота помогает заранее планировать расходы."
+        }
+
+        return state.copy(
+            pet = state.pet.copy(
+                health = health,
+                lastCheckupPeriod = state.period,
+                mood = if (health == PetHealth.HEALTHY) PetMood.HAPPY else PetMood.SLEEPY
+            ),
+            advisorTip = tip
+        )
+    }
+
+    fun treatPet(state: GameState): GameState {
+        if (state.pet.health != PetHealth.NEEDS_TREATMENT) {
+            return state.copy(advisorTip = "Лечение сейчас не требуется. Доктор Сова советует приходить на осмотр каждый период.")
+        }
+        if (!state.wallet.canAfford(TREATMENT_COST)) {
+            return state.copy(
+                advisorTip = "Для лечения нужно $TREATMENT_COST монет. Сейчас не хватает ${TREATMENT_COST - state.wallet.coins}."
+            )
+        }
+
+        return state.copy(
+            wallet = state.wallet.copy(coins = state.wallet.coins - TREATMENT_COST),
+            pet = state.pet.copy(
+                health = PetHealth.HEALTHY,
+                mood = PetMood.HAPPY,
+                growthPoints = state.pet.growthPoints + 1
+            ),
+            advisorTip = "Процедура прошла отлично! Питомец здоров, а ты заранее учёл важный расход на заботу."
         )
     }
 

@@ -7,6 +7,7 @@ import ltd.kyss.petme.core.model.*
  * Единое неизменяемое состояние всей игры (Single Source of Truth).
  */
 data class GameState(
+    val isGameStarted: Boolean = false,
     val period: Int = 1,
     val pet: PetProfile = PetProfile(),
     val wallet: Wallet = Wallet(coins = 100, savings = 0),

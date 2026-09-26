@@ -8,6 +8,21 @@ import org.junit.Test
 class GameEngineTest {
 
     @Test
+    fun newGameUsesChosenPetAndSafeName() {
+        val initial = GameEngine.createInitialState()
+        assertFalse(initial.isGameStarted)
+
+        val started = GameEngine.startNewGame(initial, PetSpecies.OWL, ColorPattern.SPOTTED, "  Умка  ")
+        assertTrue(started.isGameStarted)
+        assertEquals(PetSpecies.OWL, started.pet.species)
+        assertEquals(ColorPattern.SPOTTED, started.pet.pattern)
+        assertEquals("Умка", started.pet.name)
+
+        val fallback = GameEngine.startNewGame(initial, PetSpecies.CAT, ColorPattern.CLASSIC, "   ")
+        assertEquals("Финни", fallback.pet.name)
+    }
+
+    @Test
     fun confirmingBudgetTwiceDoesNotCreateMoney() {
         val confirmed = GameEngine.confirmBudget(GameEngine.createInitialState())
         assertEquals(confirmed, GameEngine.confirmBudget(confirmed))
@@ -52,6 +67,39 @@ class GameEngineTest {
         assertEquals(goal.id, changed.activeGoalId)
         assertEquals(saved.wallet, changed.wallet)
         assertEquals(saved, GameEngine.selectGoal(saved, "missing"))
+    }
+
+    @Test
+    fun hospitalCheckupIsOncePerPeriodAndDoesNotChargeMoney() {
+        val initial = GameEngine.createInitialState()
+        val checked = GameEngine.runHospitalCheckup(initial)
+        assertEquals(initial.wallet, checked.wallet)
+        assertEquals(1, checked.pet.lastCheckupPeriod)
+        assertEquals(PetHealth.HEALTHY, checked.pet.health)
+        assertEquals(checked, GameEngine.runHospitalCheckup(checked).copy(advisorTip = checked.advisorTip))
+    }
+
+    @Test
+    fun plannedHospitalCaseCanBeTreatedForExactCost() {
+        val periodTwo = GameEngine.createInitialState().copy(period = 2)
+        val diagnosed = GameEngine.runHospitalCheckup(periodTwo)
+        assertEquals(PetHealth.NEEDS_TREATMENT, diagnosed.pet.health)
+
+        val treated = GameEngine.treatPet(diagnosed)
+        assertEquals(periodTwo.wallet.coins - GameEngine.TREATMENT_COST, treated.wallet.coins)
+        assertEquals(PetHealth.HEALTHY, treated.pet.health)
+        assertEquals(diagnosed.pet.growthPoints + 1, treated.pet.growthPoints)
+        assertEquals(treated, GameEngine.treatPet(treated).copy(advisorTip = treated.advisorTip))
+    }
+
+    @Test
+    fun hospitalTreatmentDoesNotSpendMoneyWhenUnaffordable() {
+        val diagnosed = GameEngine.runHospitalCheckup(
+            GameEngine.createInitialState().copy(period = 2, wallet = Wallet(coins = 10, savings = 0))
+        )
+        val result = GameEngine.treatPet(diagnosed)
+        assertEquals(diagnosed.wallet, result.wallet)
+        assertEquals(PetHealth.NEEDS_TREATMENT, result.pet.health)
     }
 
     @Test

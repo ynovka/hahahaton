@@ -8,12 +8,18 @@ import kotlinx.coroutines.flow.update
 import ltd.kyss.petme.core.engine.GameEngine
 import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.CoinJarType
+import ltd.kyss.petme.core.model.ColorPattern
 import ltd.kyss.petme.core.model.GameLocation
+import ltd.kyss.petme.core.model.PetSpecies
 
 class GameViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(GameEngine.createInitialState())
     val state: StateFlow<GameState> = _state.asStateFlow()
+
+    fun startNewGame(species: PetSpecies, pattern: ColorPattern, petName: String) {
+        _state.update { GameEngine.startNewGame(it, species, pattern, petName) }
+    }
 
     fun moveHero(deltaX: Float) {
         _state.update { GameEngine.moveHero(it, deltaX) }
@@ -59,6 +65,14 @@ class GameViewModel : ViewModel() {
 
     fun withdrawSavings(amount: Int) {
         _state.update { GameEngine.withdrawSavings(it, amount) }
+    }
+
+    fun runHospitalCheckup() {
+        _state.update { GameEngine.runHospitalCheckup(it) }
+    }
+
+    fun treatPet() {
+        _state.update { GameEngine.treatPet(it) }
     }
 
     fun toggleAccessory(accessoryId: String) {

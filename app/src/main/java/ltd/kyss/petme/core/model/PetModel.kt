@@ -57,6 +57,11 @@ enum class PetMood(
     SLEEPY("Уютный", "💤", "Свернулся клубочком на коврике.")
 }
 
+enum class PetHealth(val title: String, val emoji: String) {
+    HEALTHY("Здоров", "💚"),
+    NEEDS_TREATMENT("Нужно лечение", "🩹")
+}
+
 /**
  * Типы предметов гардероба.
  */
@@ -89,6 +94,8 @@ data class PetProfile(
     val growthPoints: Int = 0,
     val mood: PetMood = PetMood.HAPPY,
     val isHungry: Boolean = false,
+    val health: PetHealth = PetHealth.HEALTHY,
+    val lastCheckupPeriod: Int = 0,
     val equippedAccessories: Map<AccessorySlot, String> = emptyMap(), // slot -> itemId
     val unlockedWardrobeIds: Set<String> = emptySet()
 )

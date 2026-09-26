@@ -36,6 +36,7 @@ fun RoomScreen(
     onOpenBudget: () -> Unit,
     onOpenShop: () -> Unit,
     onOpenBank: () -> Unit,
+    onOpenHospital: () -> Unit,
     onOpenWardrobe: () -> Unit,
     onOpenPuzzle: (Int) -> Unit
 ) {
@@ -117,6 +118,7 @@ fun RoomScreen(
                 onOpenWardrobe = onOpenWardrobe,
                 onOpenShop = onOpenShop,
                 onOpenBank = onOpenBank,
+                onOpenHospital = onOpenHospital,
                 onOpenPuzzle = onOpenPuzzle
             )
 
@@ -325,6 +327,7 @@ fun RoomStage(
     onOpenWardrobe: () -> Unit,
     onOpenShop: () -> Unit,
     onOpenBank: () -> Unit,
+    onOpenHospital: () -> Unit,
     onOpenPuzzle: (Int) -> Unit
 ) {
     BoxWithConstraints(
@@ -379,6 +382,15 @@ fun RoomStage(
                 title = "Бобёр-банкир",
                 xOffset = stageUsableWidth * 0.70f,
                 onClick = onOpenBank
+            )
+        }
+
+        if (state.currentLocation == GameLocation.Hospital) {
+            InteractiveProp(
+                emoji = "🦉",
+                title = "Доктор Сова",
+                xOffset = stageUsableWidth * 0.70f,
+                onClick = onOpenHospital
             )
         }
 
