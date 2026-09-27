@@ -101,7 +101,7 @@ fun CityMapScreen(
                 // Интерактивные кружки НАД зданиями (строго по стрелкам автора)
                 // -----------------------------------------------------
 
-                // 1. Друг 2: Белочка Рыжик (по стрелке автора на домик на дереве)
+                // 1. Друг 2: Белочка Рыжик (домик на дереве)
                 SanrioAvatarMapPin(
                     x = screenW * 0.072f,
                     y = screenH * 0.400f,
@@ -111,11 +111,10 @@ fun CityMapScreen(
                     borderColor = SanrioAccentOrange,
                     badgeText = getFriendBadge(state, 2),
                     badgeColor = getFriendBadgeColor(state, 2),
-                    onClick = { onOpenFriendDialogue(2) },
-                    onAvatarClick = { onOpenFriendProfile(2) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(2)) }
                 )
 
-                // 2. Друг 1: Медвежонок Потап (по стрелке автора на крышу розового коттеджа)
+                // 2. Друг 1: Медвежонок Потап (крыша розового коттеджа)
                 SanrioAvatarMapPin(
                     x = screenW * 0.093f,
                     y = screenH * 0.261f,
@@ -125,11 +124,10 @@ fun CityMapScreen(
                     borderColor = SanrioAccentPink,
                     badgeText = getFriendBadge(state, 1),
                     badgeColor = getFriendBadgeColor(state, 1),
-                    onClick = { onOpenFriendDialogue(1) },
-                    onAvatarClick = { onOpenFriendProfile(1) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(1)) }
                 )
 
-                // 3. Друг 3: Енотик Тёма (по стрелке автора на крышу верхнего коттеджа)
+                // 3. Друг 3: Енотик Тёма (крыша верхнего коттеджа)
                 SanrioAvatarMapPin(
                     x = screenW * 0.682f,
                     y = screenH * 0.233f,
@@ -139,11 +137,10 @@ fun CityMapScreen(
                     borderColor = SanrioAccentPurple,
                     badgeText = getFriendBadge(state, 3),
                     badgeColor = getFriendBadgeColor(state, 3),
-                    onClick = { onOpenFriendDialogue(3) },
-                    onAvatarClick = { onOpenFriendProfile(3) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(3)) }
                 )
 
-                // 4. Друг 4: Совушка София (по стрелке автора на крышу золотистого коттеджа)
+                // 4. Друг 4: Совушка София (крыша золотистого коттеджа)
                 SanrioAvatarMapPin(
                     x = screenW * 0.915f,
                     y = screenH * 0.274f,
@@ -153,11 +150,10 @@ fun CityMapScreen(
                     borderColor = SanrioAccentYellow,
                     badgeText = getFriendBadge(state, 4),
                     badgeColor = getFriendBadgeColor(state, 4),
-                    onClick = { onOpenFriendDialogue(4) },
-                    onAvatarClick = { onOpenFriendProfile(4) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(4)) }
                 )
 
-                // 5. Друг 6: Зайчик Сеня (по стрелке автора на крышу сиреневого домика)
+                // 5. Друг 6: Зайчик Сеня (крыша сиреневого домика)
                 SanrioAvatarMapPin(
                     x = screenW * 0.315f,
                     y = screenH * 0.332f,
@@ -167,11 +163,10 @@ fun CityMapScreen(
                     borderColor = SanrioAccentGreen,
                     badgeText = getFriendBadge(state, 6),
                     badgeColor = getFriendBadgeColor(state, 6),
-                    onClick = { onOpenFriendDialogue(6) },
-                    onAvatarClick = { onOpenFriendProfile(6) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(6)) }
                 )
 
-                // 6. Магазин вкусностей (по стрелке автора на козырёк лавки)
+                // 6. Магазин вкусностей (козырёк лавки)
                 SanrioAvatarMapPin(
                     x = screenW * 0.346f,
                     y = screenH * 0.440f,
@@ -184,7 +179,7 @@ fun CityMapScreen(
                     onClick = { onSelectLocation(GameLocation.Shop) }
                 )
 
-                // 7. Городской Банк (по стрелке автора на крышу здания банка)
+                // 7. Городской Банк (крыша здания банка)
                 SanrioAvatarMapPin(
                     x = screenW * 0.739f,
                     y = screenH * 0.412f,
@@ -210,7 +205,7 @@ fun CityMapScreen(
                     onClick = { onSelectLocation(GameLocation.Hospital) }
                 )
 
-                // 9. Друг 5: Лисичка Алиса (по стрелке автора на крышу домика-норы)
+                // 9. Друг 5: Лисичка Алиса (крыша домика-норы)
                 SanrioAvatarMapPin(
                     x = screenW * 0.718f,
                     y = screenH * 0.656f,
@@ -220,8 +215,7 @@ fun CityMapScreen(
                     borderColor = SanrioAccentOrange,
                     badgeText = getFriendBadge(state, 5),
                     badgeColor = getFriendBadgeColor(state, 5),
-                    onClick = { onOpenFriendDialogue(5) },
-                    onAvatarClick = { onOpenFriendProfile(5) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(5)) }
                 )
 
                 // 10. Друг 7: Щенок Барбос (над сиреневым коттеджем внизу справа)
@@ -234,11 +228,10 @@ fun CityMapScreen(
                     borderColor = SanrioAccentPurple,
                     badgeText = getFriendBadge(state, 7),
                     badgeColor = getFriendBadgeColor(state, 7),
-                    onClick = { onOpenFriendDialogue(7) },
-                    onAvatarClick = { onOpenFriendProfile(7) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(7)) }
                 )
 
-                // 11. Мой Дом (эталон - над домиком героя у реки)
+                // 11. Мой Дом (над домиком героя у реки)
                 SanrioAvatarMapPin(
                     x = screenW * 0.220f,
                     y = screenH * 0.755f,
@@ -274,7 +267,7 @@ fun CityMapScreen(
                     x = screenW * 0.16f, y = screenH * 0.10f,
                     title = "Рыжик", emoji = "🐿️", assetName = "friend_2_portrait",
                     borderColor = SanrioAccentOrange, badgeText = getFriendBadge(state, 2), badgeColor = getFriendBadgeColor(state, 2),
-                    onClick = { onOpenFriendDialogue(2) }, onAvatarClick = { onOpenFriendProfile(2) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(2)) }
                 )
 
                 // 2. Магазин / Лавка покупок
@@ -306,7 +299,7 @@ fun CityMapScreen(
                     x = screenW * 0.18f, y = screenH * 0.47f,
                     title = "Потап", emoji = "🐻", assetName = "friend_1_portrait",
                     borderColor = SanrioAccentPink, badgeText = getFriendBadge(state, 1), badgeColor = getFriendBadgeColor(state, 1),
-                    onClick = { onOpenFriendDialogue(1) }, onAvatarClick = { onOpenFriendProfile(1) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(1)) }
                 )
 
                 // 6. Енотик Тёма
@@ -314,7 +307,7 @@ fun CityMapScreen(
                     x = screenW * 0.10f, y = screenH * 0.57f,
                     title = "Тёма", emoji = "🦝", assetName = "friend_3_portrait",
                     borderColor = SanrioAccentPurple, badgeText = getFriendBadge(state, 3), badgeColor = getFriendBadgeColor(state, 3),
-                    onClick = { onOpenFriendDialogue(3) }, onAvatarClick = { onOpenFriendProfile(3) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(3)) }
                 )
 
                 // 7. Зайчик Сеня
@@ -322,7 +315,7 @@ fun CityMapScreen(
                     x = screenW * 0.33f, y = screenH * 0.63f,
                     title = "Сеня", emoji = "🐰", assetName = "friend_6_portrait",
                     borderColor = SanrioAccentGreen, badgeText = getFriendBadge(state, 6), badgeColor = getFriendBadgeColor(state, 6),
-                    onClick = { onOpenFriendDialogue(6) }, onAvatarClick = { onOpenFriendProfile(6) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(6)) }
                 )
 
                 // 8. Лисичка Алиса
@@ -330,7 +323,7 @@ fun CityMapScreen(
                     x = screenW * 0.42f, y = screenH * 0.65f,
                     title = "Алиса", emoji = "🦊", assetName = "friend_5_portrait",
                     borderColor = SanrioAccentOrange, badgeText = getFriendBadge(state, 5), badgeColor = getFriendBadgeColor(state, 5),
-                    onClick = { onOpenFriendDialogue(5) }, onAvatarClick = { onOpenFriendProfile(5) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(5)) }
                 )
 
                 // 9. Совушка София
@@ -338,7 +331,7 @@ fun CityMapScreen(
                     x = screenW * 0.88f, y = screenH * 0.49f,
                     title = "София", emoji = "🦉", assetName = "friend_4_portrait",
                     borderColor = SanrioAccentYellow, badgeText = getFriendBadge(state, 4), badgeColor = getFriendBadgeColor(state, 4),
-                    onClick = { onOpenFriendDialogue(4) }, onAvatarClick = { onOpenFriendProfile(4) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(4)) }
                 )
 
                 // 10. Щенок Барбос
@@ -346,7 +339,7 @@ fun CityMapScreen(
                     x = screenW * 0.72f, y = screenH * 0.73f,
                     title = "Барбос", emoji = "🐶", assetName = "friend_7_portrait",
                     borderColor = SanrioAccentPurple, badgeText = getFriendBadge(state, 7), badgeColor = getFriendBadgeColor(state, 7),
-                    onClick = { onOpenFriendDialogue(7) }, onAvatarClick = { onOpenFriendProfile(7) }
+                    onClick = { onSelectLocation(GameLocation.FriendRoom(7)) }
                 )
 
                 // 11. Мой Дом (Коттедж у реки)
@@ -373,7 +366,8 @@ fun CityMapScreen(
             // СЛЕВА (Фиолетовый овал в наброске): Аватар игрока + Время суток
             SanrioPlayerTimeCard(
                 timeText = currentTimeStr,
-                petSpecies = state.pet.species.id
+                petSpecies = state.pet.species.id,
+                onClick = { onSelectLocation(GameLocation.MyRoom) }
             )
 
             // СПРАВА (Голубое облачко в наброске): Монеты + Копилка + Режим
@@ -539,13 +533,15 @@ private fun SanrioAvatarMapPin(
 @Composable
 private fun SanrioPlayerTimeCard(
     timeText: String,
-    petSpecies: String
+    petSpecies: String,
+    onClick: () -> Unit = {}
 ) {
     Surface(
         color = Color.White.copy(alpha = 0.94f),
         shape = RoundedCornerShape(22.dp),
         border = BorderStroke(2.dp, SanrioSkyBlueLight),
-        shadowElevation = 6.dp
+        shadowElevation = 6.dp,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

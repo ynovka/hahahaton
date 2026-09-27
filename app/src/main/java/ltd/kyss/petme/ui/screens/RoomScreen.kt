@@ -58,7 +58,8 @@ fun RoomScreen(
     onOpenSettings: () -> Unit,
     onOpenFinance: () -> Unit,
     onFinishPeriod: () -> Unit,
-    onOpenFriendDialogue: (Int) -> Unit
+    onOpenFriendDialogue: (Int) -> Unit,
+    onOpenFriendProfile: (Int) -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -83,7 +84,7 @@ fun RoomScreen(
         GameLocation.Bank -> "bg_room_bank"
         GameLocation.Hospital -> "bg_room_hospital"
         GameLocation.Shop -> "bg_room_shop"
-        is GameLocation.FriendRoom -> null // Кастомный градиент для друзей
+        is GameLocation.FriendRoom -> "bg_room_friend_${location.friendId}"
         else -> null
     }
 
@@ -92,17 +93,8 @@ fun RoomScreen(
             .fillMaxSize()
             .background(Color(0xFFFFF9EC))
     ) {
-        // Фоновое изображение комнаты (на весь экран без обрезки)
-        if (bgAssetName != null) {
-            GameArt(
-                assetName = bgAssetName,
-                fallbackEmoji = "",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-                contentDescription = "Room Background"
-            )
-        } else if (location is GameLocation.FriendRoom) {
-            // Тематический градиент комнаты друга
+        // Тематический градиент комнаты друга (на случай загрузки)
+        if (location is GameLocation.FriendRoom) {
             val friendId = location.friendId
             val friendGradients = when (friendId) {
                 1 -> listOf(Color(0xFFFFF9C4), Color(0xFFFFE082), Color(0xFFFFD54F)) // Потап: мед
@@ -118,17 +110,16 @@ fun RoomScreen(
                     .fillMaxSize()
                     .background(Brush.verticalGradient(friendGradients))
             )
-            // Деревянный пол для комнат друзей
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.30f)
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(Color(0xFFC79A63), Color(0xFFA4753F), Color(0xFF7E5425))
-                        )
-                    )
+        }
+
+        // Фоновое изображение комнаты (на весь экран без обрезки)
+        if (bgAssetName != null) {
+            GameArt(
+                assetName = bgAssetName,
+                fallbackEmoji = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                contentDescription = "Room Background"
             )
         }
 
@@ -142,7 +133,8 @@ fun RoomScreen(
             onOpenBank = onOpenBank,
             onOpenHospital = onOpenHospital,
             onOpenCare = onOpenCare,
-            onOpenFriendDialogue = onOpenFriendDialogue
+            onOpenFriendDialogue = onOpenFriendDialogue,
+            onOpenFriendProfile = onOpenFriendProfile
         )
 
         // Верхний плавающий UI (HUD)
@@ -471,7 +463,8 @@ fun RoomInteractiveStage(
     onOpenBank: () -> Unit,
     onOpenHospital: () -> Unit,
     onOpenCare: () -> Unit,
-    onOpenFriendDialogue: (Int) -> Unit
+    onOpenFriendDialogue: (Int) -> Unit,
+    onOpenFriendProfile: (Int) -> Unit = {}
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -659,6 +652,90 @@ fun RoomInteractiveStage(
                     propSize = 94.dp,
                     onClick = { onOpenFriendDialogue(friendId) }
                 )
+
+                // Уютный нижний док в гостях у друга
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 16.dp)
+                        .wrapContentWidth(),
+                    shape = RoundedCornerShape(26.dp),
+                    color = Color.White.copy(alpha = 0.95f),
+                    border = BorderStroke(2.dp, SanrioCardBorder),
+                    shadowElevation = 6.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Беседа
+                        Surface(
+                            color = SanrioSkyBlueLight.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, SanrioSkyBlueDark.copy(alpha = 0.5f)),
+                            modifier = Modifier.clickable { onOpenFriendDialogue(friendId) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("💬", fontSize = 16.sp)
+                                Spacer(Modifier.width(5.dp))
+                                Text(
+                                    "Беседа",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SanrioSkyBlueDark
+                                )
+                            }
+                        }
+
+                        // Профиль друга и уровень дружбы
+                        Surface(
+                            color = SanrioPurpleBg,
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, SanrioAccentPurple.copy(alpha = 0.5f)),
+                            modifier = Modifier.clickable { onOpenFriendProfile(friendId) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("🌟", fontSize = 16.sp)
+                                Spacer(Modifier.width(5.dp))
+                                Text(
+                                    "Дружба (${friend.friendshipLevel})",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SanrioAccentPurple
+                                )
+                            }
+                        }
+
+                        // Выйти в город
+                        Surface(
+                            color = SanrioGreenBg,
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, SanrioAccentGreen.copy(alpha = 0.5f)),
+                            modifier = Modifier.clickable { viewModel.changeLocation(GameLocation.CityMap) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("🚪", fontSize = 16.sp)
+                                Spacer(Modifier.width(5.dp))
+                                Text(
+                                    "В город",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF00796B)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 

@@ -96,7 +96,8 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                     onOpenSettings = { showSettingsDialog = true },
                     onOpenFinance = { showFinanceDialog = true },
                     onFinishPeriod = { showFinishPeriodDialog = true },
-                    onOpenFriendDialogue = { friendId -> activeFriendDialogueId = friendId }
+                    onOpenFriendDialogue = { friendId -> activeFriendDialogueId = friendId },
+                    onOpenFriendProfile = { friendId -> activeFriendProfileId = friendId }
                 )
             }
         }
