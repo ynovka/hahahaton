@@ -98,13 +98,13 @@ fun CityMapScreen(
                 )
 
                 // -----------------------------------------------------
-                // Интерактивные кружки НАД зданиями (идеальная посадка над коньком крыши)
+                // Интерактивные кружки НАД зданиями (строго по стрелкам автора)
                 // -----------------------------------------------------
 
-                // 1. Друг 2: Белочка Рыжик (НАД домиком-желудем на дубе у реки)
+                // 1. Друг 2: Белочка Рыжик (по стрелке автора на домик на дереве)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.095f,
-                    y = screenH * 0.320f,
+                    x = screenW * 0.072f,
+                    y = screenH * 0.400f,
                     title = "Рыжик",
                     emoji = "🐿️",
                     assetName = "friend_2_portrait",
@@ -115,10 +115,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(2) }
                 )
 
-                // 2. Друг 1: Медвежонок Потап (НАД розовым коттеджем вверху слева)
+                // 2. Друг 1: Медвежонок Потап (по стрелке автора на крышу розового коттеджа)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.140f,
-                    y = screenH * 0.185f,
+                    x = screenW * 0.093f,
+                    y = screenH * 0.261f,
                     title = "Потап",
                     emoji = "🐻",
                     assetName = "friend_1_portrait",
@@ -129,10 +129,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(1) }
                 )
 
-                // 3. Друг 3: Енотик Тёма (НАД сиреневым коттеджем вверху по центру)
+                // 3. Друг 3: Енотик Тёма (по стрелке автора на крышу верхнего коттеджа)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.610f,
-                    y = screenH * 0.180f,
+                    x = screenW * 0.682f,
+                    y = screenH * 0.233f,
                     title = "Тёма",
                     emoji = "🦝",
                     assetName = "friend_3_portrait",
@@ -143,10 +143,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(3) }
                 )
 
-                // 4. Друг 4: Совушка София (НАД золотистым коттеджем вверху справа)
+                // 4. Друг 4: Совушка София (по стрелке автора на крышу золотистого коттеджа)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.835f,
-                    y = screenH * 0.230f,
+                    x = screenW * 0.915f,
+                    y = screenH * 0.274f,
                     title = "София",
                     emoji = "🦉",
                     assetName = "friend_4_portrait",
@@ -157,10 +157,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(4) }
                 )
 
-                // 5. Друг 6: Зайчик Сеня (НАД сиреневым домиком на полянке)
+                // 5. Друг 6: Зайчик Сеня (по стрелке автора на крышу сиреневого домика)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.350f,
-                    y = screenH * 0.265f,
+                    x = screenW * 0.315f,
+                    y = screenH * 0.332f,
                     title = "Сеня",
                     emoji = "🐰",
                     assetName = "friend_6_portrait",
@@ -171,10 +171,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(6) }
                 )
 
-                // 6. Магазин вкусностей (НАД полосатым козырьком лавки)
+                // 6. Магазин вкусностей (по стрелке автора на козырёк лавки)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.355f,
-                    y = screenH * 0.385f,
+                    x = screenW * 0.346f,
+                    y = screenH * 0.440f,
                     title = "Лавка",
                     emoji = "🛒",
                     assetName = "building_shop",
@@ -184,10 +184,10 @@ fun CityMapScreen(
                     onClick = { onSelectLocation(GameLocation.Shop) }
                 )
 
-                // 7. Городской Банк (НАД фронтоном здания банка с часами)
+                // 7. Городской Банк (по стрелке автора на крышу здания банка)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.660f,
-                    y = screenH * 0.370f,
+                    x = screenW * 0.739f,
+                    y = screenH * 0.412f,
                     title = "Банк",
                     emoji = "🏦",
                     assetName = "building_bank",
@@ -197,10 +197,10 @@ fun CityMapScreen(
                     onClick = { onSelectLocation(GameLocation.Bank) }
                 )
 
-                // 8. Больница / Клиника Заботы (НАД крышей клиники с красным крестом)
+                // 8. Больница / Клиника Заботы (над крышей клиники)
                 SanrioAvatarMapPin(
                     x = screenW * 0.870f,
-                    y = screenH * 0.535f,
+                    y = screenH * 0.520f,
                     title = "Клиника",
                     emoji = "🏥",
                     assetName = "building_hospital",
@@ -210,10 +210,10 @@ fun CityMapScreen(
                     onClick = { onSelectLocation(GameLocation.Hospital) }
                 )
 
-                // 9. Друг 5: Лисичка Алиса (НАД уютным домиком-норой с черепичной крышей)
+                // 9. Друг 5: Лисичка Алиса (по стрелке автора на крышу домика-норы)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.660f,
-                    y = screenH * 0.625f,
+                    x = screenW * 0.718f,
+                    y = screenH * 0.656f,
                     title = "Алиса",
                     emoji = "🦊",
                     assetName = "friend_5_portrait",
@@ -224,10 +224,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(5) }
                 )
 
-                // 10. Друг 7: Щенок Барбос (НАД сиреневым коттеджем внизу справа)
+                // 10. Друг 7: Щенок Барбос (над сиреневым коттеджем внизу справа)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.865f,
-                    y = screenH * 0.720f,
+                    x = screenW * 0.852f,
+                    y = screenH * 0.738f,
                     title = "Барбос",
                     emoji = "🐶",
                     assetName = "friend_7_portrait",
@@ -238,10 +238,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(7) }
                 )
 
-                // 11. Мой Дом (НАД двухэтажным домиком героя у реки - идеальная посадка)
+                // 11. Мой Дом (эталон - над домиком героя у реки)
                 SanrioAvatarMapPin(
                     x = screenW * 0.220f,
-                    y = screenH * 0.760f,
+                    y = screenH * 0.755f,
                     title = "Мой дом",
                     emoji = "🏠",
                     assetName = "building_home",
