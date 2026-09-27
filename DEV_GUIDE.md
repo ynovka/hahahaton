@@ -41,7 +41,7 @@ android layout -p
 ## 🛠️ Что уже настроено в окружении
 
 1. **Android SDK & Build Tools**:
-   - SDK: `C:\Users\IKER\AppData\Local\Android\Sdk`
+   - SDK: `%LOCALAPPDATA%\Android\Sdk` (или путь в `local.properties`)
    - `build-tools 37.0.0` и `36.0.0`
    - `platforms/android-37.0` (API 37)
    - `platform-tools` с `adb` (добавлен в системные переменные терминала)

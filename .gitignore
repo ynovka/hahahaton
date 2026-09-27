@@ -15,3 +15,10 @@
 local.properties
 tmp/
 
+# Debug and local files
+.vscode/
+screenshots/
+__pycache__/
+*.pyc
+scripts/__pycache__/
+scripts/test_*.py
