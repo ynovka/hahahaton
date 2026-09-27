@@ -98,13 +98,13 @@ fun CityMapScreen(
                 )
 
                 // -----------------------------------------------------
-                // Интерактивные кружки над зданиями (по координатам эскиза)
+                // Интерактивные кружки НАД зданиями (чистое позиционирование)
                 // -----------------------------------------------------
 
-                // 1. Друг 2: Белочка Рыжик (Домик на дереве / верхний лес слева)
+                // 1. Друг 2: Белочка Рыжик (НАД домиком-желудем на дереве)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.16f,
-                    y = screenH * 0.17f,
+                    x = screenW * 0.19f,
+                    y = screenH * 0.08f,
                     title = "Рыжик",
                     emoji = "🐿️",
                     assetName = "friend_2_portrait",
@@ -115,10 +115,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(2) }
                 )
 
-                // 2. Друг 1: Медвежонок Потап (Домик с розовой крышей вверху слева)
+                // 2. Друг 1: Медвежонок Потап (НАД розовым коттеджем вверху слева)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.16f,
-                    y = screenH * 0.28f,
+                    x = screenW * 0.15f,
+                    y = screenH * 0.20f,
                     title = "Потап",
                     emoji = "🐻",
                     assetName = "friend_1_portrait",
@@ -129,10 +129,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(1) }
                 )
 
-                // 3. Друг 3: Енотик Тёма (Домик с сиреневой крышей вверху по центру)
+                // 3. Друг 3: Енотик Тёма (НАД сиреневым коттеджем вверху по центру)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.63f,
-                    y = screenH * 0.28f,
+                    x = screenW * 0.64f,
+                    y = screenH * 0.18f,
                     title = "Тёма",
                     emoji = "🦝",
                     assetName = "friend_3_portrait",
@@ -143,10 +143,10 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(3) }
                 )
 
-                // 4. Друг 4: Совушка София (Домик с золотой крышей вверху справа)
+                // 4. Друг 4: Совушка София (НАД золотистым коттеджем вверху справа)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.82f,
-                    y = screenH * 0.33f,
+                    x = screenW * 0.86f,
+                    y = screenH * 0.23f,
                     title = "София",
                     emoji = "🦉",
                     assetName = "friend_4_portrait",
@@ -157,25 +157,25 @@ fun CityMapScreen(
                     onAvatarClick = { onOpenFriendProfile(4) }
                 )
 
-                // 5. Друг 5: Зайчик Сеня (Домик на поляне в центре слева)
+                // 5. Друг 6: Зайчик Сеня (НАД сиреневым домиком на полянке)
                 SanrioAvatarMapPin(
                     x = screenW * 0.36f,
-                    y = screenH * 0.36f,
+                    y = screenH * 0.27f,
                     title = "Сеня",
                     emoji = "🐰",
-                    assetName = "friend_5_portrait",
+                    assetName = "friend_6_portrait",
                     borderColor = SanrioAccentGreen,
-                    badgeText = getFriendBadge(state, 5),
-                    badgeColor = getFriendBadgeColor(state, 5),
-                    onClick = { onOpenFriendDialogue(5) },
-                    onAvatarClick = { onOpenFriendProfile(5) }
+                    badgeText = getFriendBadge(state, 6),
+                    badgeColor = getFriendBadgeColor(state, 6),
+                    onClick = { onOpenFriendDialogue(6) },
+                    onAvatarClick = { onOpenFriendProfile(6) }
                 )
 
-                // 6. Магазин вкусностей (Лавка с полосатым козырьком)
+                // 6. Магазин вкусностей (НАД полосатым козырьком лавки)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.34f,
-                    y = screenH * 0.46f,
-                    title = "Магазин",
+                    x = screenW * 0.37f,
+                    y = screenH * 0.38f,
+                    title = "Лавка",
                     emoji = "🛒",
                     assetName = "building_shop",
                     borderColor = SanrioAccentPink,
@@ -184,10 +184,10 @@ fun CityMapScreen(
                     onClick = { onSelectLocation(GameLocation.Shop) }
                 )
 
-                // 7. Городской Банк (Классическое здание с колоннами)
+                // 7. Городской Банк (НАД фронтоном здания банка с часами)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.66f,
-                    y = screenH * 0.45f,
+                    x = screenW * 0.68f,
+                    y = screenH * 0.36f,
                     title = "Банк",
                     emoji = "🏦",
                     assetName = "building_bank",
@@ -197,10 +197,10 @@ fun CityMapScreen(
                     onClick = { onSelectLocation(GameLocation.Bank) }
                 )
 
-                // 8. Больница / Клиника Заботы (Доктор Сова)
+                // 8. Больница / Клиника Заботы (НАД крышей клиники с красным крестом)
                 SanrioAvatarMapPin(
                     x = screenW * 0.88f,
-                    y = screenH * 0.48f,
+                    y = screenH * 0.50f,
                     title = "Клиника",
                     emoji = "🏥",
                     assetName = "building_hospital",
@@ -210,37 +210,24 @@ fun CityMapScreen(
                     onClick = { onSelectLocation(GameLocation.Hospital) }
                 )
 
-                // 9. Друг 6: Лисичка Алиса (Домик с зеленой дверью справа)
+                // 9. Друг 5: Лисичка Алиса (В цветущем саду сакуры)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.87f,
-                    y = screenH * 0.58f,
+                    x = screenW * 0.68f,
+                    y = screenH * 0.62f,
                     title = "Алиса",
                     emoji = "🦊",
-                    assetName = "friend_6_portrait",
+                    assetName = "friend_5_portrait",
                     borderColor = SanrioAccentOrange,
-                    badgeText = getFriendBadge(state, 6),
-                    badgeColor = getFriendBadgeColor(state, 6),
-                    onClick = { onOpenFriendDialogue(6) },
-                    onAvatarClick = { onOpenFriendProfile(6) }
+                    badgeText = getFriendBadge(state, 5),
+                    badgeColor = getFriendBadgeColor(state, 5),
+                    onClick = { onOpenFriendDialogue(5) },
+                    onAvatarClick = { onOpenFriendProfile(5) }
                 )
 
-                // 10. Мой Дом (Уютный двухэтажный домик героя)
+                // 10. Друг 7: Щенок Барбос (НАД фиолетовым коттеджем внизу справа)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.20f,
-                    y = screenH * 0.62f,
-                    title = "Мой дом",
-                    emoji = "🏠",
-                    assetName = "building_home",
-                    borderColor = SanrioAccentGreen,
-                    badgeText = "ДОМОЙ",
-                    badgeColor = SanrioAccentGreen,
-                    onClick = { onSelectLocation(GameLocation.MyRoom) }
-                )
-
-                // 11. Друг 7: Щенок Барбос (Домик с фиолетовой крышей внизу справа)
-                SanrioAvatarMapPin(
-                    x = screenW * 0.82f,
-                    y = screenH * 0.74f,
+                    x = screenW * 0.86f,
+                    y = screenH * 0.68f,
                     title = "Барбос",
                     emoji = "🐶",
                     assetName = "friend_7_portrait",
@@ -249,6 +236,19 @@ fun CityMapScreen(
                     badgeColor = getFriendBadgeColor(state, 7),
                     onClick = { onOpenFriendDialogue(7) },
                     onAvatarClick = { onOpenFriendProfile(7) }
+                )
+
+                // 11. Мой Дом (НАД двухэтажным домиком героя у реки)
+                SanrioAvatarMapPin(
+                    x = screenW * 0.24f,
+                    y = screenH * 0.73f,
+                    title = "Мой дом",
+                    emoji = "🏠",
+                    assetName = "building_home",
+                    borderColor = SanrioAccentGreen,
+                    badgeText = "ДОМОЙ",
+                    badgeColor = SanrioAccentGreen,
+                    onClick = { onSelectLocation(GameLocation.MyRoom) }
                 )
             }
         } else {
@@ -269,61 +269,93 @@ fun CityMapScreen(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Здания в панораме
+                // 1. Белочка Рыжик (НАД домиком на дубе)
                 SanrioAvatarMapPin(
-                    x = screenW * 0.14f, y = screenH * 0.32f,
-                    title = "Мой дом", emoji = "🏠", assetName = "building_home",
-                    borderColor = SanrioAccentGreen, badgeText = "ДОМОЙ", badgeColor = SanrioAccentGreen,
-                    onClick = { onSelectLocation(GameLocation.MyRoom) }
+                    x = screenW * 0.16f, y = screenH * 0.10f,
+                    title = "Рыжик", emoji = "🐿️", assetName = "friend_2_portrait",
+                    borderColor = SanrioAccentOrange, badgeText = getFriendBadge(state, 2), badgeColor = getFriendBadgeColor(state, 2),
+                    onClick = { onOpenFriendDialogue(2) }, onAvatarClick = { onOpenFriendProfile(2) }
                 )
 
+                // 2. Магазин / Лавка покупок
                 SanrioAvatarMapPin(
-                    x = screenW * 0.42f, y = screenH * 0.36f,
+                    x = screenW * 0.33f, y = screenH * 0.27f,
+                    title = "Лавка", emoji = "🛒", assetName = "building_shop",
+                    borderColor = SanrioAccentPink, badgeText = "ЛАВКА", badgeColor = SanrioAccentPink,
+                    onClick = { onSelectLocation(GameLocation.Shop) }
+                )
+
+                // 3. Городской Банк
+                SanrioAvatarMapPin(
+                    x = screenW * 0.50f, y = screenH * 0.19f,
                     title = "Банк", emoji = "🏦", assetName = "building_bank",
                     borderColor = SanrioAccentYellow, badgeText = "${state.wallet.savings} м.", badgeColor = SanrioAccentPurple,
                     onClick = { onSelectLocation(GameLocation.Bank) }
                 )
 
+                // 4. Клиника Заботы
                 SanrioAvatarMapPin(
-                    x = screenW * 0.62f, y = screenH * 0.38f,
-                    title = "Магазин", emoji = "🛒", assetName = "building_shop",
-                    borderColor = SanrioAccentPink, badgeText = "ЛАВКА", badgeColor = SanrioAccentPink,
-                    onClick = { onSelectLocation(GameLocation.Shop) }
-                )
-
-                SanrioAvatarMapPin(
-                    x = screenW * 0.86f, y = screenH * 0.35f,
+                    x = screenW * 0.67f, y = screenH * 0.29f,
                     title = "Клиника", emoji = "🏥", assetName = "building_hospital",
                     borderColor = SanrioSkyBlueDark, badgeText = "ОСМОТР", badgeColor = SanrioSkyBlueDark,
                     onClick = { onSelectLocation(GameLocation.Hospital) }
                 )
 
-                // Друзья в панораме
-                val panoramaFriends = listOf(
-                    Triple(1, screenW * 0.08f, screenH * 0.60f),
-                    Triple(2, screenW * 0.22f, screenH * 0.68f),
-                    Triple(3, screenW * 0.36f, screenH * 0.64f),
-                    Triple(4, screenW * 0.50f, screenH * 0.68f),
-                    Triple(5, screenW * 0.66f, screenH * 0.64f),
-                    Triple(6, screenW * 0.80f, screenH * 0.66f),
-                    Triple(7, screenW * 0.92f, screenH * 0.58f)
+                // 5. Медвежонок Потап
+                SanrioAvatarMapPin(
+                    x = screenW * 0.18f, y = screenH * 0.47f,
+                    title = "Потап", emoji = "🐻", assetName = "friend_1_portrait",
+                    borderColor = SanrioAccentPink, badgeText = getFriendBadge(state, 1), badgeColor = getFriendBadgeColor(state, 1),
+                    onClick = { onOpenFriendDialogue(1) }, onAvatarClick = { onOpenFriendProfile(1) }
                 )
 
-                panoramaFriends.forEach { (friendId, px, py) ->
-                    val friend = GameCatalog.friendsList.firstOrNull { it.id == friendId }
-                    if (friend != null) {
-                        SanrioAvatarMapPin(
-                            x = px, y = py,
-                            title = friend.name, emoji = friend.emoji,
-                            assetName = "friend_${friend.id}_portrait",
-                            borderColor = SanrioSkyBlueDark,
-                            badgeText = getFriendBadge(state, friend.id),
-                            badgeColor = getFriendBadgeColor(state, friend.id),
-                            onClick = { onOpenFriendDialogue(friend.id) },
-                            onAvatarClick = { onOpenFriendProfile(friend.id) }
-                        )
-                    }
-                }
+                // 6. Енотик Тёма
+                SanrioAvatarMapPin(
+                    x = screenW * 0.10f, y = screenH * 0.57f,
+                    title = "Тёма", emoji = "🦝", assetName = "friend_3_portrait",
+                    borderColor = SanrioAccentPurple, badgeText = getFriendBadge(state, 3), badgeColor = getFriendBadgeColor(state, 3),
+                    onClick = { onOpenFriendDialogue(3) }, onAvatarClick = { onOpenFriendProfile(3) }
+                )
+
+                // 7. Зайчик Сеня
+                SanrioAvatarMapPin(
+                    x = screenW * 0.33f, y = screenH * 0.63f,
+                    title = "Сеня", emoji = "🐰", assetName = "friend_6_portrait",
+                    borderColor = SanrioAccentGreen, badgeText = getFriendBadge(state, 6), badgeColor = getFriendBadgeColor(state, 6),
+                    onClick = { onOpenFriendDialogue(6) }, onAvatarClick = { onOpenFriendProfile(6) }
+                )
+
+                // 8. Лисичка Алиса
+                SanrioAvatarMapPin(
+                    x = screenW * 0.42f, y = screenH * 0.65f,
+                    title = "Алиса", emoji = "🦊", assetName = "friend_5_portrait",
+                    borderColor = SanrioAccentOrange, badgeText = getFriendBadge(state, 5), badgeColor = getFriendBadgeColor(state, 5),
+                    onClick = { onOpenFriendDialogue(5) }, onAvatarClick = { onOpenFriendProfile(5) }
+                )
+
+                // 9. Совушка София
+                SanrioAvatarMapPin(
+                    x = screenW * 0.88f, y = screenH * 0.49f,
+                    title = "София", emoji = "🦉", assetName = "friend_4_portrait",
+                    borderColor = SanrioAccentYellow, badgeText = getFriendBadge(state, 4), badgeColor = getFriendBadgeColor(state, 4),
+                    onClick = { onOpenFriendDialogue(4) }, onAvatarClick = { onOpenFriendProfile(4) }
+                )
+
+                // 10. Щенок Барбос
+                SanrioAvatarMapPin(
+                    x = screenW * 0.72f, y = screenH * 0.73f,
+                    title = "Барбос", emoji = "🐶", assetName = "friend_7_portrait",
+                    borderColor = SanrioAccentPurple, badgeText = getFriendBadge(state, 7), badgeColor = getFriendBadgeColor(state, 7),
+                    onClick = { onOpenFriendDialogue(7) }, onAvatarClick = { onOpenFriendProfile(7) }
+                )
+
+                // 11. Мой Дом (Коттедж у реки)
+                SanrioAvatarMapPin(
+                    x = screenW * 0.88f, y = screenH * 0.75f,
+                    title = "Мой дом", emoji = "🏠", assetName = "building_home",
+                    borderColor = SanrioAccentGreen, badgeText = "ДОМОЙ", badgeColor = SanrioAccentGreen,
+                    onClick = { onSelectLocation(GameLocation.MyRoom) }
+                )
             }
         }
 
