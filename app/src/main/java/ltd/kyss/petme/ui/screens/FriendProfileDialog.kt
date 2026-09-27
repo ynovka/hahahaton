@@ -116,7 +116,13 @@ fun FriendProfileDialog(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(currentFriend.emoji, fontSize = 64.sp)
+                                ltd.kyss.petme.ui.components.GameArt(
+                                    assetName = "friend_${currentFriend.id}_portrait",
+                                    fallbackEmoji = currentFriend.emoji,
+                                    modifier = Modifier.size(86.dp),
+                                    fallbackSize = 58.sp
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Surface(
                                     color = Color(0xFFE3F2FD),
                                     shape = RoundedCornerShape(8.dp)

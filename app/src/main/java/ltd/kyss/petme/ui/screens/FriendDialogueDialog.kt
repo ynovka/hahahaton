@@ -1,16 +1,32 @@
 package ltd.kyss.petme.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import ltd.kyss.petme.core.data.GameCatalog
 import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.PuzzleState
 import ltd.kyss.petme.ui.components.GameArt
+import ltd.kyss.petme.ui.theme.*
 
+/**
+ * Диалог общения с другом в стиле Sanrio / Hello Kitty Island Adventure.
+ */
 @Composable
 fun FriendDialogueDialog(
     friendId: Int,
@@ -23,41 +39,175 @@ fun FriendDialogueDialog(
     val lesson = GameCatalog.lessonForFriend(friendId)
     var taskDiscussed by remember(friendId) { mutableStateOf(false) }
 
-    AlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        title = {
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                GameArt(
-                    assetName = "friend_${friend.id}_portrait",
-                    fallbackEmoji = friend.emoji,
-                    modifier = Modifier.size(38.dp),
-                    fallbackSize = 26.sp
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = Color.White,
+            border = BorderStroke(3.dp, SanrioCardBorder),
+            shadowElevation = 10.dp,
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .widthIn(max = 440.dp)
+                .wrapContentHeight()
+                .padding(vertical = 16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Аватар друга с цветной обводкой
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(SanrioSkyBlueLight)
+                        .border(3.dp, SanrioSkyBlueDark, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    GameArt(
+                        assetName = "friend_${friend.id}_portrait",
+                        fallbackEmoji = friend.emoji,
+                        modifier = Modifier.size(68.dp),
+                        fallbackSize = 44.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    friend.name,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = SanrioTextDark
                 )
-                Spacer(Modifier.width(8.dp))
-                Text(friend.name)
-            }
-        },
-        text = {
-            Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
-                Text(if (taskDiscussed) friend.puzzlePrompt else "«${friend.greetingText}»")
+                Text(
+                    friend.species,
+                    fontSize = 12.sp,
+                    color = SanrioTextSubtitle
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Облачко диалога персонажа
+                Surface(
+                    shape = RoundedCornerShape(18.dp),
+                    color = Color(0xFFF0F8FF),
+                    border = BorderStroke(1.5.dp, SanrioCardBorder),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = if (taskDiscussed) "«${friend.puzzlePrompt}»" else "«${friend.greetingText}»",
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = SanrioTextDark,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(14.dp)
+                    )
+                }
+
+                // Подсказка советника
                 if (taskDiscussed && lesson != null) {
-                    HorizontalDivider()
-                    Text("💡 Подсказка помощника: ${lesson.shortRule}")
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color(0xFFFFFDE7),
+                        border = BorderStroke(1.5.dp, Color(0xFFFFD54F)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("💡", fontSize = 18.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "Подсказка: ${lesson.shortRule}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF5D4037)
+                            )
+                        }
+                    }
                 }
+
+                // Если уже решено
                 if (puzzle.state == PuzzleState.COMPLETED) {
-                    Text("✅ Задание этого периода уже выполнено. Загляни снова в следующем периоде!")
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = SanrioGreenBg,
+                        border = BorderStroke(1.5.dp, SanrioAccentGreen),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "✅ Задание этого периода выполнено! Ты получил награду.",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF00695C),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Кнопки действий (Sanrio Pill Buttons)
+                when {
+                    puzzle.state == PuzzleState.COMPLETED -> {
+                        Button(
+                            onClick = onDismiss,
+                            colors = ButtonDefaults.buttonColors(containerColor = SanrioAccentGreen),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.fillMaxWidth().height(48.dp)
+                        ) {
+                            Text("Закончить разговор ✓", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    taskDiscussed -> {
+                        Button(
+                            onClick = onStartPuzzle,
+                            colors = ButtonDefaults.buttonColors(containerColor = SanrioAccentOrange),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.fillMaxWidth().height(48.dp)
+                        ) {
+                            Text("Начать задание ✨", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            shape = RoundedCornerShape(50),
+                            border = BorderStroke(1.5.dp, SanrioCardBorder),
+                            modifier = Modifier.fillMaxWidth().height(44.dp)
+                        ) {
+                            Text("Подумать позже", color = SanrioTextSubtitle, fontSize = 14.sp)
+                        }
+                    }
+                    else -> {
+                        Button(
+                            onClick = { taskDiscussed = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = SanrioSkyBlueDark),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.fillMaxWidth().height(48.dp)
+                        ) {
+                            Text("Есть задание? ❓", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            shape = RoundedCornerShape(50),
+                            border = BorderStroke(1.5.dp, SanrioCardBorder),
+                            modifier = Modifier.fillMaxWidth().height(44.dp)
+                        ) {
+                            Text("Закончить разговор", color = SanrioTextSubtitle, fontSize = 14.sp)
+                        }
+                    }
                 }
             }
-        },
-        confirmButton = {
-            when {
-                puzzle.state == PuzzleState.COMPLETED -> Button(onClick = onDismiss) { Text("Закончить разговор") }
-                taskDiscussed -> Button(onClick = onStartPuzzle) { Text("Начать задание") }
-                else -> Button(onClick = { taskDiscussed = true }) { Text("Есть задание?") }
-            }
-        },
-        dismissButton = {
-            OutlinedButton(onClick = onDismiss) { Text("Закончить разговор") }
         }
-    )
+    }
 }

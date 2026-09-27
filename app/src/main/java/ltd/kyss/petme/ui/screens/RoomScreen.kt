@@ -1,9 +1,10 @@
 package ltd.kyss.petme.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,9 +17,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -30,11 +37,12 @@ import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.*
 import ltd.kyss.petme.ui.components.AnimatedGameArt
 import ltd.kyss.petme.ui.components.GameArt
+import ltd.kyss.petme.ui.theme.*
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
 /**
- * Основной игровой экран 2D комнаты.
- * Полностью адаптивен под вертикальную ориентацию телефонов и планшетов (от 320dp до 1000dp+).
+ * 2D игровая комната в стиле Hello Kitty Island Adventure / Sanrio 3D.
+ * Поддерживает вертикальную (телефон) и горизонтальную (планшет / альбомная) ориентации.
  */
 @Composable
 fun RoomScreen(
@@ -50,40 +58,95 @@ fun RoomScreen(
     onOpenSettings: () -> Unit,
     onOpenFinance: () -> Unit,
     onFinishPeriod: () -> Unit,
-    onOpenFriendDialogue: (Int) -> Unit
+    onOpenFriendDialogue: (Int) -> Unit,
+    onOpenFriendProfile: (Int) -> Unit = {}
 ) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val location = state.currentLocation
 
-    // Заголовок комнаты и фоновые цвета
-    val (roomTitle, wallColorTop, wallColorBottom) = when (location) {
-        GameLocation.MyRoom -> Triple("🏠 Моя уютная комната", Color(0xFFFFF8E7), Color(0xFFFFECC8))
-        GameLocation.Bank -> Triple("🏦 Банк Финляндии", Color(0xFFE8F5E9), Color(0xFFC8E6C9))
-        GameLocation.Shop -> Triple("🛒 Лавка Енотика", Color(0xFFFFF3E0), Color(0xFFFFE0B2))
-        GameLocation.Hospital -> Triple("🏥 Лечебница Доктора Совы", Color(0xFFE1F5FE), Color(0xFFB3E5FC))
+    // Заголовок текущей локации
+    val (roomTitle, roomEmoji) = when (location) {
+        GameLocation.MyRoom -> Pair("Моя уютная комната", "🏠")
+        GameLocation.Bank -> Pair("Городской Банк", "🏦")
+        GameLocation.Shop -> Pair("Лавка Енотика", "🛒")
+        GameLocation.Hospital -> Pair("Больница Доктора Совы", "🏥")
         is GameLocation.FriendRoom -> {
             val friend = GameCatalog.friendsList.find { it.id == location.friendId }
-            Triple("🏡 ${friend?.houseName ?: "В гостях"}", Color(0xFFF3E5F5), Color(0xFFE1BEE7))
+            Pair(friend?.houseName ?: "В гостях", friend?.emoji ?: "🏡")
         }
-        else -> Triple("Комната", Color.White, Color.LightGray)
+        else -> Pair("Комната", "🏠")
+    }
+
+    // Выбор фонового ассета под ориентацию экрана
+    val bgAssetName = when (location) {
+        GameLocation.MyRoom -> if (isLandscape) "bg_room_myroom_horiz" else "bg_room_myroom"
+        GameLocation.Bank -> "bg_room_bank"
+        GameLocation.Hospital -> "bg_room_hospital"
+        GameLocation.Shop -> "bg_room_shop"
+        is GameLocation.FriendRoom -> "bg_room_friend_${location.friendId}"
+        else -> null
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(wallColorTop, wallColorBottom, Color(0xFF8D6E63))
-                )
-            ),
-        contentAlignment = Alignment.TopCenter
+            .background(Color(0xFFFFF9EC))
     ) {
+        // Тематический градиент комнаты друга (на случай загрузки)
+        if (location is GameLocation.FriendRoom) {
+            val friendId = location.friendId
+            val friendGradients = when (friendId) {
+                1 -> listOf(Color(0xFFFFF9C4), Color(0xFFFFE082), Color(0xFFFFD54F)) // Потап: мед
+                2 -> listOf(Color(0xFFE8F5E9), Color(0xFFC8E6C9), Color(0xFFA5D6A7)) // Рыжик: дубрава
+                3 -> listOf(Color(0xFFECEFF1), Color(0xFFCFD8DC), Color(0xFFB0BEC5)) // Тёма: мастерская
+                4 -> listOf(Color(0xFFEDE7F6), Color(0xFFD1C4E9), Color(0xFFB39DDB)) // София: книжная
+                5 -> listOf(Color(0xFFFBE9E7), Color(0xFFFFCCBC), Color(0xFFFFAB91)) // Алиса: нора
+                6 -> listOf(Color(0xFFE0F2F1), Color(0xFFB2DFDB), Color(0xFF80CBC4)) // Сеня: мята
+                else -> listOf(Color(0xFFE1F5FE), Color(0xFFB3E5FC), Color(0xFF81D4FA)) // Барбос: поляна
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(friendGradients))
+            )
+        }
+
+        // Фоновое изображение комнаты (на весь экран без обрезки)
+        if (bgAssetName != null) {
+            GameArt(
+                assetName = bgAssetName,
+                fallbackEmoji = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                contentDescription = "Room Background"
+            )
+        }
+
+        // Область сцены с персонажами (нажатие перемещает героя)
+        RoomInteractiveStage(
+            modifier = Modifier.fillMaxSize(),
+            state = state,
+            viewModel = viewModel,
+            onOpenWardrobe = onOpenWardrobe,
+            onOpenShop = onOpenShop,
+            onOpenBank = onOpenBank,
+            onOpenHospital = onOpenHospital,
+            onOpenCare = onOpenCare,
+            onOpenFriendDialogue = onOpenFriendDialogue,
+            onOpenFriendProfile = onOpenFriendProfile
+        )
+
+        // Верхний плавающий UI (HUD)
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .widthIn(max = 840.dp) // Адаптивное ограничение для планшетов
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .widthIn(max = 860.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            // Верхняя плашка состояния (адаптивна для узких и широких экранов)
-            TopGameBar(
+            // Главная панель статуса (Sanrio Glassmorphic Pill)
+            SanrioTopGameBar(
                 state = state,
                 onOpenBudget = onOpenBudget,
                 onOpenAdvisor = onOpenAdvisor,
@@ -91,82 +154,94 @@ fun RoomScreen(
                 onOpenFinance = onOpenFinance
             )
 
-            // Компактная строка локации: игровая сцена должна занимать большую часть экрана.
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Панель навигации (Заголовок локации + кнопка «В город»)
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp, vertical = 3.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = Color.White.copy(alpha = 0.88f),
-                shadowElevation = 1.dp
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                color = Color.White.copy(alpha = 0.94f),
+                border = BorderStroke(2.dp, SanrioCardBorder),
+                shadowElevation = 3.dp
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = roomTitle,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF37474F),
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    FilledTonalButton(
-                        onClick = { viewModel.changeLocation(GameLocation.CityMap) },
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = Color(0xFFFFCCBC),
-                            contentColor = Color(0xFF8D2B12)
-                        ),
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 9.dp, vertical = 3.dp),
-                        modifier = Modifier.heightIn(min = 34.dp)
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(roomEmoji, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            if (location == GameLocation.MyRoom) "🚪 В город" else "🗺️ Карта",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
+                            text = roomTitle,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = SanrioTextDark
                         )
+                    }
+
+                    // Кнопка возврата на карту
+                    Surface(
+                        color = SanrioSkyBlue,
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.clickable {
+                            viewModel.changeLocation(GameLocation.CityMap)
+                        }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                        ) {
+                            Text(
+                                if (location == GameLocation.MyRoom) "🚪 В город" else "🗺️ Карта",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
             }
 
-            // Облачко с советом/репликой помощника Финни
-            AdvisorBubble(text = state.advisorTip)
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Плавающее облачко-подсказка советника
+            SanrioAdvisorBubble(text = state.advisorTip)
 
             if (location == GameLocation.MyRoom && state.budget.isConfirmed && !state.isPeriodFinished) {
-                OutlinedButton(
-                    onClick = onFinishPeriod,
+                Spacer(modifier = Modifier.height(6.dp))
+                Surface(
+                    color = SanrioAccentGreen,
+                    shape = RoundedCornerShape(16.dp),
+                    shadowElevation = 4.dp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 4.dp),
-                    shape = RoundedCornerShape(14.dp)
+                        .clickable(onClick = onFinishPeriod)
                 ) {
-                    Text("📋 Подвести итоги периода #${state.period}", fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "📋 Подвести итоги периода #${state.period}",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    }
                 }
             }
-
-            // 2D Игровая сцена с персонажами и объектами интерьера (адаптивная ширина!)
-            RoomStage(
-                modifier = Modifier.weight(1f),
-                state = state,
-                viewModel = viewModel,
-                onOpenWardrobe = onOpenWardrobe,
-                onOpenShop = onOpenShop,
-                onOpenBank = onOpenBank,
-                onOpenHospital = onOpenHospital,
-                onOpenCare = onOpenCare,
-                onOpenFriendDialogue = onOpenFriendDialogue
-            )
-
         }
     }
 }
 
+/**
+ * Плавающая верхняя плашка в стиле Sanrio.
+ */
 @Composable
-fun TopGameBar(
+fun SanrioTopGameBar(
     state: GameState,
     onOpenBudget: () -> Unit,
     onOpenAdvisor: () -> Unit,
@@ -174,143 +249,199 @@ fun TopGameBar(
     onOpenFinance: () -> Unit
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(14.dp),
-        color = Color.White.copy(alpha = 0.94f),
-        shadowElevation = 2.dp
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        color = Color.White.copy(alpha = 0.96f),
+        border = BorderStroke(2.dp, SanrioCardBorder),
+        shadowElevation = 4.dp
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 5.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PetProfileHeader(state = state)
+            // Аватар питомца с круглой рамкой
+            SanrioPetHeader(state = state)
+
             Spacer(modifier = Modifier.weight(1f))
-            CoinsPill(coins = state.wallet.coins, onClick = onOpenFinance)
+
+            // Плашка монет (Лапко-монетки)
+            SanrioCoinsPill(coins = state.wallet.coins, onClick = onOpenFinance)
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            // Плашка сбережений (Копилка)
+            SanrioSavingsPill(savings = state.wallet.savings, onClick = onOpenBudget)
+
             Spacer(modifier = Modifier.width(4.dp))
-            SavingsPill(savings = state.wallet.savings, onClick = onOpenBudget)
-            IconButton(onClick = onOpenAdvisor, modifier = Modifier.size(30.dp)) {
+
+            // Круглая кнопка подсказки
+            IconButton(
+                onClick = onOpenAdvisor,
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(SanrioGoldBg)
+            ) {
                 Text("💡", fontSize = 15.sp)
             }
-            IconButton(onClick = onOpenSettings, modifier = Modifier.size(30.dp)) {
+
+            Spacer(modifier = Modifier.width(3.dp))
+
+            // Круглая кнопка настроек
+            IconButton(
+                onClick = onOpenSettings,
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(SanrioSkyBlueLight)
+            ) {
                 Text("⚙️", fontSize = 15.sp)
             }
-            FilledTonalButton(
-                onClick = onOpenBudget,
-                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 2.dp),
-                modifier = Modifier.heightIn(min = 32.dp),
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = Color(0xFFC8E6C9),
-                    contentColor = Color(0xFF1B5E20)
-                )
+
+            Spacer(modifier = Modifier.width(3.dp))
+
+            // Кнопка Плана / Бюджета
+            Surface(
+                color = SanrioAccentGreen,
+                shape = RoundedCornerShape(12.dp),
+                shadowElevation = 2.dp,
+                modifier = Modifier.clickable(onClick = onOpenBudget)
             ) {
-                Text("План", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "План",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun PetProfileHeader(state: GameState) {
+private fun SanrioPetHeader(state: GameState) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(38.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFFFECB3)),
+                .background(SanrioGoldBg)
+                .border(2.dp, SanrioGoldCoin, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             GameArt(
                 assetName = "pet_${state.pet.species.id}_portrait",
                 fallbackEmoji = state.pet.species.emoji,
-                modifier = Modifier.size(28.dp),
-                fallbackSize = 19.sp
+                modifier = Modifier.size(32.dp),
+                fallbackSize = 22.sp
             )
         }
-        Spacer(modifier = Modifier.width(5.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Column {
             Text(
                 state.pet.name,
                 fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
+                color = SanrioTextDark,
                 maxLines = 1
             )
-            Text(
-                "${state.pet.mood.emoji} ${state.pet.mood.title}",
-                fontSize = 9.sp,
-                color = Color.Gray
-            )
+            Surface(
+                color = SanrioGreenBg,
+                shape = RoundedCornerShape(6.dp)
+            ) {
+                Text(
+                    "${state.pet.mood.emoji} ${state.pet.mood.title}",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF00796B),
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun CoinsPill(coins: Int, onClick: () -> Unit) {
+private fun SanrioCoinsPill(coins: Int, onClick: () -> Unit) {
     Surface(
-        color = Color(0xFFFFF9C4),
-        shape = RoundedCornerShape(12.dp),
+        color = SanrioGoldBg,
+        border = BorderStroke(1.5.dp, SanrioGoldCoin),
+        shape = RoundedCornerShape(14.dp),
+        shadowElevation = 1.dp,
         modifier = Modifier.clickable(onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🪙", fontSize = 11.sp)
-            Spacer(modifier = Modifier.width(2.dp))
+            GameArt(
+                assetName = "icon_paw_coin",
+                fallbackEmoji = "🪙",
+                modifier = Modifier.size(16.dp),
+                fallbackSize = 13.sp
+            )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 "$coins",
                 fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
-                color = Color(0xFFF57F17)
+                fontSize = 12.sp,
+                color = SanrioGoldText
             )
         }
     }
 }
 
 @Composable
-private fun SavingsPill(savings: Int, onClick: () -> Unit) {
+private fun SanrioSavingsPill(savings: Int, onClick: () -> Unit) {
     Surface(
-        color = Color(0xFFEDE7F6),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.clickable { onClick() }
+        color = SanrioPurpleBg,
+        border = BorderStroke(1.5.dp, SanrioAccentPurple),
+        shape = RoundedCornerShape(14.dp),
+        shadowElevation = 1.dp,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🏺", fontSize = 11.sp)
-            Spacer(modifier = Modifier.width(2.dp))
+            GameArt(
+                assetName = "jar_savings",
+                fallbackEmoji = "🏺",
+                modifier = Modifier.size(16.dp),
+                fallbackSize = 13.sp
+            )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 "$savings",
                 fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
-                color = Color(0xFF512DA8)
+                fontSize = 12.sp,
+                color = SanrioAccentPurple
             )
         }
     }
 }
 
 @Composable
-fun AdvisorBubble(text: String) {
+fun SanrioAdvisorBubble(text: String) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 2.dp),
-        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
         color = Color(0xFFFFFDE7),
-        border = BorderStroke(1.dp, Color(0xFFFFD54F)),
-        shadowElevation = 0.dp
+        border = BorderStroke(1.5.dp, Color(0xFFFFD54F)),
+        shadowElevation = 2.dp
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("💡", fontSize = 14.sp)
-            Spacer(modifier = Modifier.width(5.dp))
+            Text("💡", fontSize = 15.sp)
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = text,
-                fontSize = 10.sp,
+                fontSize = 11.sp,
                 color = Color(0xFF4E342E),
                 fontWeight = FontWeight.Medium,
                 maxLines = 2
@@ -320,12 +451,10 @@ fun AdvisorBubble(text: String) {
 }
 
 /**
- * 2D сцена комнаты с динамическим масштабированием ширины:
- * Герой и питомец перемещаются пропорционально ширине экрана,
- * интерактивные объекты расставлены равномерно по всей комнате.
+ * 2D игровая сцена с персонажами на полу.
  */
 @Composable
-fun RoomStage(
+fun RoomInteractiveStage(
     modifier: Modifier = Modifier,
     state: GameState,
     viewModel: GameViewModel,
@@ -334,127 +463,176 @@ fun RoomStage(
     onOpenBank: () -> Unit,
     onOpenHospital: () -> Unit,
     onOpenCare: () -> Unit,
-    onOpenFriendDialogue: (Int) -> Unit
+    onOpenFriendDialogue: (Int) -> Unit,
+    onOpenFriendProfile: (Int) -> Unit = {}
 ) {
     BoxWithConstraints(
         modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures { point ->
+                    if (size.width > 0) {
+                        viewModel.moveHeroTo((point.x / size.width.toFloat()).coerceIn(0.1f, 0.9f))
+                    }
+                }
+            }
     ) {
-        // Динамическая адаптивная ширина под любой экран (от 320dp смартфона до 900dp планшета)
-        val stageUsableWidth = (maxWidth - 75.dp).coerceAtLeast(200.dp)
+        val usableWidth = (maxWidth - 80.dp).coerceAtLeast(200.dp)
+
         val animatedHeroX by animateFloatAsState(
             targetValue = state.heroX,
-            animationSpec = tween(durationMillis = 430),
+            animationSpec = tween(durationMillis = 480),
             label = "heroWalk"
         )
         val animatedPetX by animateFloatAsState(
-            targetValue = (state.heroX + 0.12f).coerceIn(0.04f, 0.96f),
-            animationSpec = tween(durationMillis = 560),
+            targetValue = (state.heroX + 0.14f).coerceIn(0.08f, 0.92f),
+            animationSpec = tween(durationMillis = 580),
             label = "petFollow"
         )
+
         var isWalking by remember { mutableStateOf(false) }
         var facingRight by remember { mutableStateOf(true) }
         var previousTargetX by remember { mutableFloatStateOf(state.heroX) }
+
+        // Мягкое дыхание персонажей в покое
+        val infiniteTransition = rememberInfiniteTransition(label = "idleBreathe")
+        val breatheScale by infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.03f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "breathe"
+        )
 
         LaunchedEffect(state.heroX) {
             if (state.heroX != previousTargetX) {
                 facingRight = state.heroX > previousTargetX
                 previousTargetX = state.heroX
                 isWalking = true
-                delay(620)
+                delay(650)
                 isWalking = false
             }
         }
 
-        // Вся свободная сцена принимает нажатие: герой идёт в выбранную точку.
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.White.copy(alpha = 0.08f))))
-                .pointerInput(Unit) {
-                    detectTapGestures { point ->
-                        if (size.width > 0) viewModel.moveHeroTo(point.x / size.width.toFloat())
-                    }
-                }
-        ) {
-            Box(
+        // Интерактивный нижний док в своей комнате (Sanrio Action Dock)
+        if (state.currentLocation == GameLocation.MyRoom) {
+            Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.31f)
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(Color(0xFF9C6B55), Color(0xFF5D4037))
-                        )
-                    )
-            )
-            Text(
-                "Нажми на пол — герой подойдёт",
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp),
-                color = Color(0x884E342E),
-                fontSize = 10.sp
-            )
+                    .padding(bottom = 16.dp)
+                    .wrapContentWidth(),
+                shape = RoundedCornerShape(26.dp),
+                color = Color.White.copy(alpha = 0.95f),
+                border = BorderStroke(2.dp, SanrioCardBorder),
+                shadowElevation = 6.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Гардероб
+                    Surface(
+                        color = SanrioPurpleBg,
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, SanrioAccentPurple.copy(alpha = 0.5f)),
+                        modifier = Modifier.clickable(onClick = onOpenWardrobe)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("🗄️", fontSize = 16.sp)
+                            Spacer(Modifier.width(5.dp))
+                            Text("Гардероб", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SanrioAccentPurple)
+                        }
+                    }
+
+                    // Миска / Уход
+                    Surface(
+                        color = if (state.pet.isHungry) SanrioOrangeBg else SanrioGreenBg,
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(
+                            1.dp,
+                            if (state.pet.isHungry) SanrioAccentOrange else SanrioAccentGreen
+                        ),
+                        modifier = Modifier.clickable(onClick = onOpenCare)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(if (state.pet.isHungry) "🥣" else "✨", fontSize = 16.sp)
+                            Spacer(Modifier.width(5.dp))
+                            Text(
+                                if (state.pet.isHungry) "Покормить!" else "Уход",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (state.pet.isHungry) SanrioGoldText else Color(0xFF00796B)
+                            )
+                        }
+                    }
+
+                    // Копилка
+                    Surface(
+                        color = SanrioGoldBg,
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, SanrioGoldCoin),
+                        modifier = Modifier.clickable(onClick = onOpenBank)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            GameArt("jar_savings", fallbackEmoji = "🏺", modifier = Modifier.size(16.dp), fallbackSize = 13.sp)
+                            Spacer(Modifier.width(5.dp))
+                            Text("Копилка (${state.wallet.savings})", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SanrioGoldText)
+                        }
+                    }
+                }
+            }
         }
 
-        // Объекты в своей комнате
-        if (state.currentLocation == GameLocation.MyRoom) {
-            // Шкаф-гардероб (слева)
-            InteractiveProp(
-                assetName = "prop_wardrobe",
-                emoji = "🗄️",
-                title = "Гардероб",
-                xOffset = stageUsableWidth * 0.12f,
-                onClick = onOpenWardrobe
-            )
-
-            // Миска для корма (по центру)
-            InteractiveProp(
-                assetName = if (state.pet.isHungry) "prop_bowl_empty" else "prop_bowl_full",
-                emoji = if (state.pet.isHungry) "🥣" else "🥣✨",
-                title = if (state.pet.isHungry) "Миска (пусто!)" else "Миска (сыт)",
-                xOffset = stageUsableWidth * 0.50f,
-                onClick = onOpenCare
-            )
-
-            // Копилка на полу (справа)
-            InteractiveProp(
-                assetName = "prop_piggy_bank",
-                emoji = "🏺",
-                title = "Копилка (${state.wallet.savings} м.)",
-                xOffset = stageUsableWidth * 0.85f,
-                onClick = onOpenBank
-            )
-        }
-
-        // Объекты в магазине
+        // Сотрудник магазина
         if (state.currentLocation == GameLocation.Shop) {
-            InteractiveProp(
+            SanrioInteractiveProp(
                 assetName = "worker_shop_idle",
                 emoji = "🦝",
-                title = "Енотик-продавец",
-                xOffset = stageUsableWidth * 0.70f,
+                title = "Магазин покупок",
+                badgeColor = SanrioAccentPink,
+                xOffset = usableWidth * 0.70f,
+                bottomPadding = 80.dp,
+                propSize = 90.dp,
                 onClick = onOpenShop
             )
         }
 
-        // Объекты в банке
+        // Сотрудник банка
         if (state.currentLocation == GameLocation.Bank) {
-            InteractiveProp(
+            SanrioInteractiveProp(
                 assetName = "worker_bank_idle",
                 emoji = "🦫",
-                title = "Бобёр-банкир",
-                xOffset = stageUsableWidth * 0.70f,
+                title = "Касса банка",
+                badgeColor = SanrioGoldCoin,
+                xOffset = usableWidth * 0.70f,
+                bottomPadding = 80.dp,
+                propSize = 90.dp,
                 onClick = onOpenBank
             )
         }
 
+        // Врач больницы
         if (state.currentLocation == GameLocation.Hospital) {
-            InteractiveProp(
+            SanrioInteractiveProp(
                 assetName = "worker_hospital_idle",
                 emoji = "🦉",
-                title = "Доктор Сова",
-                xOffset = stageUsableWidth * 0.70f,
+                title = "Осмотр врача",
+                badgeColor = SanrioSkyBlueDark,
+                xOffset = usableWidth * 0.70f,
+                bottomPadding = 80.dp,
+                propSize = 90.dp,
                 onClick = onOpenHospital
             )
         }
@@ -464,13 +642,100 @@ fun RoomStage(
             val friendId = (state.currentLocation as GameLocation.FriendRoom).friendId
             val friend = GameCatalog.friendsList.find { it.id == friendId }
             if (friend != null) {
-                InteractiveProp(
+                SanrioInteractiveProp(
                     assetName = "friend_${friend.id}_idle",
                     emoji = friend.emoji,
                     title = "Поговорить: ${friend.name}",
-                    xOffset = stageUsableWidth * 0.75f,
+                    badgeColor = SanrioSkyBlueDark,
+                    xOffset = usableWidth * 0.70f,
+                    bottomPadding = 80.dp,
+                    propSize = 94.dp,
                     onClick = { onOpenFriendDialogue(friendId) }
                 )
+
+                // Уютный нижний док в гостях у друга
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 16.dp)
+                        .wrapContentWidth(),
+                    shape = RoundedCornerShape(26.dp),
+                    color = Color.White.copy(alpha = 0.95f),
+                    border = BorderStroke(2.dp, SanrioCardBorder),
+                    shadowElevation = 6.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Беседа
+                        Surface(
+                            color = SanrioSkyBlueLight.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, SanrioSkyBlueDark.copy(alpha = 0.5f)),
+                            modifier = Modifier.clickable { onOpenFriendDialogue(friendId) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("💬", fontSize = 16.sp)
+                                Spacer(Modifier.width(5.dp))
+                                Text(
+                                    "Беседа",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SanrioSkyBlueDark
+                                )
+                            }
+                        }
+
+                        // Профиль друга и уровень дружбы
+                        Surface(
+                            color = SanrioPurpleBg,
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, SanrioAccentPurple.copy(alpha = 0.5f)),
+                            modifier = Modifier.clickable { onOpenFriendProfile(friendId) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("🌟", fontSize = 16.sp)
+                                Spacer(Modifier.width(5.dp))
+                                Text(
+                                    "Дружба (${friend.friendshipLevel})",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SanrioAccentPurple
+                                )
+                            }
+                        }
+
+                        // Выйти в город
+                        Surface(
+                            color = SanrioGreenBg,
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, SanrioAccentGreen.copy(alpha = 0.5f)),
+                            modifier = Modifier.clickable { viewModel.changeLocation(GameLocation.CityMap) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("🚪", fontSize = 16.sp)
+                                Spacer(Modifier.width(5.dp))
+                                Text(
+                                    "В город",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF00796B)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -478,63 +743,109 @@ fun RoomStage(
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(x = stageUsableWidth * animatedPetX, y = (-18).dp),
+                .offset(x = usableWidth * animatedPetX, y = (-82).dp),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                AnimatedGameArt(
-                    animationPrefix = "pet_${state.pet.species.id}_walk",
-                    staticAssetName = "pet_${state.pet.species.id}_idle",
-                    fallbackEmoji = state.pet.species.emoji,
-                    isAnimating = isWalking,
-                    flipHorizontally = !facingRight,
-                    modifier = Modifier.size(54.dp),
-                    fallbackSize = 42.sp
-                )
-                Text(
-                    state.pet.name,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF3E2723)
-                )
+                Box(contentAlignment = Alignment.BottomCenter) {
+                    // Мягкая овальная тень на полу под лапками
+                    Canvas(
+                        modifier = Modifier
+                            .size(54.dp, 10.dp)
+                            .offset(y = 3.dp)
+                    ) {
+                        drawOval(color = Color.Black.copy(alpha = 0.22f))
+                    }
+                    AnimatedGameArt(
+                        animationPrefix = "pet_${state.pet.species.id}_walk",
+                        staticAssetName = "pet_${state.pet.species.id}_idle",
+                        fallbackEmoji = state.pet.species.emoji,
+                        isAnimating = isWalking,
+                        flipHorizontally = !facingRight,
+                        modifier = Modifier
+                            .size(68.dp)
+                            .graphicsLayer(scaleY = breatheScale),
+                        fallbackSize = 48.sp
+                    )
+                }
+                Spacer(Modifier.height(2.dp))
+                Surface(
+                    color = Color.White.copy(alpha = 0.90f),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, SanrioCardBorder),
+                    shadowElevation = 1.dp
+                ) {
+                    Text(
+                        state.pet.name,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = SanrioTextDark,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                    )
+                }
             }
         }
 
-        // Управляемый герой (игрок)
+        // Управляемый герой-ребёнок
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(x = stageUsableWidth * animatedHeroX, y = (-18).dp),
+                .offset(x = usableWidth * animatedHeroX, y = (-84).dp),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                AnimatedGameArt(
-                    animationPrefix = "hero_walk",
-                    staticAssetName = "hero_idle",
-                    fallbackEmoji = "🚶",
-                    isAnimating = isWalking,
-                    flipHorizontally = !facingRight,
-                    modifier = Modifier.size(62.dp),
-                    fallbackSize = 48.sp
-                )
-                Text(
-                    "Ты",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1565C0)
-                )
+                Box(contentAlignment = Alignment.BottomCenter) {
+                    // Мягкая овальная тень на полу под ботиночками
+                    Canvas(
+                        modifier = Modifier
+                            .size(64.dp, 12.dp)
+                            .offset(y = 4.dp)
+                    ) {
+                        drawOval(color = Color.Black.copy(alpha = 0.25f))
+                    }
+                    AnimatedGameArt(
+                        animationPrefix = "hero_walk",
+                        staticAssetName = "hero_idle",
+                        fallbackEmoji = "🚶",
+                        isAnimating = isWalking,
+                        flipHorizontally = !facingRight,
+                        modifier = Modifier
+                            .size(92.dp)
+                            .graphicsLayer(scaleY = breatheScale),
+                        fallbackSize = 64.sp
+                    )
+                }
+                Spacer(Modifier.height(2.dp))
+                Surface(
+                    color = SanrioSkyBlue,
+                    shape = RoundedCornerShape(8.dp),
+                    shadowElevation = 2.dp
+                ) {
+                    Text(
+                        "Ты",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 1.dp)
+                    )
+                }
             }
         }
     }
 }
 
+/**
+ * Интерактивный объект / персонаж в стиле Sanrio (с тенью под ногами и плавающей карточкой).
+ */
 @Composable
-fun BoxScope.InteractiveProp(
+fun BoxScope.SanrioInteractiveProp(
     assetName: String,
     emoji: String,
     title: String,
     xOffset: Dp,
-    bottomPadding: Dp = 38.dp,
+    bottomPadding: Dp = 90.dp,
+    propSize: Dp = 68.dp,
+    badgeColor: Color = SanrioSkyBlueDark,
     onClick: () -> Unit
 ) {
     Box(
@@ -546,31 +857,44 @@ fun BoxScope.InteractiveProp(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(bottom = bottomPadding).widthIn(max = 100.dp)
+            modifier = Modifier
+                .padding(bottom = bottomPadding)
+                .widthIn(max = 120.dp)
         ) {
+            // Плавающий бейдж с названием
             Surface(
-                color = Color.White.copy(alpha = 0.92f),
-                shape = RoundedCornerShape(8.dp),
-                shadowElevation = 2.dp
+                color = Color.White.copy(alpha = 0.95f),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.5.dp, badgeColor.copy(alpha = 0.6f)),
+                shadowElevation = 3.dp
             ) {
                 Text(
                     text = title,
-                    fontSize = 10.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
+                    color = badgeColor,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
-                    modifier = Modifier
-                        .widthIn(max = 96.dp)
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                 )
             }
-            Spacer(Modifier.height(3.dp))
-            GameArt(
-                assetName = assetName,
-                fallbackEmoji = emoji,
-                modifier = Modifier.size(48.dp),
-                fallbackSize = 38.sp
-            )
+            Spacer(Modifier.height(4.dp))
+            // Персонаж с овальной тенью под ногами
+            Box(contentAlignment = Alignment.BottomCenter) {
+                Canvas(
+                    modifier = Modifier
+                        .size(propSize * 0.75f, 10.dp)
+                        .offset(y = 4.dp)
+                ) {
+                    drawOval(color = Color.Black.copy(alpha = 0.20f))
+                }
+                GameArt(
+                    assetName = assetName,
+                    fallbackEmoji = emoji,
+                    modifier = Modifier.size(propSize),
+                    fallbackSize = 48.sp
+                )
+            }
         }
     }
 }

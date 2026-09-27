@@ -75,7 +75,11 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                 CityMapScreen(
                     state = state,
                     onSelectLocation = { newLoc -> viewModel.changeLocation(newLoc) },
-                    onOpenFriendProfile = { friendId -> activeFriendProfileId = friendId }
+                    onOpenFriendProfile = { friendId -> activeFriendProfileId = friendId },
+                    onOpenFriendDialogue = { friendId -> activeFriendDialogueId = friendId },
+                    onOpenWardrobe = { showWardrobeDialog = true },
+                    onOpenBudget = { showBudgetDialog = true },
+                    onOpenSettings = { showSettingsDialog = true }
                 )
             }
             else -> {
@@ -92,7 +96,8 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                     onOpenSettings = { showSettingsDialog = true },
                     onOpenFinance = { showFinanceDialog = true },
                     onFinishPeriod = { showFinishPeriodDialog = true },
-                    onOpenFriendDialogue = { friendId -> activeFriendDialogueId = friendId }
+                    onOpenFriendDialogue = { friendId -> activeFriendDialogueId = friendId },
+                    onOpenFriendProfile = { friendId -> activeFriendProfileId = friendId }
                 )
             }
         }

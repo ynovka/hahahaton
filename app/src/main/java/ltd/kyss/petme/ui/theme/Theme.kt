@@ -9,45 +9,49 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+private val SanrioLightColorScheme = lightColorScheme(
+    primary = SanrioSkyBlueDark,
+    onPrimary = Color.White,
+    primaryContainer = SanrioSkyBlueLight,
+    onPrimaryContainer = SanrioSkyBlueDark,
+    secondary = SanrioAccentGreen,
+    onSecondary = Color.White,
+    secondaryContainer = SanrioGreenBg,
+    onSecondaryContainer = Color(0xFF004D40),
+    tertiary = SanrioAccentOrange,
+    onTertiary = Color.White,
+    tertiaryContainer = SanrioOrangeBg,
+    onTertiaryContainer = SanrioGoldText,
+    background = SanrioSkyBlueLight,
+    surface = SanrioSoftWhite,
+    onBackground = SanrioTextDark,
+    onSurface = SanrioTextDark
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+private val SanrioDarkColorScheme = darkColorScheme(
+    primary = SanrioSkyBlue,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    secondary = SanrioAccentGreen,
+    tertiary = SanrioAccentOrange,
+    background = Color(0xFF1A2634),
+    surface = Color(0xFF243342),
+    onBackground = Color.White,
+    onSurface = Color.White
 )
 
 @Composable
 fun PetMeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Always use our custom vibrant game palette, ignore OS wallpaper tints
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> SanrioDarkColorScheme
+        else -> SanrioLightColorScheme
     }
 
     MaterialTheme(

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.ui.window.Dialog
 import ltd.kyss.petme.core.data.GameCatalog
 import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.ui.components.GameArt
+import ltd.kyss.petme.ui.theme.*
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
 @Composable
@@ -28,71 +30,137 @@ fun WardrobeDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             color = Color.White,
-            shadowElevation = 8.dp,
+            border = BorderStroke(2.dp, SanrioCardBorder),
+            shadowElevation = 12.dp,
             modifier = Modifier
                 .fillMaxWidth()
                 .widthIn(max = 480.dp)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("👗 Гардероб питомца", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("Примерь обновки на ${state.pet.name}!", fontSize = 12.sp, color = Color.Gray)
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Отображение питомца
-                Surface(
-                    color = Color(0xFFFFF9C4),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.size(100.dp)
+                // Заголовок
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        GameArt(
-                            assetName = "pet_${state.pet.species.id}_portrait",
-                            fallbackEmoji = state.pet.species.emoji,
-                            modifier = Modifier.size(92.dp),
-                            fallbackSize = 54.sp
+                    Surface(
+                        shape = CircleShape,
+                        color = SanrioPurpleBg,
+                        border = BorderStroke(2.dp, SanrioAccentPurple),
+                        modifier = Modifier.size(52.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text("👗", fontSize = 28.sp)
+                        }
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Гардероб 🎀",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black,
+                            color = SanrioTextDark
+                        )
+                        Text(
+                            "Примерь наряды на ${state.pet.name}!",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = SanrioTextSubtitle
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                // Большой аватар питомца на примерке
+                Surface(
+                    color = SanrioGoldBg,
+                    shape = RoundedCornerShape(22.dp),
+                    border = BorderStroke(2.dp, SanrioGoldCoin.copy(alpha = 0.5f)),
+                    modifier = Modifier.size(110.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        GameArt(
+                            assetName = "pet_${state.pet.species.id}_idle",
+                            fallbackEmoji = state.pet.species.emoji,
+                            modifier = Modifier.size(90.dp),
+                            fallbackSize = 58.sp
+                        )
+                    }
+                }
 
+                Text(
+                    "Коллекция аксессуаров:",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = SanrioTextDark,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Список аксессуаров
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
+                        .height(210.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(GameCatalog.wardrobeAccessories) { acc ->
                         val isUnlocked = state.pet.unlockedWardrobeIds.contains(acc.id)
                         val isEquipped = state.pet.equippedAccessories[acc.slot] == acc.id
 
                         Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = if (isEquipped) Color(0xFFE8F5E9) else Color(0xFFF5F5F5),
-                            border = if (isEquipped) BorderStroke(1.5.dp, Color(0xFF4CAF50)) else null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            color = when {
+                                isEquipped -> SanrioGreenBg
+                                isUnlocked -> Color(0xFFF9F9F9)
+                                else -> Color(0xFFF0F0F0)
+                            },
+                            border = BorderStroke(
+                                if (isEquipped) 2.dp else 1.dp,
+                                if (isEquipped) SanrioAccentGreen else SanrioCardBorder
+                            ),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
                                 modifier = Modifier.padding(10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(acc.emoji, fontSize = 24.sp)
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = Color.White,
+                                        border = BorderStroke(1.dp, SanrioCardBorder),
+                                        modifier = Modifier.size(42.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            GameArt(
+                                                assetName = if (acc.id.startsWith("item_")) acc.id else "item_${acc.id}",
+                                                fallbackEmoji = acc.emoji,
+                                                modifier = Modifier.size(32.dp),
+                                                fallbackSize = 22.sp
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
                                     Column {
-                                        Text(acc.name, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                                         Text(
-                                            if (isUnlocked) "В гардеробе" else "Купи в магазине (${acc.price} м.)",
+                                            acc.name,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = SanrioTextDark
+                                        )
+                                        Text(
+                                            if (isUnlocked) "В гардеробе ✨" else "В магазине (${acc.price} м.)",
                                             fontSize = 10.sp,
-                                            color = Color.Gray
+                                            color = if (isUnlocked) Color(0xFF00796B) else SanrioTextSubtitle,
+                                            fontWeight = FontWeight.Medium
                                         )
                                     }
                                 }
@@ -101,29 +169,45 @@ fun WardrobeDialog(
                                     Button(
                                         onClick = { viewModel.toggleAccessory(acc.id) },
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = if (isEquipped) Color(0xFFE57373) else Color(0xFF81C784)
+                                            containerColor = if (isEquipped) SanrioAccentPink else SanrioAccentGreen
                                         ),
-                                        shape = RoundedCornerShape(8.dp),
-                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                                        shape = RoundedCornerShape(12.dp),
+                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                                     ) {
-                                        Text(if (isEquipped) "Снять" else "Надеть", fontSize = 11.sp)
+                                        Text(
+                                            if (isEquipped) "Снять" else "Надеть ✨",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     }
                                 } else {
-                                    Text("🔒", fontSize = 16.sp)
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = SanrioOrangeBg,
+                                        border = BorderStroke(1.dp, SanrioAccentOrange.copy(alpha = 0.5f))
+                                    ) {
+                                        Text(
+                                            "🔒 В лавке",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = SanrioAccentOrange,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
-
+                // Кнопка закрытия
                 Button(
                     onClick = onDismiss,
-                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = SanrioSkyBlue),
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Готово ✨")
+                    Text("Готово ✨", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
         }
