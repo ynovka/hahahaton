@@ -1,0 +1,307 @@
+/* ============================================================================
+   Питомец Финни — Стили Интерьерных Комнат
+   11 интерьеров, отображение питомца со стадиями роста и нарядами,
+   интерактивные кнопки ухода и вызова диалогов.
+   ============================================================================ */
+
+#screen-room {
+  background: #FFF9EC;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-stage {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.room-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/* Панель навигации комнаты (под HUD) */
+.room-nav-bar {
+  position: absolute;
+  top: 98px;
+  left: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--clay-shadow-sm);
+  z-index: 80;
+}
+
+.room-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.btn-back-city {
+  background: var(--clay-blue);
+  color: #FFFFFF;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 14px;
+  border: 1.5px solid #FFFFFF;
+  box-shadow: 0 2px 0 var(--clay-blue-shadow);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.1s;
+}
+
+.btn-back-city:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* ============================================================================
+   Отображение главного питомца в комнате
+   ============================================================================ */
+
+.pet-actor-container {
+  position: absolute;
+  bottom: 125px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 40;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pet-actor-container:active {
+  transform: translateX(-50%) scale(0.92);
+}
+
+/* Стадии роста меняют визуальный размер питомца! */
+.pet-actor-container.stage-baby .pet-figure { transform: scale(0.85); }
+.pet-actor-container.stage-junior .pet-figure { transform: scale(1.0); }
+.pet-actor-container.stage-adult .pet-figure { transform: scale(1.18); }
+
+.pet-figure {
+  width: 170px;
+  height: 170px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: petIdle 2.6s infinite ease-in-out alternate;
+}
+
+@keyframes petIdle {
+  0% { transform: translateY(0px) scale(1, 1); }
+  50% { transform: translateY(-4px) scale(0.98, 1.02); }
+  100% { transform: translateY(0px) scale(1, 1); }
+}
+
+.pet-base-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.25));
+}
+
+/* Надетые аксессуары на питомце */
+.pet-accessory-layer {
+  position: absolute;
+  pointer-events: none;
+}
+
+.pet-accessory-layer.slot-head {
+  top: 6px;
+  font-size: 38px;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.2));
+}
+
+.pet-accessory-layer.slot-neck {
+  top: 72px;
+  font-size: 30px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.pet-accessory-layer.slot-glasses {
+  top: 40px;
+  font-size: 34px;
+}
+
+/* Речевое облачко настроения питомца */
+.pet-speech-cloud {
+  background: #FFFFFF;
+  border: 2px solid var(--clay-pink);
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dark);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  animation: cloudBob 2s infinite ease-in-out alternate;
+}
+
+@keyframes cloudBob {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-4px); }
+}
+
+/* ============================================================================
+   Персонаж-хозяин или сотрудник в учреждении / у друга
+   ============================================================================ */
+
+.room-character-actor {
+  position: absolute;
+  bottom: 120px;
+  right: 18%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 35;
+  cursor: pointer;
+  animation: characterBreath 3s infinite ease-in-out alternate;
+}
+
+@keyframes characterBreath {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-5px); }
+}
+
+.character-sprite-img {
+  width: 160px;
+  height: 180px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.25));
+}
+
+/* Плавающий бейдж действия над персонажем */
+.room-action-prompt {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 22px;
+  padding: 10px 18px;
+  border: 2.5px solid var(--clay-pink);
+  box-shadow: var(--clay-shadow-md);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  z-index: 70;
+  transition: transform 0.12s;
+  animation: promptPulse 1.8s infinite ease-in-out alternate;
+}
+
+.room-action-prompt:hover {
+  transform: translate(-50%, -54%) scale(1.06);
+}
+
+.room-action-prompt:active {
+  transform: translate(-50%, -46%) scale(0.95);
+}
+
+@keyframes promptPulse {
+  0% { transform: translate(-50%, -50%) translateY(0); }
+  100% { transform: translate(-50%, -50%) translateY(-6px); }
+}
+
+/* ============================================================================
+   Нижний пластилиновый док для комнаты героя
+   ============================================================================ */
+
+.room-dock {
+  position: absolute;
+  bottom: 14px;
+  left: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 26px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border: 2.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--clay-shadow-md);
+  z-index: 85;
+}
+
+.dock-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 16px;
+  transition: transform 0.1s;
+}
+
+.dock-btn:active {
+  transform: scale(0.88);
+}
+
+.dock-btn-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.dock-btn.feed .dock-btn-icon { background: var(--clay-orange-bg); border-color: var(--clay-orange); }
+.dock-btn.wash .dock-btn-icon { background: var(--clay-blue-bg); border-color: var(--clay-blue); }
+.dock-btn.play .dock-btn-icon { background: var(--clay-green-bg); border-color: var(--clay-green); }
+.dock-btn.wardrobe .dock-btn-icon { background: var(--clay-pink-bg); border-color: var(--clay-pink); }
+.dock-btn.budget .dock-btn-icon { background: var(--clay-purple-bg); border-color: var(--clay-purple); }
+.dock-btn.finish .dock-btn-icon { background: var(--clay-gold-bg); border-color: var(--clay-gold); }
+
+.dock-btn-label {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dark);
+}

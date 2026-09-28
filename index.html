@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Питомец Финни — Финансовая игра для детей</title>
+  <meta name="description" content="Увлекательная детская развивающая игра по финансовой грамотности в 3D пластилиновом стиле: управляй бюджетом, заботься о питомце и исследуй город!">
+  <link rel="icon" href="assets/icon_paw_coin.png">
+  
+  <link rel="stylesheet" href="src/styles/main.css">
+  <link rel="stylesheet" href="src/styles/map.css">
+  <link rel="stylesheet" href="src/styles/room.css">
+  <link rel="stylesheet" href="src/styles/modals.css">
+</head>
+<body>
+
+  <!-- Салют из конфетти -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <div id="app-container">
+
+    <!-- ======================================================================
+         ВЕРХНИЙ ПЛАВАЮЩИЙ HUD
+         ====================================================================== -->
+    <header id="top-hud" style="display: none;">
+      <div class="hud-main-bar">
+        <div class="hud-pet-info" id="hud-pet-btn" title="Профиль питомца">
+          <div class="hud-pet-avatar">
+            <img id="hud-pet-avatar-img" src="assets/pet_cat_portrait.png" alt="Питомец">
+          </div>
+          <div class="hud-pet-meta">
+            <span class="hud-pet-name" id="hud-pet-name">Финни</span>
+            <span class="hud-pet-mood" id="hud-pet-mood">✨ Счастливый</span>
+          </div>
+        </div>
+
+        <div class="hud-period-pill" id="hud-period-pill">
+          📅 Период <span id="hud-period-num">1</span>/5
+        </div>
+
+        <div class="hud-currencies">
+          <div class="currency-badge coins" id="hud-coins-btn" title="Монеты в кошельке">
+            <img src="assets/icon_paw_coin.png" style="width: 18px; height: 18px;" alt="🪙">
+            <span class="currency-val" id="hud-coins-val">100</span>
+          </div>
+
+          <div class="currency-badge savings" id="hud-savings-btn" title="Копилка в банке">
+            <span>🏺</span>
+            <span class="currency-val" id="hud-savings-val">0</span>
+          </div>
+        </div>
+
+        <div class="hud-actions">
+          <button class="hud-icon-btn" id="btn-open-advisor" title="Советы и уроки">💡</button>
+          <button class="hud-icon-btn" id="btn-open-finance" title="История и план/факт">📊</button>
+          <button class="hud-icon-btn" id="btn-open-settings" title="Настройки">⚙️</button>
+          <button class="hud-icon-btn" id="btn-open-adult" title="Раздел для родителей">👨‍👩‍👧</button>
+        </div>
+      </div>
+
+      <!-- Плавающее облачко советника -->
+      <div class="advisor-bubble" id="advisor-bubble">
+        <span class="advisor-icon">💡</span>
+        <span id="advisor-text">Привет! Давай разложим монетки по горшочкам и начнём игру!</span>
+      </div>
+    </header>
+
+    <!-- ======================================================================
+         ЭКРАН 1: СОЗДАНИЕ ПИТОМЦА И ЗНАКОМСТВО
+         ====================================================================== -->
+    <main class="screen active" id="screen-setup">
+      <h1 class="setup-title">🐾 Питомец Финни</h1>
+      <p class="setup-subtitle">Создай любимого друга и научись управлять монетами!</p>
+
+      <div class="setup-preview-card">
+        <img class="setup-preview-img" id="setup-preview-img" src="assets/pet_cat_portrait.png" alt="Питомец">
+      </div>
+
+      <div class="setup-input-group">
+        <label class="setup-label">Выбери вид питомца (7 видов):</label>
+        <div class="species-grid" id="setup-species-grid">
+          <!-- Генерируется динамически из PET_SPECIES -->
+        </div>
+      </div>
+
+      <div class="setup-input-group">
+        <label class="setup-label">Окрас шерстки (14 комбинаций):</label>
+        <div class="pattern-toggle-row">
+          <button type="button" class="pattern-btn selected" data-pattern="classic">Классический</button>
+          <button type="button" class="pattern-btn" data-pattern="spotted">Пятнистый / Полосатый</button>
+        </div>
+      </div>
+
+      <div class="setup-input-group">
+        <label class="setup-label" for="setup-pet-name">Имя твоего питомца:</label>
+        <input type="text" id="setup-pet-name" class="setup-input" value="Финни" maxlength="16" placeholder="Назови питомца">
+      </div>
+
+      <div class="setup-input-group">
+        <label class="setup-label" for="setup-player-name">Твоё игровое имя:</label>
+        <input type="text" id="setup-player-name" class="setup-input" value="Юный финансист" maxlength="20" placeholder="Как тебя зовут?">
+      </div>
+
+      <button type="button" class="clay-btn btn-pink" id="btn-start-game" style="width: 100%; margin-top: 10px; font-size: 16px;">
+        ✨ Начать приключение!
+      </button>
+    </main>
+
+    <!-- ======================================================================
+         ЭКРАН 2: ИНТЕРАКТИВНАЯ КАРТА ГОРОДА (9:16 / 16:9)
+         ====================================================================== -->
+    <section class="screen" id="screen-map">
+      <div class="map-viewport" id="map-viewport">
+        <!-- Фоновое изображение карты -->
+        <img id="map-bg-img" class="map-bg-img" src="assets/map_city_town_vertical.png" alt="Карта города">
+
+        <button type="button" class="map-view-toggle" id="btn-toggle-map-orientation">
+          <span id="map-toggle-icon">📱</span> <span id="map-toggle-text">16:9</span>
+        </button>
+
+        <!-- 11 Интерактивных пинов над зданиями -->
+        <div id="map-pins-container">
+          <!-- Генерируется из JavaScript -->
+        </div>
+      </div>
+
+      <!-- Нижний хотбар города -->
+      <nav class="bottom-hotbar">
+        <button class="hotbar-item home" id="hotbar-home">
+          <div class="hotbar-icon-wrap">🏠</div>
+          <span class="hotbar-label">Домой</span>
+        </button>
+        <button class="hotbar-item bank" id="hotbar-bank">
+          <div class="hotbar-icon-wrap">🏦</div>
+          <span class="hotbar-label">Банк</span>
+        </button>
+        <button class="hotbar-item shop" id="hotbar-shop">
+          <div class="hotbar-icon-wrap">🛒</div>
+          <span class="hotbar-label">Лавка</span>
+        </button>
+        <button class="hotbar-item hospital" id="hotbar-hospital">
+          <div class="hotbar-icon-wrap">🏥</div>
+          <span class="hotbar-label">Клиника</span>
+        </button>
+        <button class="hotbar-item wardrobe" id="hotbar-wardrobe">
+          <div class="hotbar-icon-wrap">👗</div>
+          <span class="hotbar-label">Наряды</span>
+        </button>
+        <button class="hotbar-item budget" id="hotbar-budget">
+          <div class="hotbar-icon-wrap">🎒</div>
+          <span class="hotbar-label">План</span>
+        </button>
+        <button class="hotbar-item options" id="hotbar-options">
+          <div class="hotbar-icon-wrap">⚙️</div>
+          <span class="hotbar-label">Опции</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- ======================================================================
+         ЭКРАН 3: ИНТЕРЬЕРНАЯ КОМНАТА (11 ИНТЕРЬЕРОВ)
+         ====================================================================== -->
+    <section class="screen" id="screen-room">
+      <!-- Навигационная строка комнаты -->
+      <div class="room-nav-bar">
+        <div class="room-title-wrap">
+          <span id="room-nav-emoji">🏠</span>
+          <span id="room-nav-title">Моя уютная комната</span>
+        </div>
+        <button type="button" class="btn-back-city" id="btn-room-exit-city">
+          <span>🚪</span> В город
+        </button>
+      </div>
+
+      <div class="room-stage" id="room-stage">
+        <!-- Фон интерьера -->
+        <img id="room-bg-img" class="room-bg-img" src="assets/bg_room_myroom.png" alt="Комната">
+
+        <!-- Питомец в комнате дома -->
+        <div class="pet-actor-container stage-baby" id="room-pet-actor">
+          <div class="pet-speech-cloud" id="pet-speech-bubble">
+            <span id="pet-speech-emoji">💖</span> <span id="pet-speech-text">Мур-мур!</span>
+          </div>
+          <div class="pet-figure">
+            <img class="pet-base-img" id="room-pet-img" src="assets/pet_cat_idle.png" alt="Питомец">
+            <!-- Слои надетых нарядов -->
+            <div class="pet-accessory-layer slot-head" id="pet-acc-head"></div>
+            <div class="pet-accessory-layer slot-neck" id="pet-acc-neck"></div>
+            <div class="pet-accessory-layer slot-glasses" id="pet-acc-glasses"></div>
+          </div>
+        </div>
+
+        <!-- Персонаж-житель или сотрудник учреждения -->
+        <div class="room-character-actor" id="room-character-actor" style="display: none;">
+          <img class="character-sprite-img" id="room-character-img" src="assets/friend_1_idle.png" alt="Житель">
+        </div>
+
+        <!-- Плавающий бейдж действия над персонажем -->
+        <button type="button" class="room-action-prompt" id="room-action-prompt" style="display: none;">
+          <span id="prompt-emoji">💬</span>
+          <span id="prompt-text">Поговорить</span>
+        </button>
+      </div>
+
+      <!-- Нижний док действий в комнате -->
+      <div class="room-dock" id="room-dock">
+        <!-- Заполняется динамически в зависимости от комнаты -->
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ======================================================================
+       МОДАЛЬНЫЕ ОКНА
+       ====================================================================== -->
+
+  <!-- 1. Модальное окно: Детский Бюджет (Три Горшочка) -->
+  <div class="modal-backdrop" id="modal-budget">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">🎒</div>
+          <h2 class="modal-title">План расходов на период</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-budget">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="budget-unallocated-card">
+          <span>Свободно для распределения:</span>
+          <span style="font-size: 18px; color: #5A3E00;" id="budget-unallocated-val">0 м.</span>
+        </div>
+
+        <div class="budget-presets-row">
+          <button type="button" class="preset-chip" id="btn-preset-5020">Правило 50/30/20</button>
+          <button type="button" class="preset-chip" id="btn-preset-saver">Супер-Копилка</button>
+          <button type="button" class="preset-chip" id="btn-preset-equal">Поровну</button>
+        </div>
+
+        <div class="budget-jars-row">
+          <!-- Горшочек 1: Обязательное -->
+          <div class="clay-jar-item jar-food">
+            <div class="jar-info">
+              <div class="jar-icon-wrap">🥣</div>
+              <div class="jar-meta">
+                <span class="jar-name">Миска и Забота</span>
+                <span class="jar-desc">Обязательное: еда, шампунь, здоровье</span>
+              </div>
+            </div>
+            <div class="jar-stepper">
+              <button class="stepper-btn" data-jar="food" data-delta="-10">-10</button>
+              <span class="stepper-val" id="jar-val-food">50</span>
+              <button class="stepper-btn" data-jar="food" data-delta="10">+10</button>
+            </div>
+          </div>
+
+          <!-- Горшочек 2: Желания -->
+          <div class="clay-jar-item jar-fun">
+            <div class="jar-info">
+              <div class="jar-icon-wrap">🎁</div>
+              <div class="jar-meta">
+                <span class="jar-name">Сундучок Радостей</span>
+                <span class="jar-desc">Желания: мячики, мышки, наряды</span>
+              </div>
+            </div>
+            <div class="jar-stepper">
+              <button class="stepper-btn" data-jar="fun" data-delta="-10">-10</button>
+              <span class="stepper-val" id="jar-val-fun">30</span>
+              <button class="stepper-btn" data-jar="fun" data-delta="10">+10</button>
+            </div>
+          </div>
+
+          <!-- Горшочек 3: Сбережения -->
+          <div class="clay-jar-item jar-piggy">
+            <div class="jar-info">
+              <div class="jar-icon-wrap">🏺</div>
+              <div class="jar-meta">
+                <span class="jar-name">Копилка на Мечту</span>
+                <span class="jar-desc">Сбережения: копим на большую цель</span>
+              </div>
+            </div>
+            <div class="jar-stepper">
+              <button class="stepper-btn" data-jar="piggy" data-delta="-10">-10</button>
+              <span class="stepper-val" id="jar-val-piggy">20</span>
+              <button class="stepper-btn" data-jar="piggy" data-delta="10">+10</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="clay-btn btn-green" id="btn-confirm-budget" style="width: 100%;">
+          ✅ Утвердить план расходов
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Модальное окно: Лавка Енотика (Магазин) -->
+  <div class="modal-backdrop" id="modal-shop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">🛒</div>
+          <h2 class="modal-title">Лавка Енотика</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-shop">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="shop-tabs" id="shop-category-tabs">
+          <button class="shop-tab active" data-category="all">Все товары</button>
+          <button class="shop-tab" data-category="food">🥣 Еда</button>
+          <button class="shop-tab" data-category="care">🧼 Уход</button>
+          <button class="shop-tab" data-category="toy">🎾 Игрушки</button>
+          <button class="shop-tab" data-category="wardrobe">👗 Наряды</button>
+        </div>
+
+        <div class="shop-grid" id="shop-items-grid">
+          <!-- Генерируется из SHOP_CATALOG -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Модальное окно: Банк и Копилка на Мечту -->
+  <div class="modal-backdrop" id="modal-bank">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">🏦</div>
+          <h2 class="modal-title">Городской Банк</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-bank">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted);">Выбери большую мечту для питомца и пополняй копилку!</p>
+
+        <div id="bank-goals-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Генерируется из DREAM_GOALS -->
+        </div>
+
+        <div class="clay-card" style="margin-top: 8px;">
+          <h3 style="font-family: var(--font-heading); font-size: 14px; margin-bottom: 8px;">Операции с копилкой:</h3>
+          <div class="bank-actions-row">
+            <button type="button" class="clay-btn btn-purple" id="btn-deposit-10" style="flex: 1;">+10 в копилку</button>
+            <button type="button" class="clay-btn btn-purple" id="btn-deposit-25" style="flex: 1;">+25 в копилку</button>
+            <button type="button" class="clay-btn btn-ghost" id="btn-withdraw-10" style="flex: 1;">Взять 10 м.</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Модальное окно: Клиника Доктора Совы -->
+  <div class="modal-backdrop" id="modal-hospital">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">🏥</div>
+          <h2 class="modal-title">Клиника Заботы</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-hospital">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="hospital-status-card">
+          <img class="hospital-doc-avatar" src="assets/worker_hospital_idle.png" alt="Доктор Сова">
+          <div>
+            <h3 class="hospital-status-title">Доктор Сова</h3>
+            <p class="hospital-status-desc" id="hospital-status-text">«Здоровье питомца — это главное! Регулярный осмотр помогает предупредить непредвиденные траты.»</p>
+          </div>
+        </div>
+
+        <div id="hospital-action-section">
+          <button type="button" class="clay-btn btn-blue" id="btn-hospital-checkup" style="width: 100%;">
+            🩺 Пройти еженедельный осмотр (Бесплатно)
+          </button>
+          <button type="button" class="clay-btn btn-orange" id="btn-hospital-treat" style="width: 100%; margin-top: 10px; display: none;">
+            🩹 Оплатить витаминную процедуру (30 м.)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Модальное окно: Диалог и Задание у Друга -->
+  <div class="modal-backdrop" id="modal-friend">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge" id="friend-modal-icon">🐻</div>
+          <h2 class="modal-title" id="friend-modal-title">В гостях у Потапа</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-friend">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="friend-dialogue-card">
+          <img class="friend-dialogue-avatar" id="friend-dialogue-avatar" src="assets/friend_1_portrait.png" alt="Друг">
+          <div class="friend-dialogue-bubble" id="friend-dialogue-text">
+            Привет, сосед! Поможешь мне разобраться с покупками?
+          </div>
+        </div>
+
+        <div class="puzzle-story-prompt" id="puzzle-story-prompt">
+          Что обязательно нужно купить в первую очередь?
+        </div>
+
+        <div class="puzzle-options-list" id="puzzle-options-list">
+          <!-- Генерируется из KID_PUZZLES -->
+        </div>
+
+        <div class="puzzle-feedback-card" id="puzzle-feedback-card"></div>
+
+        <button type="button" class="clay-btn btn-gold" id="btn-claim-puzzle-reward" style="width: 100%; display: none;">
+          🪙 Забрать награду (+20 монет)!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Модальное окно: Профиль Дружбы -->
+  <div class="modal-backdrop" id="modal-friendship">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">🌟</div>
+          <h2 class="modal-title" id="friendship-modal-title">Карточка Дружбы</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-friendship">✕</button>
+      </div>
+      <div class="modal-body" id="friendship-modal-body">
+        <!-- Заполняется динамически -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Модальное окно: Гардероб Питомца -->
+  <div class="modal-backdrop" id="modal-wardrobe">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">👗</div>
+          <h2 class="modal-title">Гардероб Финни</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-wardrobe">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted);">Нажми на вещь, чтобы примерить или снять её:</p>
+        <div class="wardrobe-grid" id="wardrobe-items-grid">
+          <!-- Генерируется из WARDROBE_ACCESSORIES -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Модальное окно: Итоги периода -->
+  <div class="modal-backdrop" id="modal-period-summary">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">📋</div>
+          <h2 class="modal-title" id="summary-title">Итоги периода #1</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-period-summary">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="period-summary-report" id="period-summary-checks"></div>
+        <div class="clay-card" style="background: var(--clay-gold-bg); border-color: var(--clay-gold); text-align: center;">
+          <h3 style="font-family: var(--font-heading); color: #5A3E00;" id="summary-allowance-title">💰 Карманные деньги на новый период: +100 монет!</h3>
+          <p style="font-size: 12px; color: #7A5500; margin-top: 4px;" id="summary-stage-note">Питомец растёт и благодарит тебя за заботу!</p>
+        </div>
+        <button type="button" class="clay-btn btn-green" id="btn-start-next-period" style="width: 100%;">
+          🚀 Начать следующий период!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. Модальное окно: Финансы и План/Факт -->
+  <div class="modal-backdrop" id="modal-finance">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">📊</div>
+          <h2 class="modal-title">Отчёт: План и Факт</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-finance">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="clay-card" id="finance-plan-fact-card">
+          <!-- Заполняется динамически -->
+        </div>
+
+        <h3 style="font-family: var(--font-heading); font-size: 14px;">История операций периода:</h3>
+        <div id="finance-transactions-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Заполняется динамически -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Модальное окно: Советы и Уроки -->
+  <div class="modal-backdrop" id="modal-advisor">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">💡</div>
+          <h2 class="modal-title">Уроки Финансовой Грамотности</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-advisor">✕</button>
+      </div>
+      <div class="modal-body" id="advisor-lessons-list">
+        <!-- Генерируется из FINANCIAL_LESSONS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. Модальное окно: Раздел для Родителей -->
+  <div class="modal-backdrop" id="modal-adult">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">👨‍👩‍👧</div>
+          <h2 class="modal-title">Раздел Взрослого</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-adult">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Защитный барьер для детей -->
+        <div class="adult-barrier-card" id="adult-barrier-gate">
+          <p style="font-size: 13px; font-weight: 700; color: #5D4037;">Защитный вопрос для взрослых:</p>
+          <div class="math-task" id="math-task-text">6 × 7 = ?</div>
+          <input type="number" class="math-input" id="math-gate-input" placeholder="?">
+          <button type="button" class="clay-btn btn-orange" id="btn-verify-adult-gate">Войти в раздел</button>
+        </div>
+
+        <!-- Контент после прохождения проверки -->
+        <div id="adult-content-area" style="display: none; flex-direction: column; gap: 14px;">
+          <div class="clay-card">
+            <h3 style="font-family: var(--font-heading); font-size: 14px; margin-bottom: 6px;">🎯 Образовательные цели</h3>
+            <p style="font-size: 12px; color: var(--text-dark); line-height: 1.4;">
+              Приложение создано по требованиям Департамента финансов г. Москвы и обучает детей 7–11 лет ключевым навыкам:
+            </p>
+            <ul style="font-size: 12px; margin-left: 18px; margin-top: 6px; line-height: 1.4;">
+              <li>Планирование бюджета (правило трёх корзинок)</li>
+              <li>Формирование регулярных сбережений и подушки безопасности</li>
+              <li>Осознанные покупки: различие необходимого и желаний</li>
+              <li>Финансовая бдительность и защита от мошенников</li>
+            </ul>
+          </div>
+
+          <div class="clay-card" id="adult-stats-card">
+            <!-- Статистика успехов ребёнка -->
+          </div>
+
+          <button type="button" class="clay-btn btn-pink" id="btn-adult-reset-demo" style="width: 100%;">
+            🔄 Сбросить прогресс и начать демо заново
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. Модальное окно: Настройки и Словарик -->
+  <div class="modal-backdrop" id="modal-settings">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">⚙️</div>
+          <h2 class="modal-title">Настройки игры</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-settings">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="clay-card" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 700;">🔊 Звуковые эффекты:</span>
+          <button type="button" class="clay-btn btn-green" id="btn-toggle-sound">Включены</button>
+        </div>
+
+        <div class="clay-card" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 700;">🔍 Крупный шрифт (Доступность):</span>
+          <button type="button" class="clay-btn btn-ghost" id="btn-toggle-font">Обычный</button>
+        </div>
+
+        <div class="clay-card">
+          <h3 style="font-family: var(--font-heading); font-size: 14px; margin-bottom: 8px;">📖 Словарик юного финансиста:</h3>
+          <div style="font-size: 12px; line-height: 1.4; display: flex; flex-direction: column; gap: 6px;">
+            <p><strong>Бюджет</strong> — план того, сколько монет ты получишь и как их потратишь.</p>
+            <p><strong>Сбережения</strong> — монетки, которые откладывают на большую и важную цель.</p>
+            <p><strong>Подушка безопасности</strong> — запас монет на срочный ремонт или лечение.</p>
+            <p><strong>Доход</strong> — все монеты, которые ты заработал или получил в подарок.</p>
+          </div>
+        </div>
+
+        <button type="button" class="clay-btn btn-pink" id="btn-settings-restart" style="width: 100%;">
+          🔄 Начать игру с начала
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Скрипт игры -->
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

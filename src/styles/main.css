@@ -1,0 +1,617 @@
+/* ============================================================================
+   Питомец Финни — Основные стили и 3D пластилиновый дизайн (Claymorphism)
+   Сочные кнопки, мягкие тени, тактильные скругления, адаптивность под телефон.
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
+
+:root {
+  /* Палитра в стиле Sanrio / 3D Clay */
+  --bg-creamy: #FFF9EE;
+  --bg-card: #FFFFFF;
+  --text-dark: #372A28;
+  --text-muted: #7E6D6B;
+  --text-light: #FFFFFF;
+
+  --clay-pink: #FF6B8B;
+  --clay-pink-shadow: #D94567;
+  --clay-pink-bg: #FFE8EE;
+
+  --clay-orange: #FF9442;
+  --clay-orange-shadow: #D96F1E;
+  --clay-orange-bg: #FFF0E2;
+
+  --clay-gold: #FFC425;
+  --clay-gold-shadow: #D49D0E;
+  --clay-gold-bg: #FFF8DF;
+
+  --clay-green: #38D39F;
+  --clay-green-shadow: #21A87B;
+  --clay-green-bg: #E3FBF2;
+
+  --clay-blue: #4FA8FF;
+  --clay-blue-shadow: #2884E0;
+  --clay-blue-bg: #E7F3FF;
+
+  --clay-purple: #A577FF;
+  --clay-purple-shadow: #7C4BE0;
+  --clay-purple-bg: #F4ECFF;
+
+  /* Базовые тени пластилина */
+  --clay-shadow-sm: 0 4px 0 rgba(0, 0, 0, 0.12), 0 8px 16px rgba(55, 42, 40, 0.08);
+  --clay-shadow-md: 0 6px 0 rgba(0, 0, 0, 0.14), 0 12px 24px rgba(55, 42, 40, 0.12);
+  --clay-shadow-lg: 0 10px 0 rgba(0, 0, 0, 0.16), 0 20px 32px rgba(55, 42, 40, 0.16);
+
+  --clay-bevel: inset 0 3px 4px rgba(255, 255, 255, 0.8), inset 0 -3px 4px rgba(0, 0, 0, 0.08);
+  --clay-border: 3px solid rgba(255, 255, 255, 0.9);
+
+  --font-heading: 'Fredoka', cursive, sans-serif;
+  --font-body: 'Nunito', sans-serif;
+
+  --app-max-width: 520px; /* Приоритет мобильного экрана */
+}
+
+/* Режим увеличенного шрифта для доступности */
+body.large-font {
+  font-size: 115%;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-body);
+  background: #E8F0F8;
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* Главный контейнер приложения — имитирует сочный мобильный экран */
+#app-container {
+  width: 100%;
+  max-width: var(--app-max-width);
+  height: 100vh;
+  max-height: 940px;
+  background: var(--bg-creamy);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(55, 42, 40, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  #app-container {
+    border-radius: 36px;
+    height: 92vh;
+    border: 8px solid #FFFFFF;
+    outline: 3px solid rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Полноэкранный канвас для салюта конфетти */
+#confetti-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ============================================================================
+   Пластилиновые кнопки (Tactile Clay Buttons)
+   ============================================================================ */
+
+.clay-btn {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 20px;
+  border-radius: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--clay-shadow-sm);
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.clay-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.clay-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12), 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.clay-btn.btn-pink {
+  background: linear-gradient(180deg, #FFA1B5 0%, var(--clay-pink) 100%);
+  border-bottom: 4px solid var(--clay-pink-shadow);
+}
+
+.clay-btn.btn-orange {
+  background: linear-gradient(180deg, #FFB373 0%, var(--clay-orange) 100%);
+  border-bottom: 4px solid var(--clay-orange-shadow);
+}
+
+.clay-btn.btn-gold {
+  background: linear-gradient(180deg, #FFE066 0%, var(--clay-gold) 100%);
+  border-bottom: 4px solid var(--clay-gold-shadow);
+  color: #5A3E00;
+}
+
+.clay-btn.btn-green {
+  background: linear-gradient(180deg, #6BEBC0 0%, var(--clay-green) 100%);
+  border-bottom: 4px solid var(--clay-green-shadow);
+}
+
+.clay-btn.btn-blue {
+  background: linear-gradient(180deg, #7DC0FF 0%, var(--clay-blue) 100%);
+  border-bottom: 4px solid var(--clay-blue-shadow);
+}
+
+.clay-btn.btn-purple {
+  background: linear-gradient(180deg, #C29FFF 0%, var(--clay-purple) 100%);
+  border-bottom: 4px solid var(--clay-purple-shadow);
+}
+
+.clay-btn.btn-ghost {
+  background: #FFFFFF;
+  color: var(--text-dark);
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================================
+   Пластилиновые карточки (Clay Cards)
+   ============================================================================ */
+
+.clay-card {
+  background: var(--bg-card);
+  border-radius: 26px;
+  box-shadow: var(--clay-shadow-md);
+  border: 3px solid #FFFFFF;
+  padding: 16px;
+  position: relative;
+}
+
+.clay-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================================
+   Верхний плавающий статус-бар (HUD)
+   ============================================================================ */
+
+#top-hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+#top-hud > * {
+  pointer-events: auto;
+}
+
+.hud-main-bar {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--clay-shadow-sm);
+}
+
+.hud-pet-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.hud-pet-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--clay-pink-bg);
+  border: 2.5px solid var(--clay-pink);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hud-pet-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hud-pet-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-pet-name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-dark);
+  line-height: 1.1;
+}
+
+.hud-pet-mood {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--clay-green-shadow);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.hud-currencies {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.currency-badge {
+  background: var(--clay-gold-bg);
+  border: 2px solid var(--clay-gold);
+  border-radius: 16px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--clay-gold-shadow);
+  transition: transform 0.1s;
+}
+
+.currency-badge:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.currency-badge.savings {
+  background: var(--clay-purple-bg);
+  border-color: var(--clay-purple);
+  box-shadow: 0 2px 0 var(--clay-purple-shadow);
+}
+
+.currency-val {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
+.hud-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hud-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 3px solid rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.hud-icon-btn:active {
+  transform: translateY(2px);
+}
+
+/* Плавающее облачко советника Финни */
+.advisor-bubble {
+  background: linear-gradient(135deg, #FFFDE7 0%, #FFF8E1 100%);
+  border: 2px solid #FFD54F;
+  border-radius: 18px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4E342E;
+  line-height: 1.3;
+  animation: floatAdvisor 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes floatAdvisor {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(3px); }
+}
+
+.advisor-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.hud-period-pill {
+  align-self: flex-start;
+  background: var(--clay-pink);
+  color: #FFFFFF;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 0 var(--clay-pink-shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ============================================================================
+   Экраны приложения
+   ============================================================================ */
+
+.screen {
+  width: 100%;
+  height: 100%;
+  display: none;
+  position: relative;
+  flex-direction: column;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* Экран создания питомца */
+#screen-setup {
+  background: linear-gradient(180deg, #FFE8EF 0%, #FFF5E6 50%, #E8F5E9 100%);
+  padding: 24px 16px;
+  overflow-y: auto;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.setup-title {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  color: var(--clay-pink-shadow);
+  text-align: center;
+  margin-top: 10px;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.8);
+}
+
+.setup-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.setup-preview-card {
+  width: 160px;
+  height: 160px;
+  border-radius: 36px;
+  background: #FFFFFF;
+  border: 5px solid #FFFFFF;
+  box-shadow: var(--clay-shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 16px;
+  overflow: hidden;
+  animation: gentleBounce 2s infinite ease-in-out;
+}
+
+@keyframes gentleBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.setup-preview-img {
+  width: 130px;
+  height: 130px;
+  object-fit: contain;
+}
+
+.species-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.species-chip {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 10px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  border: 2.5px solid transparent;
+  box-shadow: var(--clay-shadow-sm);
+  transition: all 0.15s;
+}
+
+.species-chip.selected {
+  border-color: var(--clay-pink);
+  background: var(--clay-pink-bg);
+  transform: scale(1.05);
+}
+
+.species-emoji {
+  font-size: 28px;
+}
+
+.species-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.pattern-toggle-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.pattern-btn {
+  flex: 1;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.06);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.pattern-btn.selected {
+  background: var(--clay-orange-bg);
+  border-color: var(--clay-orange);
+  color: var(--clay-orange-shadow);
+  box-shadow: 0 3px 0 var(--clay-orange-shadow);
+}
+
+.setup-input-group {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.setup-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.setup-input {
+  width: 100%;
+  background: #FFFFFF;
+  border: 2.5px solid #E0D4C5;
+  border-radius: 18px;
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.setup-input:focus {
+  border-color: var(--clay-pink);
+}
+
+/* ============================================================================
+   Нижний пластилиновый хотбар (Bottom Navigation Dock)
+   ============================================================================ */
+
+.bottom-hotbar {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 28px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--clay-shadow-md);
+  z-index: 100;
+}
+
+.hotbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 16px;
+  transition: transform 0.12s;
+}
+
+.hotbar-item:active {
+  transform: scale(0.88);
+}
+
+.hotbar-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.hotbar-item.home .hotbar-icon-wrap { background: var(--clay-green-bg); border: 2px solid var(--clay-green); }
+.hotbar-item.bank .hotbar-icon-wrap { background: var(--clay-gold-bg); border: 2px solid var(--clay-gold); }
+.hotbar-item.shop .hotbar-icon-wrap { background: var(--clay-pink-bg); border: 2px solid var(--clay-pink); }
+.hotbar-item.hospital .hotbar-icon-wrap { background: var(--clay-blue-bg); border: 2px solid var(--clay-blue); }
+.hotbar-item.budget .hotbar-icon-wrap { background: var(--clay-purple-bg); border: 2px solid var(--clay-purple); }
+.hotbar-item.wardrobe .hotbar-icon-wrap { background: #FFF0F5; border: 2px solid #E75480; }
+.hotbar-item.options .hotbar-icon-wrap { background: #F0F0F0; border: 2px solid #B0B0B0; }
+
+.hotbar-label {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dark);
+}

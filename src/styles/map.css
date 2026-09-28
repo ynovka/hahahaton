@@ -1,0 +1,168 @@
+/* ============================================================================
+   Питомец Финни — Интерактивная Карта Города
+   Изометрический вид, 11 интерактивных пинов зданий и друзей с анимацией парения.
+   ============================================================================ */
+
+#screen-map {
+  background: #AEE2FF;
+  position: relative;
+  overflow: hidden;
+}
+
+.map-viewport {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Переключатель ориентации карты 📱 / 🖥️ */
+.map-view-toggle {
+  position: absolute;
+  top: 76px;
+  right: 12px;
+  background: var(--clay-purple);
+  color: #FFFFFF;
+  border-radius: 16px;
+  padding: 5px 12px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 3px 0 var(--clay-purple-shadow);
+  cursor: pointer;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: transform 0.1s;
+}
+
+.map-view-toggle:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* ============================================================================
+   Интерактивные пластилиновые пины над зданиями
+   ============================================================================ */
+
+.map-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  z-index: 50;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: pinHover 2.2s infinite ease-in-out alternate;
+}
+
+.map-pin:hover {
+  transform: translate(-50%, -105%) scale(1.12);
+  z-index: 60;
+}
+
+.map-pin:active {
+  transform: translate(-50%, -95%) scale(0.92);
+}
+
+@keyframes pinHover {
+  0% { transform: translate(-50%, -100%) translateY(0); }
+  100% { transform: translate(-50%, -100%) translateY(-6px); }
+}
+
+.pin-avatar-wrap {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 3.5px solid var(--clay-pink);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.8);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.pin-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Маленький статус-бейдж квеста на пине */
+.pin-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: var(--clay-green);
+  color: #FFFFFF;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 1.5px solid #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.pin-badge.reward {
+  background: var(--clay-orange);
+}
+
+.pin-badge.done {
+  background: var(--clay-green);
+}
+
+.pin-badge.facility {
+  background: var(--clay-blue);
+}
+
+/* Табличка с названием домика */
+.pin-label {
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(4px);
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dark);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+}
+
+/* Цвета рамок для разных персонажей и учреждений */
+.map-pin.pin-bear .pin-avatar-wrap { border-color: var(--clay-orange); }
+.map-pin.pin-squirrel .pin-avatar-wrap { border-color: #FF8A65; }
+.map-pin.pin-raccoon .pin-avatar-wrap { border-color: var(--clay-purple); }
+.map-pin.pin-owl .pin-avatar-wrap { border-color: var(--clay-gold); }
+.map-pin.pin-fox .pin-avatar-wrap { border-color: #FF7043; }
+.map-pin.pin-bunny .pin-avatar-wrap { border-color: var(--clay-green); }
+.map-pin.pin-dog .pin-avatar-wrap { border-color: #4DD0E1; }
+
+.map-pin.pin-home .pin-avatar-wrap { border-color: var(--clay-green); }
+.map-pin.pin-shop .pin-avatar-wrap { border-color: var(--clay-pink); }
+.map-pin.pin-bank .pin-avatar-wrap { border-color: var(--clay-gold); }
+.map-pin.pin-hospital .pin-avatar-wrap { border-color: var(--clay-blue); }

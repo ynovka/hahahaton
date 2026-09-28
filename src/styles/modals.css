@@ -1,0 +1,649 @@
+/* ============================================================================
+   Питомец Финни — Пластилиновые Модальные Окна (Clay Modals)
+   Мягкие тени, скругления, адаптивная верстка под телефоны и планшеты.
+   ============================================================================ */
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(40, 25, 20, 0.45);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.modal-backdrop.active {
+  display: flex;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  background: var(--bg-card);
+  border-radius: 32px;
+  border: 4px solid #FFFFFF;
+  box-shadow: var(--clay-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFF9F3 100%);
+}
+
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--clay-pink-bg);
+  border: 2px solid var(--clay-pink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.modal-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.modal-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #FFF0F2;
+  border: 2px solid #FFD0D6;
+  color: var(--clay-pink-shadow);
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+
+.modal-close-btn:active {
+  transform: scale(0.9);
+}
+
+.modal-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ============================================================================
+   Модальное окно: Детский Бюджет (Три Горшочка)
+   ============================================================================ */
+
+.budget-unallocated-card {
+  background: var(--clay-gold-bg);
+  border: 2px solid var(--clay-gold);
+  border-radius: 20px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-heading);
+  box-shadow: 0 3px 0 var(--clay-gold-shadow);
+}
+
+.budget-jars-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clay-jar-item {
+  background: #FFFFFF;
+  border-radius: 22px;
+  padding: 12px 14px;
+  border: 2.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow: var(--clay-shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.jar-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jar-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.clay-jar-item.jar-food .jar-icon-wrap { background: var(--clay-orange-bg); border: 2px solid var(--clay-orange); }
+.clay-jar-item.jar-fun .jar-icon-wrap { background: var(--clay-pink-bg); border: 2px solid var(--clay-pink); }
+.clay-jar-item.jar-piggy .jar-icon-wrap { background: var(--clay-purple-bg); border: 2px solid var(--clay-purple); }
+
+.jar-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.jar-name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.jar-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.jar-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 3px solid rgba(0, 0, 0, 0.15);
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-dark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+
+.stepper-btn:active {
+  transform: translateY(2px);
+}
+
+.stepper-val {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+  min-width: 45px;
+  text-align: center;
+  color: var(--text-dark);
+}
+
+.budget-presets-row {
+  display: flex;
+  gap: 8px;
+}
+
+.preset-chip {
+  flex: 1;
+  background: #F8F5EE;
+  border: 2px solid #E4DCCF;
+  border-radius: 14px;
+  padding: 8px 4px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  text-align: center;
+}
+
+.preset-chip:active {
+  background: var(--clay-pink-bg);
+  border-color: var(--clay-pink);
+}
+
+/* ============================================================================
+   Модальное окно: Магазин (Лавка Енотика)
+   ============================================================================ */
+
+.shop-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.shop-tab {
+  background: #FFFFFF;
+  border: 2px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 6px 12px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s;
+}
+
+.shop-tab.active {
+  background: var(--clay-pink);
+  color: #FFFFFF;
+  border-color: var(--clay-pink);
+  box-shadow: 0 2px 0 var(--clay-pink-shadow);
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.shop-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 2.5px solid rgba(0, 0, 0, 0.06);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: var(--clay-shadow-sm);
+  position: relative;
+}
+
+.shop-card-icon {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  margin-bottom: 6px;
+}
+
+.shop-card-emoji {
+  font-size: 40px;
+  margin-bottom: 6px;
+}
+
+.shop-card-title {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.shop-card-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  flex-grow: 1;
+}
+
+.shop-card-footer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.shop-price-tag {
+  background: var(--clay-gold-bg);
+  border: 1.5px solid var(--clay-gold);
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  color: #5A3E00;
+}
+
+/* ============================================================================
+   Модальное окно: Банк и Цели Накопления
+   ============================================================================ */
+
+.goal-card {
+  background: #FFFFFF;
+  border-radius: 22px;
+  border: 2.5px solid rgba(0, 0, 0, 0.08);
+  padding: 14px;
+  box-shadow: var(--clay-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goal-card.active-goal {
+  border-color: var(--clay-purple);
+  background: var(--clay-purple-bg);
+}
+
+.goal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.goal-emoji {
+  font-size: 32px;
+}
+
+.goal-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.goal-progress-wrap {
+  width: 100%;
+  height: 16px;
+  background: #E8E0D4;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.goal-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #A577FF, #38D39F);
+  border-radius: 10px;
+  transition: width 0.4s ease-out;
+}
+
+.goal-progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.bank-actions-row {
+  display: flex;
+  gap: 10px;
+}
+
+/* ============================================================================
+   Модальное окно: Больница Доктора Совы
+   ============================================================================ */
+
+.hospital-status-card {
+  background: var(--clay-blue-bg);
+  border: 2px solid var(--clay-blue);
+  border-radius: 22px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hospital-doc-avatar {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.hospital-status-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--clay-blue-shadow);
+}
+
+.hospital-status-desc {
+  font-size: 12px;
+  color: var(--text-dark);
+  margin-top: 3px;
+}
+
+/* ============================================================================
+   Модальное окно: Диалог и Задание у Друга
+   ============================================================================ */
+
+.friend-dialogue-card {
+  background: #FFFFFF;
+  border-radius: 22px;
+  border: 2.5px solid rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  box-shadow: var(--clay-shadow-sm);
+}
+
+.friend-dialogue-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 3px solid var(--clay-orange);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.friend-dialogue-bubble {
+  background: var(--clay-orange-bg);
+  border-radius: 18px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4E342E;
+  position: relative;
+}
+
+.puzzle-story-prompt {
+  background: #FFFDF5;
+  border-left: 4px solid var(--clay-gold);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.puzzle-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.puzzle-opt-btn {
+  background: #FFFFFF;
+  border: 2.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--clay-shadow-sm);
+  transition: all 0.12s;
+}
+
+.puzzle-opt-btn:hover {
+  border-color: var(--clay-pink);
+  transform: translateY(-2px);
+}
+
+.puzzle-opt-btn.correct-selected {
+  background: var(--clay-green-bg);
+  border-color: var(--clay-green);
+  color: var(--clay-green-shadow);
+}
+
+.puzzle-opt-btn.wrong-selected {
+  background: #FFEBEE;
+  border-color: #EF5350;
+  color: #C62828;
+}
+
+.puzzle-feedback-card {
+  border-radius: 18px;
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  display: none;
+  animation: modalPop 0.2s ease-out;
+}
+
+.puzzle-feedback-card.success {
+  display: block;
+  background: var(--clay-green-bg);
+  border: 2px solid var(--clay-green);
+  color: var(--clay-green-shadow);
+}
+
+.puzzle-feedback-card.error {
+  display: block;
+  background: #FFF0F0;
+  border: 2px solid #FFA8A8;
+  color: #D32F2F;
+}
+
+/* ============================================================================
+   Модальное окно: Гардероб
+   ============================================================================ */
+
+.wardrobe-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.wardrobe-item-card {
+  background: #FFFFFF;
+  border-radius: 18px;
+  border: 2.5px solid rgba(0, 0, 0, 0.08);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.wardrobe-item-card.equipped {
+  border-color: var(--clay-pink);
+  background: var(--clay-pink-bg);
+  box-shadow: 0 4px 0 var(--clay-pink-shadow);
+}
+
+.wardrobe-item-card.locked {
+  opacity: 0.55;
+  filter: grayscale(0.8);
+}
+
+.wardrobe-icon {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.wardrobe-name {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+/* ============================================================================
+   Модальное окно: Итоги периода
+   ============================================================================ */
+
+.period-summary-report {
+  background: #FFFFFF;
+  border-radius: 22px;
+  border: 2px solid rgba(0, 0, 0, 0.06);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-check-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.summary-check-row.passed { color: var(--clay-green-shadow); }
+.summary-check-row.failed { color: #E53935; }
+
+/* ============================================================================
+   Модальное окно: Раздел Взрослого (Защита + Статистика)
+   ============================================================================ */
+
+.adult-barrier-card {
+  background: #FFF8E1;
+  border: 2px solid #FFD54F;
+  border-radius: 20px;
+  padding: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.math-task {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 800;
+  color: #5D4037;
+}
+
+.math-input {
+  width: 100px;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 2px solid #BCAAA4;
+  outline: none;
+}
