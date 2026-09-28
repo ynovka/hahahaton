@@ -25,6 +25,7 @@ export class UIController {
     this.activeFriendId = 1;
     this.adultMathAnswer = 42;
     this.shopCurrentTab = 'all';
+    this.lastRenderedLocation = null;
 
     this.initDOMElements();
     this.bindGlobalEvents();
@@ -260,10 +261,9 @@ export class UIController {
         playerName
       });
 
-      // Открываем модалку бюджета в начале
-      setTimeout(() => {
-        this.openModal('budget');
-      }, 500);
+      // План расходов нужен до первой прогулки, поэтому показываем его
+      // сразу после перехода в комнату.
+      this.openModal('budget');
     });
 
     // Бюджет: +/- кнопки
@@ -448,6 +448,13 @@ export class UIController {
   // --- ОТРИСОВКА ИНТЕРФЕЙСА ---
 
   render(state) {
+    // Локация меняется независимо от модальных окон. Закрываем временные
+    // окна при переходе, чтобы они не перекрывали новую сцену.
+    if (this.lastRenderedLocation !== null && this.lastRenderedLocation !== state.currentLocation) {
+      this.closeAllModals();
+    }
+    this.lastRenderedLocation = state.currentLocation;
+
     if (!state.isGameStarted) {
       this.topHud.style.display = 'none';
       this.showScreen('screen-setup');
@@ -510,11 +517,20 @@ export class UIController {
     }
   }
 
+  closeAllModals() {
+    document.querySelectorAll('.modal-backdrop.active').forEach((modal) => {
+      modal.classList.remove('active');
+      modal.style.display = '';
+    });
+  }
+
   // Отрисовка списка видов питомца в сетапе
   renderSetupSpeciesGrid() {
     this.speciesGrid.innerHTML = '';
     PET_SPECIES.forEach((p, idx) => {
-      const chip = document.createElement('div');
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.setAttribute('aria-label', `Выбрать питомца: ${p.name}`);
       chip.className = `species-chip ${idx === 0 ? 'selected' : ''}`;
       chip.setAttribute('data-species', p.id);
       chip.innerHTML = `
@@ -581,7 +597,9 @@ export class UIController {
         ];
 
     pinConfigs.forEach((cfg) => {
-      const pin = document.createElement('div');
+      const pin = document.createElement('button');
+      pin.type = 'button';
+      pin.setAttribute('aria-label', `Открыть: ${cfg.title}`);
       pin.className = `map-pin ${cfg.type}`;
       pin.style.left = `${cfg.x}%`;
       pin.style.top = `${cfg.y}%`;
@@ -1142,7 +1160,10 @@ export class UIController {
       const isUnlocked = state.pet.unlockedWardrobeIds.includes(acc.id);
       const isEquipped = state.pet.equippedAccessories[acc.slot] === acc.id;
 
-      const card = document.createElement('div');
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.disabled = !isUnlocked;
+      card.setAttribute('aria-label', isUnlocked ? `${isEquipped ? 'Снять' : 'Надеть'}: ${acc.name}` : `${acc.name} недоступен`);
       card.className = `wardrobe-item-card ${isEquipped ? 'equipped' : ''} ${!isUnlocked ? 'locked' : ''}`;
       card.innerHTML = `
         <span class="wardrobe-icon">${acc.emoji}</span>

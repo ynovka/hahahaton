@@ -63,6 +63,12 @@
 
 .map-pin {
   position: absolute;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
   transform: translate(-50%, -100%);
   display: flex;
   flex-direction: column;

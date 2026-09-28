@@ -555,6 +555,11 @@
 
 .wardrobe-item-card {
   background: #FFFFFF;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  border-style: solid;
   border-radius: 18px;
   border: 2.5px solid rgba(0, 0, 0, 0.08);
   padding: 10px;

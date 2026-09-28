@@ -465,6 +465,10 @@ body {
 
 .species-chip {
   background: #FFFFFF;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  width: 100%;
   border-radius: 20px;
   padding: 10px 4px;
   display: flex;
