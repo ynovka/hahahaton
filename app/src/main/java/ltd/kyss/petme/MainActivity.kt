@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import androidx.compose.runtime.saveable.rememberSaveable
 import ltd.kyss.petme.core.model.GameLocation
 import ltd.kyss.petme.core.persistence.GameStateStorage
 import ltd.kyss.petme.ui.screens.*
@@ -36,9 +37,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PetMeGameApp(viewModel: GameViewModel) {
     val state by viewModel.state.collectAsState()
+    var showTitleScreen by rememberSaveable { mutableStateOf(true) }
 
     BackHandler(
-        enabled = state.isGameStarted && state.currentLocation != GameLocation.MyRoom
+        enabled = !showTitleScreen && state.isGameStarted && state.currentLocation != GameLocation.MyRoom
     ) {
         viewModel.changeLocation(
             if (state.currentLocation == GameLocation.CityMap) GameLocation.MyRoom
@@ -68,7 +70,16 @@ fun PetMeGameApp(viewModel: GameViewModel) {
         )
     ) {
     Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-        if (!state.isGameStarted) {
+        if (showTitleScreen) {
+            TitleScreen(
+                state = state,
+                onContinue = { showTitleScreen = false },
+                onNewStory = {
+                    viewModel.startFreshGame()
+                    showTitleScreen = false
+                }
+            )
+        } else if (!state.isGameStarted) {
             PetSetupScreen(onStartGame = viewModel::startNewGame)
         } else when (state.currentLocation) {
             GameLocation.CityMap -> {
@@ -107,7 +118,11 @@ fun PetMeGameApp(viewModel: GameViewModel) {
             KidBudgetScreen(
                 state = state,
                 viewModel = viewModel,
-                onClose = { showBudgetDialog = false }
+                onClose = { showBudgetDialog = false },
+                onPlanConfirmed = {
+                    showBudgetDialog = false
+                    showAdvisorDialog = true
+                }
             )
         }
 
@@ -175,6 +190,10 @@ fun PetMeGameApp(viewModel: GameViewModel) {
                     activeFriendDialogueId = null
                     activePuzzleFriendId = friendId
                 },
+                onOpenLessons = {
+                    activeFriendDialogueId = null
+                    showAdvisorDialog = true
+                },
                 onDismiss = { activeFriendDialogueId = null }
             )
         }
@@ -183,9 +202,14 @@ fun PetMeGameApp(viewModel: GameViewModel) {
         activeFriendProfileId?.let { friendId ->
             FriendProfileDialog(
                 initialFriendId = friendId,
+                state = state,
                 onStartPuzzle = { puzzleFriendId ->
                     activeFriendProfileId = null
                     activePuzzleFriendId = puzzleFriendId
+                },
+                onOpenLessons = {
+                    activeFriendProfileId = null
+                    showAdvisorDialog = true
                 },
                 onDismiss = { activeFriendProfileId = null }
             )

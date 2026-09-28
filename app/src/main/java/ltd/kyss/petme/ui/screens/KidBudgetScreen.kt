@@ -31,7 +31,8 @@ import ltd.kyss.petme.ui.viewmodel.GameViewModel
 fun KidBudgetScreen(
     state: GameState,
     viewModel: GameViewModel,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onPlanConfirmed: () -> Unit
 ) {
     val b = state.budget
 
@@ -69,7 +70,7 @@ fun KidBudgetScreen(
                             color = SanrioTextDark
                         )
                         Text(
-                            text = "Период #${state.period} • Доход: ${b.totalStartingCoins} монет",
+                            text = if (b.isConfirmed) "Остатки по утверждённому плану" else "Период #${state.period} • Доход: ${b.totalStartingCoins} монет",
                             fontSize = 12.sp,
                             color = SanrioTextSubtitle
                         )
@@ -139,12 +140,13 @@ fun KidBudgetScreen(
 
             // 1. Миска питомца (Обязательное - 50%)
             SanrioJarCard(
-                title = "1. Миска и Забота (50%) 🥣",
+                title = "1. Миска и Забота 🥣",
                 description = "Корм, витамины и чистота для здоровья питомца",
                 coins = b.foodAndCareCoins,
                 cardColor = SanrioGreenBg,
                 accentColor = SanrioAccentGreen,
                 assetName = "jar_needs",
+                editable = !b.isConfirmed,
                 onMinus = { viewModel.allocateCoins(CoinJarType.FOOD_AND_CARE, -10) },
                 onPlus = { viewModel.allocateCoins(CoinJarType.FOOD_AND_CARE, 10) }
             )
@@ -153,12 +155,13 @@ fun KidBudgetScreen(
 
             // 2. Сундучок радостей (Желания - 30%)
             SanrioJarCard(
-                title = "2. Сундучок Радостей (30%) 🎁",
+                title = "2. Сундучок Радостей 🎁",
                 description = "Игрушки, наряды и весёлые развлечения",
                 coins = b.funAndGamesCoins,
                 cardColor = SanrioPinkBg,
                 accentColor = SanrioAccentPink,
                 assetName = "jar_fun",
+                editable = !b.isConfirmed,
                 onMinus = { viewModel.allocateCoins(CoinJarType.FUN_AND_GAMES, -10) },
                 onPlus = { viewModel.allocateCoins(CoinJarType.FUN_AND_GAMES, 10) }
             )
@@ -167,12 +170,13 @@ fun KidBudgetScreen(
 
             // 3. Копилка на мечту (Сбережения - 20%)
             SanrioJarCard(
-                title = "3. Копилка на Мечту (20%) 🏺",
+                title = "3. Копилка на Мечту 🏺",
                 description = "Копим на цель: ${state.activeGoal?.title ?: "Домик мечты"}",
                 coins = b.piggyBankCoins,
                 cardColor = SanrioPurpleBg,
                 accentColor = SanrioAccentPurple,
                 assetName = "jar_savings",
+                editable = !b.isConfirmed,
                 onMinus = { viewModel.allocateCoins(CoinJarType.PIGGY_BANK, -10) },
                 onPlus = { viewModel.allocateCoins(CoinJarType.PIGGY_BANK, 10) }
             )
@@ -193,20 +197,21 @@ fun KidBudgetScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Разложено: ${b.totalAllocated} из ${b.totalStartingCoins} м.",
+                        text = if (b.isConfirmed) "Доступно для трат: ${state.wallet.coins} м."
+                        else "Разложено: ${b.totalAllocated} из ${b.totalStartingCoins} м.",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = SanrioTextDark
                     )
                     Surface(
-                        color = if (b.unallocated == 0) SanrioGreenBg else SanrioOrangeBg,
+                        color = if (b.isConfirmed || b.unallocated == 0) SanrioGreenBg else SanrioOrangeBg,
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Text(
-                            text = if (b.unallocated == 0) "Идеально! ✨" else "Осталось: ${b.unallocated} м.",
+                            text = if (b.isConfirmed) "Конверты работают ✓" else if (b.unallocated == 0) "Идеально! ✨" else "Осталось: ${b.unallocated} м.",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (b.unallocated == 0) SanrioAccentGreen else SanrioGoldText,
+                            color = if (b.isConfirmed || b.unallocated == 0) SanrioAccentGreen else SanrioGoldText,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
@@ -218,8 +223,7 @@ fun KidBudgetScreen(
             // Большая кнопка подтверждения (Sanrio Pill Button)
             Button(
                 onClick = {
-                    viewModel.confirmBudget()
-                    onClose()
+                    if (viewModel.confirmBudget()) onPlanConfirmed()
                 },
                 enabled = b.isValid && !b.isConfirmed,
                 colors = ButtonDefaults.buttonColors(
@@ -249,6 +253,7 @@ fun SanrioJarCard(
     cardColor: Color,
     accentColor: Color,
     assetName: String = "",
+    editable: Boolean = true,
     onMinus: () -> Unit,
     onPlus: () -> Unit
 ) {
@@ -308,6 +313,7 @@ fun SanrioJarCard(
             ) {
                 Button(
                     onClick = onMinus,
+                    enabled = editable,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     border = BorderStroke(1.5.dp, accentColor.copy(alpha = 0.5f)),
                     shape = RoundedCornerShape(50),
@@ -318,6 +324,7 @@ fun SanrioJarCard(
 
                 Button(
                     onClick = onPlus,
+                    enabled = editable,
                     colors = ButtonDefaults.buttonColors(containerColor = accentColor),
                     shape = RoundedCornerShape(50),
                     modifier = Modifier.weight(1f).height(40.dp)

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ltd.kyss.petme.core.engine.GameState
+import ltd.kyss.petme.core.model.ItemCategory
 import ltd.kyss.petme.ui.components.GameArt
 import ltd.kyss.petme.ui.theme.*
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
@@ -107,7 +108,12 @@ fun ShopDialog(
                         .height(300.dp)
                 ) {
                     items(state.shopItems) { item ->
-                        val canAfford = state.wallet.canAfford(item.price)
+                        val isCarePurchase = item.category == ItemCategory.MANDATORY_FOOD ||
+                            item.category == ItemCategory.MANDATORY_CARE
+                        val envelopeName = if (isCarePurchase) "Забота" else "Радости"
+                        val envelopeCoins = if (isCarePurchase) state.careEnvelope else state.funEnvelope
+                        val canAfford = state.budget.isConfirmed &&
+                            state.wallet.canAfford(item.price) && envelopeCoins >= item.price
 
                         Surface(
                             shape = RoundedCornerShape(18.dp),
@@ -155,6 +161,12 @@ fun ShopDialog(
                                             fontSize = 10.sp,
                                             color = SanrioTextSubtitle,
                                             maxLines = 2
+                                        )
+                                        Text(
+                                            "Конверт «$envelopeName»: $envelopeCoins м.",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (envelopeCoins >= item.price) SanrioAccentGreen else SanrioAccentRed
                                         )
                                     }
                                 }

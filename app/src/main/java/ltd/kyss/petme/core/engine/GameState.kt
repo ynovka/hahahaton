@@ -11,7 +11,7 @@ data class GameState(
     val period: Int = 1,
     val pet: PetProfile = PetProfile(),
     val wallet: Wallet = Wallet(coins = 100, savings = 0),
-    val budget: BudgetDistribution = BudgetDistribution(totalStartingCoins = 100),
+    val budget: BudgetDistribution = BudgetDistribution.forIncome(100),
     val currentLocation: GameLocation = GameLocation.MyRoom,
     val heroX: Float = 0.3f, // Положение персонажа в комнате (0.1 .. 0.9)
     val puzzles: Map<Int, KidPuzzle> = GameCatalog.createInitialPuzzles(),
@@ -31,6 +31,9 @@ data class GameState(
     val isAdultBarrierPassed: Boolean = false
 ) {
     val activeGoal: DreamGoal? get() = dreamGoals.find { it.id == activeGoalId }
+    /** Остатки конвертов видны в экономике после утверждения плана. */
+    val careEnvelope: Int get() = if (budget.isConfirmed) budget.foodAndCareCoins else 0
+    val funEnvelope: Int get() = if (budget.isConfirmed) budget.funAndGamesCoins else 0
     val goalProgressFraction: Float
         get() {
             val goal = activeGoal ?: return 0f

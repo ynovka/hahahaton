@@ -80,10 +80,26 @@ data class BudgetDistribution(
 ) {
     val totalAllocated: Int get() = foodAndCareCoins + funAndGamesCoins + piggyBankCoins
     val unallocated: Int get() = totalStartingCoins - totalAllocated
-    val isValid: Boolean get() = totalAllocated <= totalStartingCoins && foodAndCareCoins > 0
+    /** Все деньги должны получить назначение до выхода в город. */
+    val isValid: Boolean get() = totalAllocated == totalStartingCoins && foodAndCareCoins > 0
 
     // Проверка правила 50/30/20 в детской форме
     val foodRatio: Float get() = if (totalStartingCoins > 0) foodAndCareCoins.toFloat() / totalStartingCoins else 0f
     val funRatio: Float get() = if (totalStartingCoins > 0) funAndGamesCoins.toFloat() / totalStartingCoins else 0f
     val savingsRatio: Float get() = if (totalStartingCoins > 0) piggyBankCoins.toFloat() / totalStartingCoins else 0f
+
+    companion object {
+        /** Мягкий ориентир 50/30/20 для нового периода; суммы всегда сходятся ровно. */
+        fun forIncome(coins: Int): BudgetDistribution {
+            val safeCoins = coins.coerceAtLeast(0)
+            val care = safeCoins / 2
+            val leisure = safeCoins * 3 / 10
+            return BudgetDistribution(
+                totalStartingCoins = safeCoins,
+                foodAndCareCoins = care,
+                funAndGamesCoins = leisure,
+                piggyBankCoins = safeCoins - care - leisure
+            )
+        }
+    }
 }

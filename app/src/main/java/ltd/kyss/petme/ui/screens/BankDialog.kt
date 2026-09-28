@@ -247,6 +247,9 @@ fun BankDialog(state: GameState, viewModel: GameViewModel, onDismiss: () -> Unit
                     if (amount > state.wallet.coins) {
                         Text("В кошельке не хватает ${amount - state.wallet.coins} монет.", fontSize = 11.sp, color = SanrioAccentRed)
                     }
+                    if (amount > state.funEnvelope) {
+                        Text("Из сундучка радостей можно перевести только ${state.funEnvelope} м. Деньги на заботу не трогаем.", fontSize = 11.sp, color = SanrioAccentRed)
+                    }
                     if (amount > state.wallet.savings) {
                         Text("В копилке недостаточно монет для снятия.", fontSize = 11.sp, color = SanrioAccentRed)
                     }
@@ -254,7 +257,7 @@ fun BankDialog(state: GameState, viewModel: GameViewModel, onDismiss: () -> Unit
 
                 // Кнопки действий
                 Button(
-                    enabled = amount != null && amount > 0 && amount <= state.wallet.coins,
+                    enabled = state.budget.isConfirmed && amount != null && amount > 0 && amount <= state.wallet.coins && amount <= state.funEnvelope,
                     onClick = { amount?.let(viewModel::depositSavings) },
                     colors = ButtonDefaults.buttonColors(containerColor = SanrioSkyBlue),
                     shape = RoundedCornerShape(16.dp),
@@ -270,7 +273,7 @@ fun BankDialog(state: GameState, viewModel: GameViewModel, onDismiss: () -> Unit
                     border = BorderStroke(1.5.dp, SanrioAccentOrange.copy(alpha = 0.6f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Вернуть в кошелёк… 👛", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = SanrioAccentOrange)
+                    Text("Взять на важный расход 👛", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = SanrioAccentOrange)
                 }
 
                 // Совет советника
@@ -321,9 +324,9 @@ fun BankDialog(state: GameState, viewModel: GameViewModel, onDismiss: () -> Unit
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text("🤔 Забрать $requested монет?", fontSize = 16.sp, fontWeight = FontWeight.Black, color = SanrioTextDark)
+                    Text("🤔 Взять $requested монет из резерва?", fontSize = 16.sp, fontWeight = FontWeight.Black, color = SanrioTextDark)
                     Text(
-                        "В копилке останется ${(state.wallet.savings - requested).coerceAtLeast(0)} монет.",
+                        "Деньги вернутся в конверт «Забота». В копилке останется ${(state.wallet.savings - requested).coerceAtLeast(0)} м.",
                         fontSize = 12.sp,
                         color = SanrioTextSubtitle
                     )
