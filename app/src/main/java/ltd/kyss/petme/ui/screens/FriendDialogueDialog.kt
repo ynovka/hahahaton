@@ -32,11 +32,13 @@ fun FriendDialogueDialog(
     friendId: Int,
     state: GameState,
     onStartPuzzle: () -> Unit,
+    onOpenLessons: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val friend = GameCatalog.friendsList.find { it.id == friendId } ?: return
     val puzzle = state.puzzles[friendId] ?: return
     val lesson = GameCatalog.lessonForFriend(friendId)
+    val lessonCompleted = lesson?.id in state.completedLessonIds
     var taskDiscussed by remember(friendId) { mutableStateOf(false) }
 
     Dialog(
@@ -125,7 +127,8 @@ fun FriendDialogueDialog(
                             Text("💡", fontSize = 18.sp)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                "Подсказка: ${lesson.shortRule}",
+                                if (lessonCompleted) "Подручы напоминает: ${lesson.shortRule}"
+                                else "Сначала пройди у Подручы урок «${lesson.title}», затем это задание откроется.",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF5D4037)
@@ -166,6 +169,25 @@ fun FriendDialogueDialog(
                             modifier = Modifier.fillMaxWidth().height(48.dp)
                         ) {
                             Text("Закончить разговор ✓", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    taskDiscussed && lesson != null && !lessonCompleted -> {
+                        Button(
+                            onClick = onOpenLessons,
+                            colors = ButtonDefaults.buttonColors(containerColor = SanrioAccentPurple),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.fillMaxWidth().height(48.dp)
+                        ) {
+                            Text("Пойти к Подручы 🪽", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            shape = RoundedCornerShape(50),
+                            border = BorderStroke(1.5.dp, SanrioCardBorder),
+                            modifier = Modifier.fillMaxWidth().height(44.dp)
+                        ) {
+                            Text("Подумать позже", color = SanrioTextSubtitle, fontSize = 14.sp)
                         }
                     }
                     taskDiscussed -> {

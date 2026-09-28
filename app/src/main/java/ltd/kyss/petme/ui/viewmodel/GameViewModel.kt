@@ -37,8 +37,14 @@ class GameViewModel(
         updateState { GameEngine.changeLocation(it, location) }
     }
 
-    fun completeLesson(lessonId: String) {
-        updateState { GameEngine.completeLesson(it, lessonId) }
+    fun answerLesson(lessonId: String, optionIndex: Int): Boolean {
+        var isCorrect = false
+        updateState { current ->
+            val (newState, correct) = GameEngine.answerLesson(current, lessonId, optionIndex)
+            isCorrect = correct
+            newState
+        }
+        return isCorrect
     }
 
     fun careForPet(action: PetCareAction) {
@@ -49,8 +55,12 @@ class GameViewModel(
         updateState { GameEngine.allocateCoins(it, jar, delta) }
     }
 
-    fun confirmBudget() {
-        updateState { GameEngine.confirmBudget(it) }
+    fun confirmBudget(): Boolean {
+        var confirmed = false
+        updateState {
+            GameEngine.confirmBudget(it).also { updated -> confirmed = updated.budget.isConfirmed }
+        }
+        return confirmed
     }
 
     fun answerPuzzle(friendId: Int, optionId: String): Boolean {
@@ -101,6 +111,12 @@ class GameViewModel(
 
     fun resetDemo() {
         updateState { GameEngine.resetDemo() }
+    }
+
+    /** Новая история с чистым сохранением, вызывается только с титульного экрана. */
+    fun startFreshGame() {
+        storage.clear()
+        _state.value = GameEngine.createInitialState()
     }
 
     fun toggleSound() {

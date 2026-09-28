@@ -23,11 +23,11 @@ object GameEngine {
         petName: String
     ): GameState {
         val safeName = petName.trim().take(16).ifBlank { "Финни" }
-        return state.copy(
+        return createInitialState().copy(
             isGameStarted = true,
             pet = PetProfile(name = safeName, species = species, pattern = pattern),
             currentLocation = GameLocation.MyRoom,
-            advisorTip = "Знакомься: $safeName! Сначала составь план на период, а потом отправляйся исследовать город."
+            advisorTip = "Знакомься: $safeName! Я Подручы: сначала помогу составить план, а потом познакомлю с уроками и заданиями друзей."
         )
     }
 
@@ -72,13 +72,26 @@ object GameEngine {
         )
     }
 
-    fun completeLesson(state: GameState, lessonId: String): GameState {
-        val lesson = GameCatalog.financialLessons.find { it.id == lessonId } ?: return state
-        if (lessonId in state.completedLessonIds) return state
+    fun answerLesson(state: GameState, lessonId: String, optionIndex: Int): Pair<GameState, Boolean> {
+        val lesson = GameCatalog.financialLessons.find { it.id == lessonId } ?: return state to false
+        if (lessonId in state.completedLessonIds) return state to true
+
+        val lessonIndex = GameCatalog.financialLessons.indexOf(lesson)
+        val previousLessons = GameCatalog.financialLessons.take(lessonIndex)
+        if (previousLessons.any { it.id !in state.completedLessonIds }) {
+            return state.copy(advisorTip = "Подручы предлагает идти по порядку: сначала пройди предыдущий урок.") to false
+        }
+
+        val answer = lesson.checkOptions.getOrNull(optionIndex)
+            ?: return state to false
+        if (!answer.isCorrect) {
+            return state.copy(advisorTip = "Почти! ${answer.feedback}") to false
+        }
+
         return state.copy(
             completedLessonIds = state.completedLessonIds + lessonId,
-            advisorTip = "Урок пройден: «${lesson.title}». ${lesson.shortRule}"
-        )
+            advisorTip = "Урок пройден: «${lesson.title}». ${lesson.shortRule} Теперь можно брать задание у друга!"
+        ) to true
     }
 
     fun careForPet(state: GameState, action: PetCareAction): GameState {
@@ -171,11 +184,11 @@ object GameEngine {
     fun confirmBudget(state: GameState): GameState {
         val b = state.budget
         if (b.isConfirmed) return state
-        if (b.totalAllocated > state.wallet.coins) {
-            return state.copy(advisorTip = "Сейчас в кошельке меньше монет, чем в плане. Уменьши запланированные суммы.")
+        if (b.totalStartingCoins != state.wallet.coins || b.totalAllocated != state.wallet.coins) {
+            return state.copy(advisorTip = "Распредели все ${state.wallet.coins} монет: ни одна монетка не должна остаться без назначения.")
         }
         if (!b.isValid) {
-            return state.copy(advisorTip = "Нельзя утвердить пустую миску! Добавь хотя бы немного монет на еду питомцу.")
+            return state.copy(advisorTip = "Нельзя утвердить пустую миску! Добавь монеты на еду и заботу о питомце.")
         }
 
         // Переводим запланированные сбережения прямо в копилку
@@ -194,7 +207,7 @@ object GameEngine {
             } else state.transactions,
             isPeriodFinished = false,
             periodReport = null,
-            advisorTip = "План утверждён! В копилку отправилось ${b.piggyBankCoins} м. Теперь можно идти гулять по городу и в гости!"
+            advisorTip = "План утверждён! В копилку отправилось ${b.piggyBankCoins} м., а на заботу осталось ${b.foodAndCareCoins} м. Теперь можно идти в город."
         )
     }
 
@@ -205,8 +218,15 @@ object GameEngine {
 
     fun depositSavings(state: GameState, amount: Int): GameState {
         if (amount <= 0 || amount > state.wallet.coins || amount > Int.MAX_VALUE - state.wallet.savings) return state
+        if (!state.budget.isConfirmed) {
+            return state.copy(advisorTip = "Сначала утверди план — тогда Подручы поможет перевести свободные монеты в копилку.")
+        }
+        if (amount > state.budget.funAndGamesCoins) {
+            return state.copy(advisorTip = "В сундучке радостей осталось только ${state.budget.funAndGamesCoins} м. Важные деньги на заботу лучше не трогать.")
+        }
         return state.copy(
             wallet = state.wallet.copy(coins = state.wallet.coins - amount, savings = state.wallet.savings + amount),
+            budget = state.budget.copy(funAndGamesCoins = state.budget.funAndGamesCoins - amount),
             pet = state.pet.copy(mood = PetMood.PROUD_SAVER),
             transactions = state.transactions + MoneyTransaction(state.period, "Пополнение копилки", -amount, MoneyTransactionType.SAVINGS_IN, "🏺"),
             advisorTip = "В копилку переведено $amount монет. Ты стал ближе к цели!"
@@ -215,10 +235,12 @@ object GameEngine {
 
     fun withdrawSavings(state: GameState, amount: Int): GameState {
         if (amount <= 0 || amount > state.wallet.savings || amount > Int.MAX_VALUE - state.wallet.coins) return state
+        if (!state.budget.isConfirmed) return state
         return state.copy(
             wallet = state.wallet.copy(coins = state.wallet.coins + amount, savings = state.wallet.savings - amount),
+            budget = state.budget.copy(foodAndCareCoins = state.budget.foodAndCareCoins + amount),
             transactions = state.transactions + MoneyTransaction(state.period, "Снятие из копилки", amount, MoneyTransactionType.SAVINGS_OUT, "👛"),
-            advisorTip = "$amount монет возвращены в кошелёк. В копилке осталось ${state.wallet.savings - amount}."
+            advisorTip = "$amount монет из резерва добавлены в конверт «Забота». В копилке осталось ${state.wallet.savings - amount}."
         )
     }
 
@@ -249,14 +271,19 @@ object GameEngine {
         if (state.pet.health != PetHealth.NEEDS_TREATMENT) {
             return state.copy(advisorTip = "Лечение сейчас не требуется. Доктор Сова советует приходить на осмотр каждый период.")
         }
-        if (!state.wallet.canAfford(TREATMENT_COST)) {
+        if (!state.budget.isConfirmed) {
+            return state.copy(advisorTip = "Сначала утверди финансовый план на период.")
+        }
+        if (!state.wallet.canAfford(TREATMENT_COST) || state.budget.foodAndCareCoins < TREATMENT_COST) {
+            val available = state.budget.foodAndCareCoins
             return state.copy(
-                advisorTip = "Для лечения нужно $TREATMENT_COST монет. Сейчас не хватает ${TREATMENT_COST - state.wallet.coins}."
+                advisorTip = "Для лечения нужно $TREATMENT_COST монет из конверта «Забота». Там сейчас $available м. Можно пополнить его из резерва в Банке."
             )
         }
 
         return state.copy(
             wallet = state.wallet.copy(coins = state.wallet.coins - TREATMENT_COST),
+            budget = state.budget.copy(foodAndCareCoins = state.budget.foodAndCareCoins - TREATMENT_COST),
             pet = state.pet.copy(
                 health = PetHealth.HEALTHY,
                 mood = PetMood.HAPPY,
@@ -273,6 +300,12 @@ object GameEngine {
     fun answerPuzzle(state: GameState, friendId: Int, optionId: String): Pair<GameState, Boolean> {
         val puzzle = state.puzzles[friendId] ?: return state to false
         if (puzzle.state != PuzzleState.AVAILABLE) return state to false
+        val requiredLesson = GameCatalog.lessonForFriend(friendId)
+        if (requiredLesson != null && requiredLesson.id !in state.completedLessonIds) {
+            return state.copy(
+                advisorTip = "Перед заданием ${GameCatalog.friendsList.find { it.id == friendId }?.name ?: "друга"} пройди урок Подручы «${requiredLesson.title}»."
+            ) to false
+        }
 
         val option = puzzle.options.find { it.id == optionId } ?: return state to false
 
@@ -301,6 +334,11 @@ object GameEngine {
 
         val updatedPuzzle = puzzle.copy(state = PuzzleState.COMPLETED)
         val updatedWallet = state.wallet.copy(coins = state.wallet.coins + puzzle.rewardCoins)
+        val updatedBudget = if (state.budget.isConfirmed) {
+            state.budget.copy(funAndGamesCoins = state.budget.funAndGamesCoins + puzzle.rewardCoins)
+        } else {
+            state.budget
+        }
         val updatedPet = state.pet.copy(
             mood = PetMood.PLAYFUL,
             growthPoints = state.pet.growthPoints + 1
@@ -309,9 +347,10 @@ object GameEngine {
         return state.copy(
             puzzles = state.puzzles + (friendId to updatedPuzzle),
             wallet = updatedWallet,
+            budget = updatedBudget,
             pet = updatedPet,
             transactions = state.transactions + MoneyTransaction(state.period, "Награда за задание", puzzle.rewardCoins, MoneyTransactionType.INCOME, "🎯"),
-            advisorTip = "Ура! Ты получил +${puzzle.rewardCoins} монет за смекалку! Питомец гордится тобой! 🎉"
+            advisorTip = "Ура! Ты получил +${puzzle.rewardCoins} монет за смекалку. Подручы добавил их в сундучок радостей — можешь потратить или перевести в копилку! 🎉"
         )
     }
 
@@ -320,8 +359,14 @@ object GameEngine {
      */
     fun buyShopItem(state: GameState, itemId: String): GameState {
         val item = state.shopItems.find { it.id == itemId } ?: return state
+        if (!state.budget.isConfirmed) {
+            return state.copy(advisorTip = "Сначала утверди финансовый план. Он подскажет, сколько монет можно потратить на каждую категорию.")
+        }
         if (item.wardrobeItem != null && item.wardrobeItem.id in state.pet.unlockedWardrobeIds) {
             return state.copy(advisorTip = "«${item.title}» уже есть в гардеробе. Выбери другую покупку.")
+        }
+        if (item.category == ItemCategory.WANT_TOY && state.inventory.any { it.id == item.id }) {
+            return state.copy(advisorTip = "«${item.title}» уже дома. Игрушки можно использовать много раз, вторую покупать не нужно.")
         }
         if (!state.wallet.canAfford(item.price)) {
             val missing = item.price - state.wallet.coins
@@ -330,8 +375,22 @@ object GameEngine {
             )
         }
 
+        val paysFromCare = item.category == ItemCategory.MANDATORY_FOOD || item.category == ItemCategory.MANDATORY_CARE
+        val availableInEnvelope = if (paysFromCare) state.budget.foodAndCareCoins else state.budget.funAndGamesCoins
+        val envelopeTitle = if (paysFromCare) "Забота" else "Радости"
+        if (availableInEnvelope < item.price) {
+            return state.copy(
+                advisorTip = "На «${item.title}» нужно ${item.price} м., а в конверте «$envelopeTitle» осталось $availableInEnvelope м. Проверь план или заработай награду у друзей."
+            )
+        }
+
         val newCoins = state.wallet.coins - item.price
         val updatedInventory = state.inventory + item
+        val updatedBudget = if (paysFromCare) {
+            state.budget.copy(foodAndCareCoins = state.budget.foodAndCareCoins - item.price)
+        } else {
+            state.budget.copy(funAndGamesCoins = state.budget.funAndGamesCoins - item.price)
+        }
 
         var updatedPet = state.pet
 
@@ -343,6 +402,7 @@ object GameEngine {
 
         return state.copy(
             wallet = state.wallet.copy(coins = newCoins),
+            budget = updatedBudget,
             inventory = updatedInventory,
             pet = updatedPet,
             transactions = state.transactions + MoneyTransaction(state.period, item.title, -item.price, MoneyTransactionType.EXPENSE, item.emoji),
@@ -431,7 +491,7 @@ object GameEngine {
         return state.copy(
             period = nextPeriod,
             wallet = state.wallet.copy(coins = newCoins),
-            budget = BudgetDistribution(totalStartingCoins = newCoins, isConfirmed = false),
+            budget = BudgetDistribution.forIncome(newCoins),
             puzzles = GameCatalog.createInitialPuzzles(),
             transactions = if (nextAllowance > 0) {
                 state.transactions + MoneyTransaction(nextPeriod, "Карманные деньги", nextAllowance, MoneyTransactionType.INCOME, "🪙")
