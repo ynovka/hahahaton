@@ -283,7 +283,7 @@ fun FriendProfileDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Задание открывается после тематического урока Подручы.
+                // Задание открывается после тематического урока Подручного.
                 Button(
                     onClick = {
                         onDismiss()
@@ -297,7 +297,7 @@ fun FriendProfileDialog(
                 ) {
                     Text(
                         if (lessonCompleted) "⭐ Задание друга (+${currentFriend.rewardCoins} монет)"
-                        else "🪽 Сначала урок Подручы",
+                        else "🪽 Сначала урок Подручного",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )

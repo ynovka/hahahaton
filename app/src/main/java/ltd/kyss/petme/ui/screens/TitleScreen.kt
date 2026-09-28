@@ -81,7 +81,7 @@ fun TitleScreen(
                         color = SanrioTextDark
                     )
                     Text(
-                        "Составляй план, учись у Подручы и помогай друзьям принимать хорошие решения.",
+                        "Составляй план, учись у Подручного и помогай друзьям принимать хорошие решения.",
                         textAlign = TextAlign.Center,
                         fontSize = 12.sp,
                         lineHeight = 17.sp,
@@ -103,8 +103,8 @@ fun TitleScreen(
                     Text("🪽", fontSize = 25.sp)
                     Spacer(Modifier.width(9.dp))
                     Text(
-                        if (state.isGameStarted) "Подручы бережно сохранил твой прогресс."
-                        else "Привет! Я Подручы, твой помощник по финансовой грамотности.",
+                        if (state.isGameStarted) "Подручный бережно сохранил твой прогресс."
+                        else "Привет! Я Подручный, твой помощник по финансовой грамотности.",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = SanrioTextDark

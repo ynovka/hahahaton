@@ -181,7 +181,7 @@ fun FriendDialogueDialog(
                             shape = RoundedCornerShape(50),
                             modifier = Modifier.fillMaxWidth().height(48.dp)
                         ) {
-                            Text("Пойти к Подручы 🪽", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text("Пойти к Подручному 🪽", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(

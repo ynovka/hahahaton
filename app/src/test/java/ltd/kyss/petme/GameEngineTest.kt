@@ -9,6 +9,16 @@ import org.junit.Test
 class GameEngineTest {
 
     @Test
+    fun courseHasTwelveLessonsAndSevenFriendTasksKeepTheirTopics() {
+        assertEquals(12, GameCatalog.financialLessons.size)
+        assertEquals(
+            listOf("needs_wants", "saving", "compare", "safety", "exact_change", "emergency", "budget"),
+            (1..7).map { friendId -> GameCatalog.lessonForFriend(friendId)?.id }
+        )
+        assertTrue(GameCatalog.financialLessons.drop(7).all { it.relatedFriendId == null })
+    }
+
+    @Test
     fun newGameUsesChosenPetAndResetsPreviousProgress() {
         val started = GameEngine.startNewGame(
             GameEngine.createInitialState().copy(wallet = Wallet(1, 99)),
