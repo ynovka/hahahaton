@@ -21,7 +21,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ltd.kyss.petme.core.data.GameCatalog
+import ltd.kyss.petme.core.engine.GameState
 import ltd.kyss.petme.core.model.FriendCharacter
+import ltd.kyss.petme.ui.theme.SanrioAccentPurple
 
 /**
  * Карточка профиля друга в стиле Hello Kitty Island Adventure.
@@ -30,7 +32,9 @@ import ltd.kyss.petme.core.model.FriendCharacter
 @Composable
 fun FriendProfileDialog(
     initialFriendId: Int = 1,
+    state: GameState,
     onStartPuzzle: (Int) -> Unit,
+    onOpenLessons: () -> Unit,
     onDismiss: () -> Unit
 ) {
     var currentIndex by remember {
@@ -41,6 +45,8 @@ fun FriendProfileDialog(
 
     val friends = GameCatalog.friendsList
     val currentFriend = friends[currentIndex]
+    val lesson = GameCatalog.lessonForFriend(currentFriend.id)
+    val lessonCompleted = lesson?.id in state.completedLessonIds
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -277,20 +283,21 @@ fun FriendProfileDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Большая кнопка перехода к заданию
+                // Задание открывается после тематического урока Подручы.
                 Button(
                     onClick = {
                         onDismiss()
-                        onStartPuzzle(currentFriend.id)
+                        if (lessonCompleted) onStartPuzzle(currentFriend.id) else onOpenLessons()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5)),
+                    colors = ButtonDefaults.buttonColors(containerColor = if (lessonCompleted) Color(0xFF1E88E5) else SanrioAccentPurple),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
                 ) {
                     Text(
-                        "⭐ Задание друга (+${currentFriend.rewardCoins} монет)",
+                        if (lessonCompleted) "⭐ Задание друга (+${currentFriend.rewardCoins} монет)"
+                        else "🪽 Сначала урок Подручы",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )

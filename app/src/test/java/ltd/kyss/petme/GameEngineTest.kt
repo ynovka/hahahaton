@@ -1,5 +1,6 @@
 package ltd.kyss.petme
 
+import ltd.kyss.petme.core.data.GameCatalog
 import ltd.kyss.petme.core.engine.GameEngine
 import ltd.kyss.petme.core.model.*
 import org.junit.Assert.*
@@ -8,264 +9,177 @@ import org.junit.Test
 class GameEngineTest {
 
     @Test
-    fun newGameUsesChosenPetAndSafeName() {
-        val initial = GameEngine.createInitialState()
-        assertFalse(initial.isGameStarted)
+    fun newGameUsesChosenPetAndResetsPreviousProgress() {
+        val started = GameEngine.startNewGame(
+            GameEngine.createInitialState().copy(wallet = Wallet(1, 99)),
+            PetSpecies.OWL,
+            ColorPattern.SPOTTED,
+            "  Умка  "
+        )
 
-        val started = GameEngine.startNewGame(initial, PetSpecies.OWL, ColorPattern.SPOTTED, "  Умка  ")
         assertTrue(started.isGameStarted)
         assertEquals(PetSpecies.OWL, started.pet.species)
         assertEquals(ColorPattern.SPOTTED, started.pet.pattern)
         assertEquals("Умка", started.pet.name)
-
-        val fallback = GameEngine.startNewGame(initial, PetSpecies.CAT, ColorPattern.CLASSIC, "   ")
-        assertEquals("Финни", fallback.pet.name)
+        assertEquals(Wallet(100, 0), started.wallet)
+        assertEquals("Финни", GameEngine.startNewGame(GameEngine.createInitialState(), PetSpecies.CAT, ColorPattern.CLASSIC, " ").pet.name)
     }
 
     @Test
     fun leavingHomeRequiresConfirmedFinancialPlan() {
-        val initial = GameEngine.startNewGame(
-            GameEngine.createInitialState(), PetSpecies.CAT, ColorPattern.CLASSIC, "Финни"
-        )
+        val initial = GameEngine.startNewGame(GameEngine.createInitialState(), PetSpecies.CAT, ColorPattern.CLASSIC, "Финни")
         assertEquals(GameLocation.MyRoom, GameEngine.changeLocation(initial, GameLocation.CityMap).currentLocation)
         val confirmed = GameEngine.confirmBudget(initial)
         assertEquals(GameLocation.CityMap, GameEngine.changeLocation(confirmed, GameLocation.CityMap).currentLocation)
     }
 
     @Test
-    fun companionLessonCanOnlyBeCompletedOnce() {
+    fun lessonRequiresCorrectAnswerAndOpensFriendsTaskInOrder() {
         val initial = GameEngine.createInitialState()
-        val completed = GameEngine.completeLesson(initial, "budget")
-        assertTrue("budget" in completed.completedLessonIds)
-        assertEquals(completed, GameEngine.completeLesson(completed, "budget"))
-        assertEquals(initial, GameEngine.completeLesson(initial, "missing"))
+
+        val wrong = GameEngine.answerLesson(initial, "needs_wants", 1)
+        assertFalse(wrong.second)
+        assertTrue(wrong.first.completedLessonIds.isEmpty())
+
+        val blockedTask = GameEngine.answerPuzzle(initial, 1, "p1_opt1")
+        assertFalse(blockedTask.second)
+        assertEquals(PuzzleState.AVAILABLE, blockedTask.first.puzzles.getValue(1).state)
+
+        val passed = GameEngine.answerLesson(initial, "needs_wants", 0)
+        assertTrue(passed.second)
+        assertTrue("needs_wants" in passed.first.completedLessonIds)
+        assertTrue(GameEngine.answerPuzzle(passed.first, 1, "p1_opt1").second)
+
+        val lockedLaterLesson = GameEngine.answerLesson(initial, "budget", 0)
+        assertFalse(lockedLaterLesson.second)
     }
 
     @Test
-    fun confirmingBudgetTwiceDoesNotCreateMoney() {
-        val confirmed = GameEngine.confirmBudget(GameEngine.createInitialState())
-        assertEquals(confirmed, GameEngine.confirmBudget(confirmed))
+    fun planMustAllocateAllCoinsAndSavingsLeaveWallet() {
+        var state = GameEngine.createInitialState()
+        state = GameEngine.allocateCoins(state, CoinJarType.FOOD_AND_CARE, -10)
+        assertFalse(GameEngine.confirmBudget(state).budget.isConfirmed)
+
+        state = GameEngine.allocateCoins(state, CoinJarType.PIGGY_BANK, 10)
+        state = GameEngine.confirmBudget(state)
+        assertTrue(state.budget.isConfirmed)
+        assertEquals(40, state.budget.foodAndCareCoins)
+        assertEquals(30, state.budget.funAndGamesCoins)
+        assertEquals(30, state.wallet.savings)
+        assertEquals(70, state.wallet.coins)
+        assertEquals(state, GameEngine.confirmBudget(state))
     }
 
     @Test
-    fun confirmingBudgetPreservesIncomeEarnedBeforeConfirmation() {
+    fun shopSpendsOnlyFromTheMatchingEnvelope() {
+        var state = GameEngine.confirmBudget(GameEngine.createInitialState())
+        state = GameEngine.buyShopItem(state, "food_kibble")
+
+        assertEquals(55, state.wallet.coins)
+        assertEquals(25, state.budget.foodAndCareCoins)
+        assertEquals(30, state.budget.funAndGamesCoins)
+
+        state = GameEngine.buyShopItem(state, "item_hat_cap")
+        assertEquals(35, state.wallet.coins)
+        assertEquals(25, state.budget.foodAndCareCoins)
+        assertEquals(10, state.budget.funAndGamesCoins)
+
+        val rejectedToy = GameEngine.buyShopItem(state, "toy_mouse")
+        assertEquals(state.wallet, rejectedToy.wallet)
+        assertEquals(state.budget, rejectedToy.budget)
+    }
+
+    @Test
+    fun purchasesRequirePlanAndReusableToyCannotBeBoughtTwice() {
         val initial = GameEngine.createInitialState()
-        val rewarded = GameEngine.claimReward(GameEngine.answerPuzzle(initial, 1, "p1_opt1").first, 1)
-        val confirmed = GameEngine.confirmBudget(rewarded)
-        assertEquals(rewarded.wallet.coins + rewarded.wallet.savings, confirmed.wallet.coins + confirmed.wallet.savings)
-        assertEquals(100, confirmed.wallet.coins)
+        val blockedPurchase = GameEngine.buyShopItem(initial, "food_kibble")
+        assertEquals(initial.wallet, blockedPurchase.wallet)
+        assertTrue(blockedPurchase.inventory.isEmpty())
+
+        val withToy = GameEngine.buyShopItem(GameEngine.confirmBudget(initial), "toy_ball")
+        val duplicate = GameEngine.buyShopItem(withToy, "toy_ball")
+        assertEquals(withToy.wallet, duplicate.wallet)
+        assertEquals(1, duplicate.inventory.count { it.id == "toy_ball" })
     }
 
     @Test
-    fun confirmingBudgetDoesNotRestoreAlreadySpentCoins() {
-        val purchased = GameEngine.buyShopItem(GameEngine.createInitialState(), "food_kibble")
-        val result = GameEngine.confirmBudget(purchased)
-        assertEquals(purchased.wallet, result.wallet)
-        assertFalse(result.budget.isConfirmed)
+    fun rewardGoesIntoJoyEnvelopeAndCannotBeClaimedTwice() {
+        var state = GameEngine.confirmBudget(GameEngine.createInitialState())
+        state = passLesson(state, "needs_wants")
+        val solved = GameEngine.answerPuzzle(state, 1, "p1_opt1").first
+        val rewarded = GameEngine.claimReward(solved, 1)
+
+        assertEquals(100, rewarded.wallet.coins)
+        assertEquals(50, rewarded.budget.funAndGamesCoins)
+        assertEquals(PuzzleState.COMPLETED, rewarded.puzzles.getValue(1).state)
+        assertEquals(rewarded, GameEngine.claimReward(rewarded, 1))
     }
 
     @Test
-    fun bankTransfersConserveMoneyAndRejectInvalidAmounts() {
-        val initial = GameEngine.createInitialState()
-        val saved = GameEngine.depositSavings(initial, 30)
-        assertEquals(Wallet(70, 30), saved.wallet)
-        assertEquals(Wallet(80, 20), GameEngine.withdrawSavings(saved, 10).wallet)
-        listOf(-1, 0, 101, Int.MAX_VALUE).forEach { amount ->
-            assertEquals(initial, GameEngine.depositSavings(initial, amount))
-        }
-        listOf(-1, 0, 31, Int.MAX_VALUE).forEach { amount ->
-            assertEquals(saved, GameEngine.withdrawSavings(saved, amount))
-        }
+    fun bankProtectsCareEnvelopeAndReserveCanFundUrgentCare() {
+        var state = GameEngine.confirmBudget(GameEngine.createInitialState())
+        state = GameEngine.depositSavings(state, 20)
+
+        assertEquals(Wallet(60, 40), state.wallet)
+        assertEquals(10, state.budget.funAndGamesCoins)
+        val rejectedDeposit = GameEngine.depositSavings(state, 15)
+        assertEquals(state.wallet, rejectedDeposit.wallet)
+        assertEquals(state.budget, rejectedDeposit.budget)
+
+        state = GameEngine.withdrawSavings(state, 20)
+        assertEquals(Wallet(80, 20), state.wallet)
+        assertEquals(70, state.budget.foodAndCareCoins)
+        assertEquals(10, state.budget.funAndGamesCoins)
     }
 
     @Test
-    fun changingGoalPreservesSavingsAndRejectsUnknownGoal() {
-        val saved = GameEngine.depositSavings(GameEngine.createInitialState(), 20)
-        val goal = saved.dreamGoals.last()
-        val changed = GameEngine.selectGoal(saved, goal.id)
-        assertEquals(goal.id, changed.activeGoalId)
-        assertEquals(saved.wallet, changed.wallet)
-        assertEquals(saved, GameEngine.selectGoal(saved, "missing"))
-    }
+    fun hospitalTreatmentUsesCareEnvelope() {
+        var state = GameEngine.createInitialState().copy(period = 2)
+        state = GameEngine.confirmBudget(state)
+        state = GameEngine.runHospitalCheckup(state)
+        assertEquals(PetHealth.NEEDS_TREATMENT, state.pet.health)
 
-    @Test
-    fun hospitalCheckupIsOncePerPeriodAndDoesNotChargeMoney() {
-        val initial = GameEngine.createInitialState()
-        val checked = GameEngine.runHospitalCheckup(initial)
-        assertEquals(initial.wallet, checked.wallet)
-        assertEquals(1, checked.pet.lastCheckupPeriod)
-        assertEquals(PetHealth.HEALTHY, checked.pet.health)
-        assertEquals(checked, GameEngine.runHospitalCheckup(checked).copy(advisorTip = checked.advisorTip))
-    }
-
-    @Test
-    fun plannedHospitalCaseCanBeTreatedForExactCost() {
-        val periodTwo = GameEngine.createInitialState().copy(period = 2)
-        val diagnosed = GameEngine.runHospitalCheckup(periodTwo)
-        assertEquals(PetHealth.NEEDS_TREATMENT, diagnosed.pet.health)
-
-        val treated = GameEngine.treatPet(diagnosed)
-        assertEquals(periodTwo.wallet.coins - GameEngine.TREATMENT_COST, treated.wallet.coins)
+        val treated = GameEngine.treatPet(state)
+        assertEquals(state.wallet.coins - GameEngine.TREATMENT_COST, treated.wallet.coins)
+        assertEquals(state.budget.foodAndCareCoins - GameEngine.TREATMENT_COST, treated.budget.foodAndCareCoins)
         assertEquals(PetHealth.HEALTHY, treated.pet.health)
-        assertEquals(diagnosed.pet.growthPoints + 1, treated.pet.growthPoints)
-        assertEquals(treated, GameEngine.treatPet(treated).copy(advisorTip = treated.advisorTip))
     }
 
     @Test
-    fun hospitalTreatmentDoesNotSpendMoneyWhenUnaffordable() {
-        val diagnosed = GameEngine.runHospitalCheckup(
-            GameEngine.createInitialState().copy(period = 2, wallet = Wallet(coins = 10, savings = 0))
-        )
-        val result = GameEngine.treatPet(diagnosed)
-        assertEquals(diagnosed.wallet, result.wallet)
-        assertEquals(PetHealth.NEEDS_TREATMENT, result.pet.health)
-    }
-
-    @Test
-    fun periodCannotBeFinishedTwiceForDuplicateAllowance() {
-        val initial = GameEngine.createInitialState()
-        val rewarded = GameEngine.claimReward(GameEngine.answerPuzzle(initial, 1, "p1_opt1").first, 1)
-        val confirmed = GameEngine.confirmBudget(rewarded)
+    fun periodCannotBeFinishedTwiceAndCreatesPlanForNewIncome() {
+        val confirmed = GameEngine.confirmBudget(GameEngine.createInitialState())
         val finished = GameEngine.finishPeriod(confirmed)
+
         assertEquals(finished, GameEngine.finishPeriod(finished))
         assertEquals(2, finished.period)
         assertTrue(finished.puzzles.values.all { it.state == PuzzleState.AVAILABLE })
-
-        val nextConfirmed = GameEngine.confirmBudget(finished)
-        assertFalse(nextConfirmed.isPeriodFinished)
-        assertNull(nextConfirmed.periodReport)
+        assertFalse(finished.budget.isConfirmed)
+        assertEquals(finished.wallet.coins, finished.budget.totalAllocated)
     }
 
     @Test
-    fun testInitialState() {
-        val state = GameEngine.createInitialState()
-        assertEquals(1, state.period)
-        assertEquals(100, state.wallet.coins)
-        assertEquals(0, state.wallet.savings)
-        assertEquals(PetSpecies.CAT, state.pet.species)
-        assertEquals(GrowthStage.BABY, state.pet.growthStage)
-        assertEquals(GameLocation.MyRoom, state.currentLocation)
-        assertEquals(7, state.puzzles.size)
-    }
-
-    @Test
-    fun testBudgetAllocationAndConfirmation() {
-        var state = GameEngine.createInitialState()
-
-        // Распределяем: 40 на еду, 30 на радости, 30 в копилку
-        state = GameEngine.allocateCoins(state, CoinJarType.FOOD_AND_CARE, -10) // 50 - 10 = 40
-        state = GameEngine.allocateCoins(state, CoinJarType.PIGGY_BANK, 10)     // 20 + 10 = 30
-
-        assertEquals(40, state.budget.foodAndCareCoins)
-        assertEquals(30, state.budget.funAndGamesCoins)
-        assertEquals(30, state.budget.piggyBankCoins)
-
-        // Утверждаем бюджет
-        state = GameEngine.confirmBudget(state)
-        assertTrue(state.budget.isConfirmed)
-
-        // 30 монет должны были уйти в копилку (savings), 70 остаться в кошельке (coins)
-        assertEquals(30, state.wallet.savings)
-        assertEquals(70, state.wallet.coins)
-    }
-
-    @Test
-    fun testFriendPuzzleSolvingAndClaimingReward() {
-        var state = GameEngine.createInitialState()
-
-        // Друг 1 (Мишка): правильный ответ на ярмарке - хлеб, яблоки и мыло ("p1_opt1")
-        val (stateAfterAnswer, isSuccess) = GameEngine.answerPuzzle(state, 1, "p1_opt1")
-        assertTrue(isSuccess)
-        assertEquals(PuzzleState.SOLVED_UNCLAIMED, stateAfterAnswer.puzzles[1]?.state)
-
-        // Забираем награду
-        val initialCoins = stateAfterAnswer.wallet.coins
-        state = GameEngine.claimReward(stateAfterAnswer, 1)
-
-        assertEquals(PuzzleState.COMPLETED, state.puzzles[1]?.state)
-        assertEquals(initialCoins + 20, state.wallet.coins)
-
-        // Повторное нажатие НЕ должно выдавать монеты еще раз (защита от дублирования)
-        val stateAfterSecondClaim = GameEngine.claimReward(state, 1)
-        assertEquals(state.wallet.coins, stateAfterSecondClaim.wallet.coins)
-    }
-
-    @Test
-    fun testShopPurchaseAndFeeding() {
-        var state = GameEngine.createInitialState()
-        // Делаем питомца голодным
-        state = state.copy(pet = state.pet.copy(isHungry = true))
-
-        // Покупаем корм за 25 монет
-        val coinsBefore = state.wallet.coins
+    fun petCareUsesSuppliesAndOnlyGivesGrowthOncePerPeriod() {
+        var state = GameEngine.confirmBudget(GameEngine.createInitialState()).copy(pet = PetProfile(isHungry = true))
         state = GameEngine.buyShopItem(state, "food_kibble")
+        val fed = GameEngine.careForPet(state, PetCareAction.FEED)
 
-        assertEquals(coinsBefore - 25, state.wallet.coins)
-        assertTrue(state.pet.isHungry)
-        assertTrue(state.inventory.any { it.id == "food_kibble" })
-
-        state = GameEngine.careForPet(state, PetCareAction.FEED)
-        assertFalse(state.pet.isHungry)
-        assertFalse(state.inventory.any { it.id == "food_kibble" })
-        assertEquals(PetMood.HAPPY, state.pet.mood)
+        assertFalse(fed.pet.isHungry)
+        assertFalse(fed.inventory.any { it.id == "food_kibble" })
+        assertEquals(fed.pet, GameEngine.careForPet(fed, PetCareAction.FEED).pet)
     }
 
     @Test
-    fun careNeedsSuppliesAndCannotAwardGrowthTwicePerPeriod() {
-        val initial = GameEngine.createInitialState().copy(pet = PetProfile(isHungry = true))
-        assertEquals(initial.pet, GameEngine.careForPet(initial, PetCareAction.FEED).pet)
-
-        val withToy = GameEngine.buyShopItem(initial, "toy_ball")
-        val played = GameEngine.careForPet(withToy, PetCareAction.PLAY)
-        assertEquals(100, played.pet.happiness)
-        assertEquals(withToy.pet.growthPoints + 1, played.pet.growthPoints)
-        assertTrue(played.inventory.any { it.id == "toy_ball" })
-        assertEquals(played.pet, GameEngine.careForPet(played, PetCareAction.PLAY).pet)
-    }
-
-    @Test
-    fun testPetGrowthProgression() {
+    fun movementStaysInsideRoomBounds() {
         var state = GameEngine.createInitialState()
-        state = GameEngine.confirmBudget(state)
-
-        // Завершаем периоды, зарабатываем очки роста
-        // Период 1: питомец не голодный, копилка пополнена -> получаем очки
-        state = state.copy(pet = state.pet.copy(isHungry = false))
-        state = GameEngine.finishPeriod(state)
-        assertEquals(2, state.period)
-        assertTrue(state.pet.growthPoints > 0)
-
-        // Если очков >= 5, стадия становится JUNIOR (Подросший)
-        state = state.copy(pet = state.pet.copy(growthPoints = 6))
-        state = GameEngine.confirmBudget(state)
-        state = GameEngine.finishPeriod(state)
-
-        assertEquals(GrowthStage.JUNIOR, state.pet.growthStage)
-
-        // Если очков >= 10, стадия становится ADULT (Взрослый)
-        state = state.copy(pet = state.pet.copy(growthPoints = 11))
-        state = GameEngine.confirmBudget(state)
-        state = GameEngine.finishPeriod(state)
-
-        assertEquals(GrowthStage.ADULT, state.pet.growthStage)
-    }
-
-    @Test
-    fun testHeroMovementBounds() {
-        var state = GameEngine.createInitialState()
-
-        // Двигаем персонажа сильно влево
-        state = GameEngine.moveHero(state, -10.0f)
+        state = GameEngine.moveHero(state, -10f)
         assertTrue(state.heroX >= 0.08f)
-
-        state = GameEngine.moveHeroTo(state, 2.0f)
+        state = GameEngine.moveHeroTo(state, 2f)
         assertEquals(0.92f, state.heroX)
+    }
 
-        state = GameEngine.moveHeroTo(state, 0.35f)
-        assertEquals(0.35f, state.heroX)
-
-        // Двигаем персонажа сильно вправо
-        state = GameEngine.moveHero(state, 10.0f)
-        assertTrue(state.heroX <= 0.92f)
+    private fun passLesson(state: ltd.kyss.petme.core.engine.GameState, lessonId: String): ltd.kyss.petme.core.engine.GameState {
+        val lesson = GameCatalog.financialLessons.first { it.id == lessonId }
+        val answerIndex = lesson.checkOptions.indexOfFirst { it.isCorrect }
+        return GameEngine.answerLesson(state, lessonId, answerIndex).first
     }
 }

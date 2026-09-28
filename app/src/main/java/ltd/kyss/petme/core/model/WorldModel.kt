@@ -18,7 +18,19 @@ data class FinancialLesson(
     val emoji: String,
     val explanation: String,
     val shortRule: String,
-    val relatedFriendId: Int? = null
+    val relatedFriendId: Int? = null,
+    val checkQuestion: String,
+    val checkOptions: List<LessonCheckOption>
+)
+
+/**
+ * Мини-проверка в конце урока. Урок считается пройденным только после
+ * правильного решения — так знания становятся подготовкой к заданию друга.
+ */
+data class LessonCheckOption(
+    val title: String,
+    val isCorrect: Boolean,
+    val feedback: String
 )
 
 /**
