@@ -101,7 +101,7 @@ fun FriendDialogueDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = if (taskDiscussed) "«${friend.puzzlePrompt}»" else "«${friend.greetingText}»",
+                        text = "«${friend.greetingText}»",
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         fontWeight = FontWeight.Medium,
@@ -111,8 +111,8 @@ fun FriendDialogueDialog(
                     )
                 }
 
-                // Подсказка советника
-                if (taskDiscussed && lesson != null) {
+                // После согласия ребёнок видит, какой будет следующий шаг.
+                if (taskDiscussed) {
                     Spacer(modifier = Modifier.height(10.dp))
                     Surface(
                         shape = RoundedCornerShape(14.dp),
@@ -127,8 +127,11 @@ fun FriendDialogueDialog(
                             Text("💡", fontSize = 18.sp)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                if (lessonCompleted) "Подручный напоминает: ${lesson.shortRule}"
-                                else "Сначала пройди у Подручного урок «${lesson.title}», затем это задание откроется.",
+                                when {
+                                    lessonCompleted -> "Подручы напоминает: ${lesson?.shortRule}"
+                                    lesson != null -> "Сначала пройди у Подручы урок «${lesson?.title}», затем это задание откроется."
+                                    else -> "Финни сейчас подскажет, как подумать над решением. Ответ ты выберешь сам!"
+                                },
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF5D4037)
@@ -197,7 +200,7 @@ fun FriendDialogueDialog(
                             shape = RoundedCornerShape(50),
                             modifier = Modifier.fillMaxWidth().height(48.dp)
                         ) {
-                            Text("Начать задание ✨", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text("Позвать Финни ✨", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(
@@ -216,7 +219,7 @@ fun FriendDialogueDialog(
                             shape = RoundedCornerShape(50),
                             modifier = Modifier.fillMaxWidth().height(48.dp)
                         ) {
-                            Text("Есть задание? ❓", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text("Помогу! ❓", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(

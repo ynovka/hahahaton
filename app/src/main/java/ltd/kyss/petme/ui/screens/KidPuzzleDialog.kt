@@ -39,9 +39,11 @@ fun KidPuzzleDialog(
 ) {
     val friend = GameCatalog.friendsList.find { it.id == friendId } ?: return
     val puzzle = state.puzzles[friendId] ?: return
+    val lesson = GameCatalog.lessonForFriend(friendId)
 
     var feedbackMessage by remember { mutableStateOf<String?>(null) }
     var isCorrectAnswer by remember { mutableStateOf<Boolean?>(null) }
+    var adviceSeen by remember(friendId) { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -165,6 +167,51 @@ fun KidPuzzleDialog(
                         modifier = Modifier.fillMaxWidth().height(50.dp)
                     ) {
                         Text("Забрать +${puzzle.rewardCoins} монет 🪙", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                    return@Column
+                }
+
+                // Финни появляется перед первым выбором и даёт способ рассуждать,
+                // не подсказывая конкретный вариант ответа.
+                if (!adviceSeen) {
+                    Surface(
+                        shape = RoundedCornerShape(18.dp),
+                        color = Color(0xFFFFFDE7),
+                        border = BorderStroke(2.dp, Color(0xFFFFD54F)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("💡 Финни-помощник", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF5D4037))
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                lesson?.advisorHint ?: "Спокойно прочитай условие, сравни варианты и подумай о последствиях каждого решения.",
+                                fontSize = 13.sp,
+                                lineHeight = 18.sp,
+                                textAlign = TextAlign.Center,
+                                color = Color(0xFF5D4037)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = { adviceSeen = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = SanrioSkyBlueDark),
+                        shape = RoundedCornerShape(50),
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    ) {
+                        Text("Перейти к выбору ✨", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(50),
+                        border = BorderStroke(1.5.dp, SanrioCardBorder),
+                        modifier = Modifier.fillMaxWidth().height(44.dp)
+                    ) {
+                        Text("Подумать позже", color = SanrioTextSubtitle, fontSize = 14.sp)
                     }
                     return@Column
                 }

@@ -20,7 +20,9 @@ data class FinancialLesson(
     val shortRule: String,
     val relatedFriendId: Int? = null,
     val checkQuestion: String,
-    val checkOptions: List<LessonCheckOption>
+    val checkOptions: List<LessonCheckOption>,
+    /** Подсказка перед задачей: направляет ход мысли, но не называет ответ. */
+    val advisorHint: String = shortRule
 )
 
 /**
