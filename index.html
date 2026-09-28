@@ -34,34 +34,35 @@
           </div>
         </div>
 
-        <div class="hud-period-pill" id="hud-period-pill">
-          📅 Период <span id="hud-period-num">1</span>/5
-        </div>
-
-        <div class="hud-currencies">
-          <div class="currency-badge coins" id="hud-coins-btn" title="Монеты в кошельке">
-            <img src="assets/icon_paw_coin.png" style="width: 18px; height: 18px;" alt="🪙">
-            <span class="currency-val" id="hud-coins-val">100</span>
-          </div>
-
-          <div class="currency-badge savings" id="hud-savings-btn" title="Копилка в банке">
-            <span>🏺</span>
-            <span class="currency-val" id="hud-savings-val">0</span>
-          </div>
-        </div>
-
-        <div class="hud-actions">
-          <button class="hud-icon-btn" id="btn-open-advisor" title="Советы и уроки">💡</button>
-          <button class="hud-icon-btn" id="btn-open-finance" title="История и план/факт">📊</button>
-          <button class="hud-icon-btn" id="btn-open-settings" title="Настройки">⚙️</button>
-          <button class="hud-icon-btn" id="btn-open-adult" title="Раздел для родителей">👨‍👩‍👧</button>
-        </div>
+        <button class="hud-menu-toggle" id="btn-open-hud-menu" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="hud-menu-panel">☰</button>
       </div>
 
-      <!-- Плавающее облачко советника -->
-      <div class="advisor-bubble" id="advisor-bubble">
-        <span class="advisor-icon">💡</span>
-        <span id="advisor-text">Привет! Давай разложим монетки по горшочкам и начнём игру!</span>
+      <div class="hud-menu-panel" id="hud-menu-panel" hidden>
+        <div class="hud-menu-status">
+          <div class="hud-period-pill" id="hud-period-pill">
+            📅 Период <span id="hud-period-num">1</span>/5
+          </div>
+          <div class="hud-currencies">
+            <div class="currency-badge coins" id="hud-coins-btn" title="Монеты в кошельке">
+              <img src="assets/icon_paw_coin.png" style="width: 18px; height: 18px;" alt="🪙">
+              <span class="currency-val" id="hud-coins-val">100</span>
+            </div>
+            <div class="currency-badge savings" id="hud-savings-btn" title="Копилка в банке">
+              <span>🏺</span>
+              <span class="currency-val" id="hud-savings-val">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="hud-actions hud-menu-actions">
+          <button class="hud-icon-btn" id="btn-open-advisor" title="Советы и уроки">💡<span>Советы</span></button>
+          <button class="hud-icon-btn" id="btn-open-finance" title="История и план/факт">📊<span>Финансы</span></button>
+          <button class="hud-icon-btn" id="btn-open-settings" title="Настройки">⚙️<span>Настройки</span></button>
+          <button class="hud-icon-btn" id="btn-open-adult" title="Раздел для родителей">👨‍👩‍👧<span>Родителям</span></button>
+        </div>
+        <div class="advisor-bubble hud-menu-tip" id="advisor-bubble">
+          <span class="advisor-icon">💡</span>
+          <span id="advisor-text">Привет! Давай разложим монетки по горшочкам и начнём игру!</span>
+        </div>
       </div>
     </header>
 
@@ -72,12 +73,17 @@
       <h1 class="setup-title">🐾 Питомец Финни</h1>
       <p class="setup-subtitle">Создай любимого друга и научись управлять монетами!</p>
 
-      <div class="setup-preview-card">
-        <img class="setup-preview-img" id="setup-preview-img" src="assets/characters/pet_cat_v2.png" alt="Питомец">
+      <div class="setup-pet-carousel" id="setup-pet-carousel" aria-label="Выбор питомца">
+        <button type="button" class="species-nav-btn" id="btn-species-prev" aria-label="Предыдущий питомец">‹</button>
+        <div class="setup-preview-card">
+          <img class="setup-preview-img" id="setup-preview-img" src="assets/characters/pet_cat_v2.png" alt="Питомец">
+        </div>
+        <button type="button" class="species-nav-btn" id="btn-species-next" aria-label="Следующий питомец">›</button>
       </div>
+      <p class="setup-selected-species" id="setup-selected-species">Котёнок</p>
 
       <div class="setup-input-group">
-        <label class="setup-label">Выбери вид питомца (7 видов):</label>
+        <label class="setup-label">Выбери вид питомца (листай стрелками или свайпом):</label>
         <div class="species-grid" id="setup-species-grid">
           <!-- Генерируется динамически из PET_SPECIES -->
         </div>
@@ -465,6 +471,11 @@
           <h3 style="font-family: var(--font-heading); color: #5A3E00;" id="summary-allowance-title">💰 Карманные деньги на новый период: +100 монет!</h3>
           <p style="font-size: 12px; color: #7A5500; margin-top: 4px;" id="summary-stage-note">Питомец растёт и благодарит тебя за заботу!</p>
         </div>
+        <div class="period-complete-banner" id="period-complete-banner" hidden>
+          <span class="period-complete-icon">🏆</span>
+          <strong>Ты прошёл все 5 финансовых планов!</strong>
+          <span>Отличная работа: ты научился планировать, копить и заботиться о питомце.</span>
+        </div>
         <button type="button" class="clay-btn btn-green" id="btn-start-next-period" style="width: 100%;">
           🚀 Начать следующий период!
         </button>
@@ -591,6 +602,26 @@
         <button type="button" class="clay-btn btn-pink" id="btn-settings-restart" style="width: 100%;">
           🔄 Начать игру с начала
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Подтверждение сброса прогресса внутри интерфейса -->
+  <div class="modal-backdrop" id="modal-reset-confirm">
+    <div class="modal-card reset-confirm-card" role="dialog" aria-modal="true" aria-labelledby="reset-confirm-title">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">🔄</div>
+          <h2 class="modal-title" id="reset-confirm-title">Сбросить прогресс?</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-reset-confirm" aria-label="Отмена">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="reset-confirm-copy">Все планы, монеты и достижения будут очищены. После этого можно начать демо заново.</p>
+        <div class="reset-confirm-actions">
+          <button type="button" class="clay-btn btn-ghost" id="btn-cancel-reset">Оставить прогресс</button>
+          <button type="button" class="clay-btn btn-pink" id="btn-confirm-reset">Сбросить игру</button>
+        </div>
       </div>
     </div>
   </div>

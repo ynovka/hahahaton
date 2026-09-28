@@ -734,3 +734,182 @@ body::before {
 .hotbar-item.budget .hotbar-icon-wrap, .dock-btn.budget .dock-btn-icon { background: rgba(124,124,255,.24); }
 .hotbar-item.wardrobe .hotbar-icon-wrap, .dock-btn.feed .dock-btn-icon { background: rgba(255,173,92,.24); }
 .hotbar-item.options .hotbar-icon-wrap { background: rgba(255,255,255,.12); }
+
+/* Compact top navigation: pet profile + hamburger menu */
+.hud-main-bar {
+  min-height: 58px;
+  padding: 7px 9px 7px 10px;
+}
+.hud-pet-info { flex: 1; min-width: 0; }
+.hud-pet-meta { min-width: 0; }
+.hud-pet-name, .hud-pet-mood { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-menu-toggle {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 13px;
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  font: 800 24px/1 var(--font-body);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .15s ease, background .15s ease;
+}
+.hud-menu-toggle:hover { background: rgba(255,255,255,.2); transform: translateY(-1px); }
+.hud-menu-toggle:active { transform: translateY(1px) scale(.96); }
+.hud-menu-toggle.is-open { background: #ff7866; border-color: rgba(255,255,255,.45); }
+.hud-menu-panel[hidden] { display: none !important; }
+.hud-menu-panel {
+  position: relative;
+  z-index: 115;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 17px;
+  background: rgba(20,29,67,.96);
+  box-shadow: 0 16px 30px rgba(8,12,34,.30);
+  animation: hudMenuIn .16s ease-out;
+}
+@keyframes hudMenuIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hud-menu-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.hud-menu-status .hud-period-pill { align-self: center; white-space: nowrap; }
+.hud-menu-status .hud-currencies { gap: 6px; }
+.hud-menu-status .currency-badge { padding: 4px 8px; }
+.hud-menu-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  padding-top: 10px;
+}
+.hud-menu-actions .hud-icon-btn {
+  width: auto;
+  height: 54px;
+  min-width: 0;
+  padding: 6px 3px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.09);
+  box-shadow: none;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 18px;
+}
+.hud-menu-actions .hud-icon-btn span {
+  color: #eef1ff;
+  font: 700 10px/1.1 var(--font-body);
+  white-space: nowrap;
+}
+.hud-menu-actions .hud-icon-btn:hover { background: rgba(255,255,255,.16); }
+#advisor-bubble { margin-top: 7px; }
+@media (max-width: 380px) {
+  .hud-menu-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hud-menu-actions .hud-icon-btn { height: 48px; }
+}
+
+#top-hud { z-index: 300; isolation: isolate; }
+.hud-menu-panel { z-index: 301; background: rgba(20,29,67,.985); }
+
+#top-hud { z-index: 9999 !important; transform: translateZ(0); }
+.hud-menu-panel { isolation: isolate; }
+
+/* Keep the compact menu readable over room navigation controls.
+   The room title remains available after closing the menu. */
+#top-hud.menu-open ~ #screen-room .room-nav-bar { opacity: 0; pointer-events: none; }
+
+/* Interaction fixes and setup carousel */
+[hidden] { display: none !important; }
+.hud-pet-info { cursor: default; }
+.hud-pet-info:active { transform: none; }
+.hud-menu-tip {
+  margin-top: 10px;
+  max-height: 64px;
+  overflow-y: auto;
+  align-items: flex-start;
+  font-size: 11px;
+  line-height: 1.25;
+  animation: none;
+}
+.hud-menu-tip .advisor-icon { line-height: 1; }
+
+.setup-pet-carousel {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0 4px;
+  touch-action: pan-y;
+}
+.setup-preview-card {
+  width: 232px;
+  height: 232px;
+  flex: 0 0 232px;
+  border-radius: 28px;
+}
+.setup-preview-img { width: 204px; height: 204px; }
+.species-nav-btn {
+  width: 42px;
+  height: 58px;
+  flex: 0 0 42px;
+  border: 1px solid rgba(82,99,159,.20);
+  border-radius: 16px;
+  background: rgba(255,255,255,.86);
+  color: #293464;
+  font: 500 42px/1 var(--font-body);
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(58,75,137,.12);
+  transition: transform .14s ease, background .14s ease, color .14s ease;
+}
+.species-nav-btn:hover { background: #fff; color: #ff7866; transform: translateY(-2px); }
+.species-nav-btn:active { transform: scale(.94); }
+.species-nav-btn:focus-visible { outline: 3px solid #f6c85f; outline-offset: 2px; }
+.setup-selected-species {
+  margin: 4px 0 14px;
+  color: #293464;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+.setup-input-group:has(#setup-species-grid) { margin-bottom: 8px; }
+.setup-input-group:has(#setup-species-grid) .species-grid { display: none; }
+.setup-input-group:has(#setup-species-grid) .setup-label { text-align: center; color: #657193; }
+
+.period-complete-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid rgba(72,207,172,.42);
+  border-radius: 16px;
+  background: linear-gradient(135deg, #e8faf5, #f0f0ff);
+  color: #21345e;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.period-complete-icon { font-size: 30px; }
+.reset-confirm-copy { color: var(--text-dark); line-height: 1.45; }
+.reset-confirm-actions { display: flex; gap: 10px; }
+.reset-confirm-actions .clay-btn { flex: 1; }
+
+@media (max-width: 380px) {
+  .setup-pet-carousel { gap: 6px; }
+  .setup-preview-card { width: 204px; height: 204px; flex-basis: 204px; }
+  .setup-preview-img { width: 180px; height: 180px; }
+  .species-nav-btn { width: 36px; flex-basis: 36px; }
+}

@@ -75,6 +75,7 @@ function createInitialState() {
       isConfirmed: false
     },
     period: 1, // 1..5
+    isGameFinished: false,
     currentLocation: 'setup', // 'setup' | 'myroom' | 'citymap' | 'shop' | 'bank' | 'hospital' | 'friend_1'..'friend_7'
     puzzles: createDefaultPuzzles(),
     friendships: createDefaultFriendships(),
@@ -127,6 +128,7 @@ class GameStateManager {
         const parsed = JSON.parse(raw);
         // Проверяем минимальную валидность
         if (parsed && typeof parsed.period === 'number') {
+          parsed.isGameFinished = Boolean(parsed.isGameFinished || parsed.periodReports?.some((report) => report.isGameFinished));
           return parsed;
         }
       }
@@ -158,6 +160,7 @@ class GameStateManager {
     s.pet.species = species || 'cat';
     s.pet.pattern = pattern || 'classic';
     s.pet.isHungry = true;
+    s.isGameFinished = false;
     s.currentLocation = 'myroom';
     s.advisorTip = `Знакомься: твой питомец ${safePetName}! Разложи монетки по горшочкам и подтверди план, чтобы выйти в город.`;
 
@@ -679,6 +682,12 @@ class GameStateManager {
   finishPeriod() {
     const s = this.state;
 
+    if (s.isGameFinished) {
+      s.advisorTip = 'Ты уже прошёл все 5 финансовых планов! Открой итоги периода, чтобы посмотреть свои достижения.';
+      this.notify();
+      return { success: false, reason: 'game_finished' };
+    }
+
     if (!s.budget.isConfirmed) {
       s.advisorTip = 'Сначала нужно составить и утвердить план расходов на этот период!';
       this.notify();
@@ -739,6 +748,7 @@ class GameStateManager {
     const nextAllowance = s.period < 5 ? 100 : 0;
     const nextPeriod = Math.min(5, s.period + 1);
     const isGameFinished = s.period >= 5;
+    s.isGameFinished = isGameFinished;
 
     s.wallet.coins += nextAllowance;
 

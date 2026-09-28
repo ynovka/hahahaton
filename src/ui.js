@@ -26,6 +26,8 @@ export class UIController {
     this.adultMathAnswer = 42;
     this.shopCurrentTab = 'all';
     this.lastRenderedLocation = null;
+    this.selectedSpeciesIndex = 0;
+    this.setupSwipeStartX = null;
 
     this.initDOMElements();
     this.bindGlobalEvents();
@@ -51,12 +53,16 @@ export class UIController {
     this.hudCoinsVal = document.getElementById('hud-coins-val');
     this.hudSavingsVal = document.getElementById('hud-savings-val');
     this.advisorText = document.getElementById('advisor-text');
+    this.hudMenuToggle = document.getElementById('btn-open-hud-menu');
+    this.hudMenuPanel = document.getElementById('hud-menu-panel');
 
     // Настройка питомца
     this.setupPreviewImg = document.getElementById('setup-preview-img');
     this.setupPetNameInput = document.getElementById('setup-pet-name');
     this.setupPlayerNameInput = document.getElementById('setup-player-name');
     this.speciesGrid = document.getElementById('setup-species-grid');
+    this.setupSelectedSpecies = document.getElementById('setup-selected-species');
+    this.setupCarousel = document.getElementById('setup-pet-carousel');
 
     // Карта города
     this.mapBgImg = document.getElementById('map-bg-img');
@@ -95,7 +101,8 @@ export class UIController {
       finance: document.getElementById('modal-finance'),
       advisor: document.getElementById('modal-advisor'),
       adult: document.getElementById('modal-adult'),
-      settings: document.getElementById('modal-settings')
+      settings: document.getElementById('modal-settings'),
+      resetConfirm: document.getElementById('modal-reset-confirm')
     };
   }
 
@@ -139,41 +146,55 @@ export class UIController {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         document.querySelectorAll('.modal-backdrop.active').forEach((m) => m.classList.remove('active'));
+        this.closeHudMenu();
       }
     });
 
-    // Кнопки верхнего HUD
-    document.getElementById('hud-pet-btn')?.addEventListener('click', () => {
-      sound.playPurr();
-      this.openModal('wardrobe');
+    // Компактное меню верхней навигации
+    this.hudMenuToggle?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleHudMenu();
     });
 
+    document.addEventListener('click', (e) => {
+      if (this.hudMenuPanel?.hidden) return;
+      if (!this.topHud?.contains(e.target)) this.closeHudMenu();
+    });
+
+    // Верхняя панель показывает питомца; действия открываются только через гамбургер.
+
     document.getElementById('hud-coins-btn')?.addEventListener('click', () => {
+      this.closeHudMenu();
       sound.playCoin();
       this.openModal('finance');
     });
 
     document.getElementById('hud-savings-btn')?.addEventListener('click', () => {
+      this.closeHudMenu();
       sound.playCoin();
       this.openModal('bank');
     });
 
     document.getElementById('btn-open-advisor')?.addEventListener('click', () => {
+      this.closeHudMenu();
       sound.playPop();
       this.openModal('advisor');
     });
 
     document.getElementById('btn-open-finance')?.addEventListener('click', () => {
+      this.closeHudMenu();
       sound.playPop();
       this.openModal('finance');
     });
 
     document.getElementById('btn-open-settings')?.addEventListener('click', () => {
+      this.closeHudMenu();
       sound.playPop();
       this.openModal('settings');
     });
 
     document.getElementById('btn-open-adult')?.addEventListener('click', () => {
+      this.closeHudMenu();
       sound.playPop();
       this.generateAdultMathQuestion();
       this.openModal('adult');
@@ -232,6 +253,19 @@ export class UIController {
       this.petSpeechEmoji.textContent = emojis[randIdx];
       this.roomPetActor.classList.add('bounced');
       setTimeout(() => this.roomPetActor.classList.remove('bounced'), 400);
+    });
+
+    // Карусель выбора питомца: стрелки и свайп по аватару
+    document.getElementById('btn-species-prev')?.addEventListener('click', () => this.cycleSpecies(-1));
+    document.getElementById('btn-species-next')?.addEventListener('click', () => this.cycleSpecies(1));
+    this.setupCarousel?.addEventListener('pointerdown', (e) => {
+      this.setupSwipeStartX = e.clientX;
+    });
+    this.setupCarousel?.addEventListener('pointerup', (e) => {
+      if (this.setupSwipeStartX === null) return;
+      const delta = e.clientX - this.setupSwipeStartX;
+      this.setupSwipeStartX = null;
+      if (Math.abs(delta) >= 36) this.cycleSpecies(delta < 0 ? 1 : -1);
     });
 
     // Экран создания: выбор окраса
@@ -408,13 +442,24 @@ export class UIController {
       }
     });
 
-    // Раздел взрослого: полный сброс
+    // Раздел взрослого: полный сброс через подтверждение внутри интерфейса
     document.getElementById('btn-adult-reset-demo')?.addEventListener('click', () => {
-      if (confirm('Сбросить весь игровой процесс и начать демо с самого начала?')) {
-        sound.playPop();
-        gameState.resetDemo();
-        this.closeModal('adult');
-      }
+      sound.playPop();
+      this.openResetConfirmation();
+    });
+
+    document.getElementById('btn-cancel-reset')?.addEventListener('click', () => {
+      sound.playPop();
+      this.closeModal('resetConfirm');
+    });
+
+    document.getElementById('btn-confirm-reset')?.addEventListener('click', () => {
+      sound.playPop();
+      gameState.resetDemo();
+      this.selectedSpeciesIndex = 0;
+      document.querySelectorAll('.species-chip').forEach((chip, idx) => chip.classList.toggle('selected', idx === 0));
+      this.updateSetupPreview(PET_SPECIES[0]?.id || 'cat', 'classic');
+      this.closeAllModals();
     });
 
     // Настройки: звук
@@ -435,13 +480,10 @@ export class UIController {
       e.currentTarget.className = isLarge ? 'clay-btn btn-green' : 'clay-btn btn-ghost';
     });
 
-    // Настройки: перезапуск
+    // Настройки: перезапуск через подтверждение внутри интерфейса
     document.getElementById('btn-settings-restart')?.addEventListener('click', () => {
-      if (confirm('Начать игру заново?')) {
-        sound.playPop();
-        gameState.resetDemo();
-        this.closeModal('settings');
-      }
+      sound.playPop();
+      this.openResetConfirmation();
     });
   }
 
@@ -501,6 +543,24 @@ export class UIController {
     document.getElementById(screenId)?.classList.add('active');
   }
 
+  toggleHudMenu(force) {
+    if (!this.hudMenuPanel || !this.hudMenuToggle) return;
+    const shouldOpen = typeof force === 'boolean' ? force : this.hudMenuPanel.hidden;
+    this.hudMenuPanel.hidden = !shouldOpen;
+    this.hudMenuToggle.setAttribute('aria-expanded', String(shouldOpen));
+    this.hudMenuToggle.setAttribute('aria-label', shouldOpen ? 'Закрыть меню' : 'Открыть меню');
+    this.hudMenuToggle.classList.toggle('is-open', shouldOpen);
+    this.topHud?.classList.toggle('menu-open', shouldOpen);
+  }
+
+  closeHudMenu() {
+    this.toggleHudMenu(false);
+  }
+
+  openResetConfirmation() {
+    this.openModal('resetConfirm');
+  }
+
   openModal(modalKey) {
     const modal = this.modals[modalKey] || document.getElementById(modalKey) || document.getElementById(`modal-${modalKey}`);
     if (modal) {
@@ -539,6 +599,7 @@ export class UIController {
       `;
       chip.addEventListener('click', () => {
         sound.playPop();
+        this.selectedSpeciesIndex = idx;
         document.querySelectorAll('.species-chip').forEach((c) => c.classList.remove('selected'));
         chip.classList.add('selected');
         const pattern = document.querySelector('.pattern-btn.selected')?.getAttribute('data-pattern') || 'classic';
@@ -552,7 +613,21 @@ export class UIController {
     const pet = PET_SPECIES.find((p) => p.id === speciesId);
     if (pet) {
       this.setupPreviewImg.src = pet.portrait;
+      this.setupPreviewImg.alt = pet.name;
+      if (this.setupSelectedSpecies) this.setupSelectedSpecies.textContent = `${pet.emoji} ${pet.name}`;
     }
+  }
+
+  cycleSpecies(direction) {
+    if (!PET_SPECIES.length) return;
+    this.selectedSpeciesIndex = (this.selectedSpeciesIndex + direction + PET_SPECIES.length) % PET_SPECIES.length;
+    const pet = PET_SPECIES[this.selectedSpeciesIndex];
+    document.querySelectorAll('.species-chip').forEach((chip, idx) => {
+      chip.classList.toggle('selected', idx === this.selectedSpeciesIndex);
+    });
+    const pattern = document.querySelector('.pattern-btn.selected')?.getAttribute('data-pattern') || 'classic';
+    this.updateSetupPreview(pet.id, pattern);
+    sound.playPop();
   }
 
   // Отрисовка пинов на карте города
@@ -1013,7 +1088,7 @@ export class UIController {
           <span>Накоплено: ${state.wallet.savings} из ${goal.targetCoins} м.</span>
           <span>${percent}%</span>
         </div>
-        ${!isActive ? `<button type="button" class="clay-btn btn-ghost" style="padding: 6px 12px; font-size: 12px;">Выбрать эту цель</button>` : ''}
+        ${!isActive && !isAchieved ? `<button type="button" class="clay-btn btn-ghost" style="padding: 6px 12px; font-size: 12px;">Выбрать эту цель</button>` : ''}
         ${isAchieved ? `<div style="text-align: center; color: var(--clay-green-shadow); font-weight: 800; font-size: 13px;">🎉 ЦЕЛЬ ДОСТИГНУТА!</div>` : ''}
       `;
 
@@ -1051,6 +1126,15 @@ export class UIController {
     }
   }
 
+  shuffleItems(items) {
+    const result = [...items];
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  }
+
   openFriendDialogue(friendId) {
     this.activeFriendId = friendId;
     const friend = FRIENDS_LIST.find((f) => f.id === friendId);
@@ -1085,7 +1169,7 @@ export class UIController {
       feedbackCard.textContent = `Правильно! Забирай свои ${puzzle.rewardCoins} монет!`;
     }
 
-    puzzle.options.forEach((opt) => {
+    this.shuffleItems(puzzle.options).forEach((opt) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'puzzle-opt-btn';
@@ -1185,7 +1269,10 @@ export class UIController {
   }
 
   renderPeriodSummaryModal(report) {
-    document.getElementById('summary-title').textContent = `Итоги периода #${report.period}`;
+    const isFinal = Boolean(report.isGameFinished);
+    document.getElementById('summary-title').textContent = isFinal
+      ? 'Финальные итоги приключения'
+      : `Итоги периода #${report.period}`;
     const checksContainer = document.getElementById('period-summary-checks');
     checksContainer.innerHTML = '';
 
@@ -1200,17 +1287,26 @@ export class UIController {
     });
 
     const stageNote = document.getElementById('summary-stage-note');
-    if (report.hasGrown) {
+    if (isFinal) {
+      stageNote.innerHTML = `🌟 <strong>Ты большой молодец!</strong> Ты завершил все 5 планов и помог питомцу вырасти.`;
+    } else if (report.hasGrown) {
       stageNote.innerHTML = `🎉 <strong>ПОЗДРАВЛЯЕМ!</strong> Питомец вырос и перешёл на стадию «<strong>${GROWTH_STAGES[report.newStage.toUpperCase()]?.title || 'Взрослый'}</strong>»!`;
     } else {
       stageNote.textContent = `Всего очков развития: ${report.totalPoints}. Питомец счастлив и растёт с каждым периодом!`;
     }
 
     const allowanceTitle = document.getElementById('summary-allowance-title');
-    if (report.nextAllowance > 0) {
-      allowanceTitle.textContent = `💰 Карманные деньги на новый период: +${report.nextAllowance} монет!`;
+    const nextBtn = document.getElementById('btn-start-next-period');
+    const completeBanner = document.getElementById('period-complete-banner');
+    if (isFinal) {
+      allowanceTitle.textContent = '🏆 Все 5 финансовых планов завершены!';
+      nextBtn.hidden = true;
+      completeBanner.hidden = false;
+      fireConfetti({ count: 120 });
     } else {
-      allowanceTitle.textContent = '🏆 Все 5 периодов успешно пройдены!';
+      allowanceTitle.textContent = `💰 Карманные деньги на новый период: +${report.nextAllowance} монет!`;
+      nextBtn.hidden = false;
+      completeBanner.hidden = true;
     }
   }
 
