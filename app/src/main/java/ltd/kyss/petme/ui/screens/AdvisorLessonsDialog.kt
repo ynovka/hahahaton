@@ -26,7 +26,7 @@ import ltd.kyss.petme.core.model.FinancialLesson
 import ltd.kyss.petme.ui.theme.*
 import ltd.kyss.petme.ui.viewmodel.GameViewModel
 
-/** Полноценный курс от Подручы: объяснение, правило и мини-проверка перед заданием друга. */
+/** Полноценный курс от Подручного: объяснение, правило и мини-проверка перед заданием друга. */
 @Composable
 fun AdvisorLessonsDialog(state: GameState, viewModel: GameViewModel, onDismiss: () -> Unit) {
     val firstOpenLesson = GameCatalog.financialLessons.firstOrNull { it.id !in state.completedLessonIds }
@@ -130,7 +130,7 @@ private fun PodruchyLessonHeader(completedCount: Int, totalCount: Int, onDismiss
         }
         Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text("Подручы", fontSize = 21.sp, fontWeight = FontWeight.Black, color = SanrioTextDark)
+            Text("Подручный", fontSize = 21.sp, fontWeight = FontWeight.Black, color = SanrioTextDark)
             Text("Твой помощник по умным монетам", fontSize = 11.sp, color = SanrioTextSubtitle)
         }
         IconButton(onClick = onDismiss) {
@@ -192,7 +192,8 @@ private fun LessonRouteCard(
                 Text("${lesson.emoji} ${lesson.title}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (unlocked) SanrioTextDark else SanrioTextSubtitle)
                 Text(
                     when {
-                        completed -> "Готово — задание друга открыто"
+                        completed && lesson.relatedFriendId != null -> "Готово — задание друга открыто"
+                        completed -> "Готово — правило закреплено"
                         unlocked -> "Можно пройти сейчас"
                         else -> "Сначала пройди предыдущий урок"
                     },
@@ -226,7 +227,7 @@ private fun LessonPracticeCard(
             Text("Урок: ${lesson.emoji} ${lesson.title}", fontSize = 16.sp, fontWeight = FontWeight.Black, color = SanrioGoldText)
             Text(lesson.explanation, fontSize = 12.sp, lineHeight = 17.sp, color = SanrioTextDark)
             Surface(shape = RoundedCornerShape(12.dp), color = Color.White.copy(alpha = 0.82f)) {
-                Text("📌 Правило Подручы: ${lesson.shortRule}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SanrioGoldText, modifier = Modifier.padding(9.dp))
+                Text("📌 Правило Подручного: ${lesson.shortRule}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = SanrioGoldText, modifier = Modifier.padding(9.dp))
             }
             HorizontalDivider(color = SanrioGoldCoin.copy(alpha = 0.4f))
             Text("Проверим себя", fontSize = 13.sp, fontWeight = FontWeight.Black, color = SanrioTextDark)
@@ -245,11 +246,19 @@ private fun LessonPracticeCard(
                 }
             }
             if (selectedAnswerFeedback != null && !completed) {
-                Text("Подручы: $selectedAnswerFeedback", fontSize = 11.sp, color = SanrioTextDark, lineHeight = 15.sp)
+                Text("Подручный: $selectedAnswerFeedback", fontSize = 11.sp, color = SanrioTextDark, lineHeight = 15.sp)
             }
             if (completed) {
                 Surface(shape = RoundedCornerShape(12.dp), color = SanrioGreenBg, modifier = Modifier.fillMaxWidth()) {
-                    Text("✅ Урок усвоен. Теперь можно помогать другу с его заданием!", textAlign = TextAlign.Center, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = SanrioAccentGreen, modifier = Modifier.padding(10.dp))
+                    Text(
+                        if (lesson.relatedFriendId != null) "✅ Урок усвоен. Теперь можно помогать другу с его заданием!"
+                        else "✅ Урок усвоен. Финансовый маршрут стал ещё сильнее!",
+                        textAlign = TextAlign.Center,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = SanrioAccentGreen,
+                        modifier = Modifier.padding(10.dp)
+                    )
                 }
             } else {
                 Button(
@@ -270,7 +279,7 @@ private fun LessonPracticeCard(
 private fun LockedLessonCard() {
     Surface(shape = RoundedCornerShape(18.dp), color = Color(0xFFF3F1F5), modifier = Modifier.fillMaxWidth()) {
         Text(
-            "🔒 Подручы открывает уроки по порядку, чтобы новая тема опиралась на предыдущую.",
+            "🔒 Подручный открывает уроки по порядку, чтобы новая тема опиралась на предыдущую.",
             textAlign = TextAlign.Center,
             fontSize = 12.sp,
             color = SanrioTextSubtitle,

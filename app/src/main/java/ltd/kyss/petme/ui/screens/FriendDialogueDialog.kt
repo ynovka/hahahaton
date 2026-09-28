@@ -127,8 +127,8 @@ fun FriendDialogueDialog(
                             Text("💡", fontSize = 18.sp)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                if (lessonCompleted) "Подручы напоминает: ${lesson.shortRule}"
-                                else "Сначала пройди у Подручы урок «${lesson.title}», затем это задание откроется.",
+                                if (lessonCompleted) "Подручный напоминает: ${lesson.shortRule}"
+                                else "Сначала пройди у Подручного урок «${lesson.title}», затем это задание откроется.",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF5D4037)
@@ -178,7 +178,7 @@ fun FriendDialogueDialog(
                             shape = RoundedCornerShape(50),
                             modifier = Modifier.fillMaxWidth().height(48.dp)
                         ) {
-                            Text("Пойти к Подручы 🪽", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text("Пойти к Подручному 🪽", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedButton(
