@@ -18,7 +18,9 @@ data class FinancialLesson(
     val emoji: String,
     val explanation: String,
     val shortRule: String,
-    val relatedFriendId: Int? = null
+    val relatedFriendId: Int? = null,
+    /** Подсказка перед задачей: направляет ход мысли, но не называет ответ. */
+    val advisorHint: String = shortRule
 )
 
 /**
