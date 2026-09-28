@@ -473,7 +473,7 @@ export class UIController {
       sleepy: '💤 Уютный'
     };
     this.hudPetMood.textContent = moodEmojis[state.pet.mood] || '✨ Доволен';
-    this.hudPetAvatar.src = `assets/pet_${state.pet.species}_portrait.png`;
+    this.hudPetAvatar.src = `assets/characters/pet_${state.pet.species}_v2.png`;
     this.hudPeriodNum.textContent = state.period;
     this.hudCoinsVal.textContent = state.wallet.coins;
     this.hudSavingsVal.textContent = state.wallet.savings;
@@ -570,29 +570,29 @@ export class UIController {
     // Координаты для вертикальной и горизонтальной карты
     const pinConfigs = this.isMapPanorama
       ? [
-          { id: 'friend_2', title: 'Рыжик', asset: 'friend_2_portrait', x: 16, y: 18, type: 'pin-squirrel' },
+          { id: 'friend_2', title: 'Рыжик', asset: 'characters/friend_2_v2', x: 16, y: 18, type: 'pin-squirrel' },
           { id: 'shop', title: 'Лавка', asset: 'building_shop', x: 33, y: 35, type: 'pin-shop' },
           { id: 'bank', title: 'Банк', asset: 'building_bank', x: 50, y: 27, type: 'pin-bank' },
           { id: 'hospital', title: 'Клиника', asset: 'building_hospital', x: 67, y: 37, type: 'pin-hospital' },
-          { id: 'friend_1', title: 'Потап', asset: 'friend_1_portrait', x: 18, y: 55, type: 'pin-bear' },
-          { id: 'friend_3', title: 'Тёма', asset: 'friend_3_portrait', x: 10, y: 65, type: 'pin-raccoon' },
-          { id: 'friend_6', title: 'Сеня', asset: 'friend_6_portrait', x: 33, y: 71, type: 'pin-bunny' },
-          { id: 'friend_5', title: 'Алиса', asset: 'friend_5_portrait', x: 42, y: 73, type: 'pin-fox' },
-          { id: 'friend_4', title: 'София', asset: 'friend_4_portrait', x: 88, y: 57, type: 'pin-owl' },
-          { id: 'friend_7', title: 'Барбос', asset: 'friend_7_portrait', x: 72, y: 81, type: 'pin-dog' },
+          { id: 'friend_1', title: 'Потап', asset: 'characters/friend_1_v2', x: 18, y: 55, type: 'pin-bear' },
+          { id: 'friend_3', title: 'Тёма', asset: 'characters/friend_3_v2', x: 10, y: 65, type: 'pin-raccoon' },
+          { id: 'friend_6', title: 'Сеня', asset: 'characters/friend_6_v2', x: 33, y: 71, type: 'pin-bunny' },
+          { id: 'friend_5', title: 'Алиса', asset: 'characters/friend_5_v2', x: 42, y: 73, type: 'pin-fox' },
+          { id: 'friend_4', title: 'София', asset: 'characters/friend_4_v2', x: 88, y: 57, type: 'pin-owl' },
+          { id: 'friend_7', title: 'Барбос', asset: 'characters/friend_7_v2', x: 72, y: 81, type: 'pin-dog' },
           { id: 'myroom', title: 'Мой дом', asset: 'building_home', x: 88, y: 83, type: 'pin-home' }
         ]
       : [
-          { id: 'friend_2', title: 'Рыжик', asset: 'friend_2_portrait', x: 14, y: 44, type: 'pin-squirrel' },
-          { id: 'friend_1', title: 'Потап', asset: 'friend_1_portrait', x: 16, y: 30, type: 'pin-bear' },
-          { id: 'friend_3', title: 'Тёма', asset: 'friend_3_portrait', x: 68, y: 27, type: 'pin-raccoon' },
-          { id: 'friend_4', title: 'София', asset: 'friend_4_portrait', x: 89, y: 31, type: 'pin-owl' },
-          { id: 'friend_6', title: 'Сеня', asset: 'friend_6_portrait', x: 36, y: 37, type: 'pin-bunny' },
+          { id: 'friend_2', title: 'Рыжик', asset: 'characters/friend_2_v2', x: 14, y: 44, type: 'pin-squirrel' },
+          { id: 'friend_1', title: 'Потап', asset: 'characters/friend_1_v2', x: 16, y: 30, type: 'pin-bear' },
+          { id: 'friend_3', title: 'Тёма', asset: 'characters/friend_3_v2', x: 68, y: 27, type: 'pin-raccoon' },
+          { id: 'friend_4', title: 'София', asset: 'characters/friend_4_v2', x: 89, y: 31, type: 'pin-owl' },
+          { id: 'friend_6', title: 'Сеня', asset: 'characters/friend_6_v2', x: 36, y: 37, type: 'pin-bunny' },
           { id: 'shop', title: 'Лавка', asset: 'building_shop', x: 38, y: 48, type: 'pin-shop' },
           { id: 'bank', title: 'Банк', asset: 'building_bank', x: 74, y: 45, type: 'pin-bank' },
           { id: 'hospital', title: 'Клиника', asset: 'building_hospital', x: 87, y: 56, type: 'pin-hospital' },
-          { id: 'friend_5', title: 'Алиса', asset: 'friend_5_portrait', x: 70, y: 70, type: 'pin-fox' },
-          { id: 'friend_7', title: 'Барбос', asset: 'friend_7_portrait', x: 86, y: 78, type: 'pin-dog' },
+          { id: 'friend_5', title: 'Алиса', asset: 'characters/friend_5_v2', x: 70, y: 70, type: 'pin-fox' },
+          { id: 'friend_7', title: 'Барбос', asset: 'characters/friend_7_v2', x: 86, y: 78, type: 'pin-dog' },
           { id: 'myroom', title: 'Мой дом', asset: 'building_home', x: 25, y: 80, type: 'pin-home' }
         ];
 
@@ -654,7 +654,7 @@ export class UIController {
       // Показываем питомца дома
       this.roomPetActor.style.display = 'flex';
       this.roomPetActor.className = `pet-actor-container stage-${state.pet.growthStage}`;
-      this.roomPetImg.src = `assets/pet_${state.pet.species}_idle.png`;
+      this.roomPetImg.src = `assets/characters/pet_${state.pet.species}_v2.png`;
 
       // Надетые аксессуары
       const equipped = state.pet.equippedAccessories;
@@ -760,7 +760,7 @@ export class UIController {
 
       this.roomPetActor.style.display = 'none';
       this.roomCharacterActor.style.display = 'flex';
-      this.roomCharacterImg.src = `assets/friend_${friendId}_idle.png`;
+      this.roomCharacterImg.src = `assets/characters/friend_${friendId}_v2.png`;
 
       this.roomActionPrompt.style.display = 'flex';
       this.promptEmoji.textContent = '💬';
@@ -805,7 +805,7 @@ export class UIController {
 
       this.roomPetActor.style.display = 'none';
       this.roomCharacterActor.style.display = 'flex';
-      this.roomCharacterImg.src = 'assets/worker_shop_idle.png';
+      this.roomCharacterImg.src = 'assets/characters/worker_shop_v2.png';
 
       this.roomActionPrompt.style.display = 'flex';
       this.promptEmoji.textContent = '🛒';
@@ -841,7 +841,7 @@ export class UIController {
 
       this.roomPetActor.style.display = 'none';
       this.roomCharacterActor.style.display = 'flex';
-      this.roomCharacterImg.src = 'assets/worker_bank_idle.png';
+      this.roomCharacterImg.src = 'assets/characters/worker_bank_v2.png';
 
       this.roomActionPrompt.style.display = 'flex';
       this.promptEmoji.textContent = '🏦';
@@ -877,7 +877,7 @@ export class UIController {
 
       this.roomPetActor.style.display = 'none';
       this.roomCharacterActor.style.display = 'flex';
-      this.roomCharacterImg.src = 'assets/worker_hospital_idle.png';
+      this.roomCharacterImg.src = 'assets/characters/worker_hospital_v2.png';
 
       this.roomActionPrompt.style.display = 'flex';
       this.promptEmoji.textContent = '🩺';

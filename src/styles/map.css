@@ -172,3 +172,11 @@
 .map-pin.pin-shop .pin-avatar-wrap { border-color: var(--clay-pink); }
 .map-pin.pin-bank .pin-avatar-wrap { border-color: var(--clay-gold); }
 .map-pin.pin-hospital .pin-avatar-wrap { border-color: var(--clay-blue); }
+
+/* Aurora map layer */
+#screen-map { background: #1a2755; }
+.map-bg-img { filter: saturate(.86) contrast(1.04) brightness(.92); }
+.map-view-toggle { top: 78px; right: 14px; background: rgba(20,29,67,.90); border: 1px solid rgba(255,255,255,.24); border-radius: 11px; box-shadow: 0 8px 18px rgba(8,12,34,.25); }
+.pin-avatar-wrap { width: 58px; height: 58px; background: rgba(255,255,255,.93); border: 3px solid #fff; box-shadow: 0 10px 20px rgba(12,19,50,.34); }
+.pin-label { background: rgba(20,29,67,.92); color: #fff; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; box-shadow: 0 7px 14px rgba(8,12,34,.22); }
+.pin-badge { border: 1px solid rgba(255,255,255,.8); box-shadow: 0 4px 9px rgba(8,12,34,.22); }

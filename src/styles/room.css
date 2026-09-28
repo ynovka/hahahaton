@@ -304,3 +304,13 @@
   font-weight: 700;
   color: var(--text-dark);
 }
+
+/* Aurora room layer */
+#screen-room { background: #17214b; }
+.room-bg-img { filter: saturate(.9) contrast(1.04) brightness(.92); }
+.room-nav-bar { background: rgba(20,29,67,.90); border: 1px solid rgba(255,255,255,.16); border-radius: 16px; box-shadow: 0 12px 25px rgba(8,12,34,.28); }
+.room-title-wrap { color: #f4f5ff; }
+.btn-back-city { background: rgba(93,156,255,.92); border: 1px solid rgba(255,255,255,.34); box-shadow: none; }
+.pet-speech-cloud { background: rgba(255,255,255,.94); border: 1px solid #ff7866; border-radius: 12px; box-shadow: 0 8px 18px rgba(8,12,34,.16); }
+.pet-base-img, .character-sprite-img { filter: drop-shadow(0 14px 18px rgba(8,12,34,.34)); }
+.room-action-prompt { background: rgba(20,29,67,.94); color: #fff; border: 1px solid rgba(255,120,102,.75); border-radius: 14px; box-shadow: 0 12px 26px rgba(8,12,34,.30); }
