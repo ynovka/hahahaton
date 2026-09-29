@@ -1069,8 +1069,11 @@ export class UIController {
     this.roomPetActor.style.display = isHome ? 'flex' : 'none';
     if (isHome) {
       const petCfg = ROOM_ACTOR_CONFIGS.myroom;
+      const stageHeight = this.roomStage?.clientHeight || window.innerHeight;
+      const maxAllowedBottom = Math.max(120, stageHeight - 340);
+      const targetBottom = petCfg ? petCfg.bottom : 236;
       this.roomPetActor.style.left = petCfg ? `${petCfg.x}%` : '50%';
-      this.roomPetActor.style.bottom = petCfg ? `${petCfg.bottom}px` : '246px';
+      this.roomPetActor.style.bottom = `${Math.min(targetBottom, maxAllowedBottom)}px`;
       this.roomPetActor.className = `pet-actor-container stage-${state.pet.growthStage}`;
       this.roomPetActor.dataset.pattern = state.pet.pattern || 'classic';
       this.updatePetPoseAnimation(state, true);
@@ -1537,6 +1540,21 @@ export class UIController {
         this.applyRoomActorConfig(gameState.state.currentLocation);
       }
     };
+    window.toggleActorTweaker = toggleTweaker;
+
+    // Секретный 5-кратный тап по заголовку комнаты для открытия панели разработчика
+    let titleClickCount = 0;
+    let titleClickTimer = null;
+    document.querySelector('.room-title-wrap')?.addEventListener('click', () => {
+      titleClickCount++;
+      clearTimeout(titleClickTimer);
+      titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 1500);
+      if (titleClickCount >= 5) {
+        titleClickCount = 0;
+        sound.playLevelUp();
+        toggleTweaker();
+      }
+    });
 
     this.btnRoomTweakActor?.addEventListener('click', toggleTweaker);
     this.tweakerCloseBtn?.addEventListener('click', toggleTweaker);

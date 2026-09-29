@@ -65,7 +65,7 @@ export const TUTORIAL_STEPS = [
     mentorAvatar: 'assets/characters/friend_4_v2.png',
     desc: 'Посмотри, как радуется твой друг! Забота о питомце — это ежедневная ответственность. Теперь перейдём к финансовому планированию — составим бюджет!',
     actionText: 'Полюбуйся довольным питомцем и нажми «Далее ➔»!',
-    getTarget: () => document.getElementById('room-pet-actor') || document.getElementById('hud-pet-btn'),
+    getTarget: () => document.getElementById('room-pet-actor')?.querySelector('.pet-figure') || document.getElementById('room-pet-actor') || document.getElementById('hud-pet-btn'),
     onLeave: () => {}
   },
 
@@ -952,16 +952,16 @@ class TutorialController {
       const targetCenterY = rect.top + rect.height / 2;
 
       if (targetCenterY > windowH / 2) {
-        // Целевой элемент в нижней половине экрана -> карточку ставим сверху
-        this.card.style.top = '16px';
+        // Целевой элемент в нижней половине экрана -> карточку ставим сверху с учетом безопасного отступа от челки
+        this.card.style.top = 'calc(env(safe-area-inset-top, 0px) + 16px)';
         this.card.style.bottom = 'auto';
         if (this.arrowPointer) {
           this.arrowPointer.className = 'tutorial-arrow-pointer pointing-down';
         }
       } else {
-        // Целевой элемент в верхней половине экрана -> карточку ставим снизу
+        // Целевой элемент в верхней половине экрана -> карточку ставим снизу с учетом полоски жестов
         this.card.style.top = 'auto';
-        this.card.style.bottom = '20px';
+        this.card.style.bottom = 'calc(env(safe-area-inset-bottom, 0px) + 20px)';
         if (this.arrowPointer) {
           this.arrowPointer.className = 'tutorial-arrow-pointer pointing-up';
         }

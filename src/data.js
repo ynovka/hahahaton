@@ -650,7 +650,7 @@ export const FINANCIAL_LESSONS = [
 export const ROOM_ACTOR_CONFIGS = {
   myroom: {
     x: 61,
-    bottom: 450,
+    bottom: 236,
     width: 170,
     height: 170,
     flip: false,

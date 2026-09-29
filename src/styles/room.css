@@ -118,10 +118,10 @@
   pointer-events: none;
 }
 
-/* Панель навигации комнаты (под HUD) */
+/* Панель навигации комнаты (под HUD с учетом челки) */
 .room-nav-bar {
   position: absolute;
-  top: 98px;
+  top: calc(env(safe-area-inset-top, 0px) + 68px);
   left: 12px;
   right: 12px;
   background: rgba(255, 255, 255, 0.94);
@@ -482,7 +482,7 @@
 
 .room-dock {
   position: absolute;
-  bottom: 14px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
   left: 12px;
   right: 12px;
   background: rgba(255, 255, 255, 0.95);
