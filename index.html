@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="src/styles/map.css">
   <link rel="stylesheet" href="src/styles/room.css">
   <link rel="stylesheet" href="src/styles/modals.css">
+  <link rel="stylesheet" href="src/styles/tutorial.css">
 </head>
 <body>
 
@@ -59,7 +60,10 @@
           </div>
         </div>
 
-        <button class="hud-menu-toggle" id="btn-open-hud-menu" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="hud-menu-panel">☰</button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="hud-tutorial-quick-btn" id="btn-quick-tutorial" type="button" title="Интерактивное демо для жюри">🎓 Демо</button>
+          <button class="hud-menu-toggle" id="btn-open-hud-menu" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="hud-menu-panel">☰</button>
+        </div>
       </div>
 
       <div class="hud-menu-panel" id="hud-menu-panel" hidden>
@@ -79,6 +83,7 @@
           </div>
         </div>
         <div class="hud-actions hud-menu-actions">
+          <button class="hud-icon-btn" id="btn-start-tutorial" title="Пройти интерактивное обучение">🎓<span>Обучение</span></button>
           <button class="hud-icon-btn" id="btn-open-advisor" title="Советы и уроки">💡<span>Советы</span></button>
           <button class="hud-icon-btn" id="btn-open-finance" title="История и план/факт">📊<span>Финансы</span></button>
           <button class="hud-icon-btn" id="btn-open-settings" title="Настройки">⚙️<span>Настройки</span></button>
@@ -213,9 +218,14 @@
           <span id="room-nav-emoji">🏠</span>
           <span id="room-nav-title">Моя уютная комната</span>
         </div>
-        <button type="button" class="btn-back-city" id="btn-room-exit-city">
-          <span>🚪</span> В город
-        </button>
+        <div class="room-nav-actions">
+          <button type="button" class="btn-room-tweak" id="btn-room-tweak-actor" title="Подогнать позиции персонажей">
+            ⚙️ Позиция
+          </button>
+          <button type="button" class="btn-back-city" id="btn-room-exit-city">
+            <span>🚪</span> В город
+          </button>
+        </div>
       </div>
 
       <!-- Панель ручной подгонки персонажей в локациях -->
@@ -227,7 +237,18 @@
           </div>
           <button type="button" class="tweaker-close-btn" id="tweaker-close-btn" title="Закрыть (Esc)">✕</button>
         </div>
-        <div class="tweaker-hint">💡 Таскай персонажа мышкой по экрану или настрой ползунками:</div>
+
+        <!-- Переключатель целей: NPC / Игрок -->
+        <div class="tweaker-target-tabs" id="tweaker-target-tabs">
+          <button type="button" class="tweaker-tab-btn active" id="tweaker-tab-npc" data-target="npc">
+            🐾 Персонаж (NPC)
+          </button>
+          <button type="button" class="tweaker-tab-btn" id="tweaker-tab-hero" data-target="hero">
+            🚶 Игрок (Герой)
+          </button>
+        </div>
+
+        <div class="tweaker-hint" id="tweaker-hint-text">💡 Выбери кого настраивать: таскай по экрану или крути ползунки:</div>
         <div class="tweaker-controls-grid">
           <label class="tweaker-field">
             <span>Позиция X (по горизонтали): <b id="tweaker-val-x">75%</b></span>
@@ -738,6 +759,59 @@
       });
     }
   </script>
+
+  <!-- ======================================================================
+       ИНТЕРАКТИВНЫЙ ОБУЧАЮЩИЙ ДЕМО-ТУР (SPOTLIGHT & GUIDE)
+       ====================================================================== -->
+  <aside class="tutorial-overlay" id="tutorial-overlay" style="display: none;" aria-live="polite">
+    <!-- SVG-маска с прозрачным вырезом: фон перехватывает клики мимо цели, а вырез на 100% кликабелен -->
+    <svg class="tutorial-svg-mask" id="tutorial-svg-mask" xmlns="http://www.w3.org/2000/svg">
+      <path id="tutorial-svg-path" fill="rgba(14, 18, 38, 0.78)" fill-rule="evenodd"></path>
+    </svg>
+
+    <!-- Затемняющий контур со скругленным прозрачным вырезом подсвеченного элемента -->
+    <div class="tutorial-spotlight-hole" id="tutorial-spotlight-hole">
+      <div class="tutorial-spotlight-pulse"></div>
+    </div>
+
+    <!-- Карточка наставника с крупным текстом и стрелкой -->
+    <div class="tutorial-card" id="tutorial-card">
+      <div class="tutorial-card-header">
+        <div class="tutorial-mentor-badge">
+          <img class="tutorial-mentor-avatar" id="tutorial-mentor-avatar" src="assets/characters/friend_4_v2.png" alt="Наставник">
+          <div class="tutorial-mentor-meta">
+            <span class="tutorial-mentor-name">Совушка София</span>
+            <span class="tutorial-step-indicator" id="tutorial-step-indicator">Шаг 1 из 7</span>
+          </div>
+        </div>
+        <button type="button" class="tutorial-skip-btn" id="tutorial-btn-skip" title="Пропустить обучение">
+          ✕ Пропустить
+        </button>
+      </div>
+
+      <div class="tutorial-progress-bar-wrap">
+        <div class="tutorial-progress-bar-fill" id="tutorial-progress-fill" style="width: 14%;"></div>
+      </div>
+
+      <div class="tutorial-card-body">
+        <h3 class="tutorial-card-title" id="tutorial-card-title">Заголовок подсказки</h3>
+        <p class="tutorial-card-desc" id="tutorial-card-desc">Понятное и крупное разъяснение для детей и жюри.</p>
+        <div class="tutorial-action-prompt" id="tutorial-action-prompt">
+          <span class="tutorial-pointer-emoji">👉</span>
+          <span id="tutorial-action-text">Нажми на подсвеченную кнопку!</span>
+        </div>
+      </div>
+
+      <div class="tutorial-card-footer" id="tutorial-card-footer">
+        <button type="button" class="clay-btn btn-gold tutorial-next-btn" id="tutorial-btn-next" style="display: none;">
+          Далее ➔
+        </button>
+      </div>
+
+      <!-- Анимированный указатель на цель -->
+      <div class="tutorial-arrow-pointer" id="tutorial-arrow-pointer"></div>
+    </div>
+  </aside>
 
   <!-- Скрипт игры -->
   <script type="module" src="src/main.js"></script>

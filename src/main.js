@@ -5,6 +5,7 @@
 import { gameState } from './state.js';
 import { sound } from './audio.js';
 import { UIController } from './ui.js';
+import { tutorial } from './tutorial.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   // Разблокировка Web Audio API по первому клику/тапу пользователя
@@ -16,8 +17,9 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('click', unlockAudio);
   window.addEventListener('touchstart', unlockAudio);
 
-  // Инициализация UI контроллера
+  // Инициализация UI контроллера и системы обучения
   const ui = new UIController();
+  tutorial.init();
 
   // Применяем сохраненные настройки доступности
   if (gameState.state.largeFontEnabled) {

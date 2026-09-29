@@ -649,11 +649,18 @@ export const FINANCIAL_LESSONS = [
 // ============================================================================
 export const ROOM_ACTOR_CONFIGS = {
   myroom: {
-    x: 50,
-    bottom: 246,
+    x: 61,
+    bottom: 450,
     width: 170,
     height: 170,
-    flip: false
+    flip: false,
+    hero: {
+      x: 26,
+      bottom: 120,
+      width: 160,
+      height: 180,
+      flip: false
+    }
   },
   friend_1: {
     x: 55,
@@ -663,25 +670,46 @@ export const ROOM_ACTOR_CONFIGS = {
     flip: false
   },
   friend_2: {
-    x: 46,
+    x: 44,
     bottom: 346,
-    width: 170,
-    height: 190,
-    flip: false
+    width: 210,
+    height: 231,
+    flip: false,
+    hero: {
+      x: 9,
+      bottom: 154,
+      width: 180,
+      height: 198,
+      flip: false
+    }
   },
   friend_3: {
-    x: 39,
-    bottom: 208,
+    x: 46,
+    bottom: 232,
     width: 175,
     height: 195,
-    flip: false
+    flip: false,
+    hero: {
+      x: 28,
+      bottom: 80,
+      width: 160,
+      height: 180,
+      flip: false
+    }
   },
   friend_4: {
-    x: 54,
-    bottom: 112,
+    x: 55,
+    bottom: 360,
     width: 180,
     height: 200,
-    flip: false
+    flip: false,
+    hero: {
+      x: 25,
+      bottom: 68,
+      width: 160,
+      height: 180,
+      flip: false
+    }
   },
   friend_5: {
     x: 53,
@@ -691,25 +719,46 @@ export const ROOM_ACTOR_CONFIGS = {
     flip: false
   },
   friend_6: {
-    x: 45,
-    bottom: 246,
-    width: 170,
-    height: 190,
-    flip: false
+    x: 57,
+    bottom: 350,
+    width: 210,
+    height: 231,
+    flip: false,
+    hero: {
+      x: 26,
+      bottom: 120,
+      width: 195,
+      height: 215,
+      flip: false
+    }
   },
   friend_7: {
     x: 53,
     bottom: 248,
-    width: 180,
-    height: 200,
-    flip: false
+    width: 340,
+    height: 374,
+    flip: false,
+    hero: {
+      x: 22,
+      bottom: 87,
+      width: 340,
+      height: 374,
+      flip: false
+    }
   },
   shop: {
-    x: 51,
-    bottom: 190,
-    width: 190,
-    height: 210,
-    flip: false
+    x: 56,
+    bottom: 192,
+    width: 215,
+    height: 237,
+    flip: true,
+    hero: {
+      x: 20,
+      bottom: 296,
+      width: 170,
+      height: 187,
+      flip: false
+    }
   },
   bank: {
     x: 59,
@@ -719,11 +768,18 @@ export const ROOM_ACTOR_CONFIGS = {
     flip: false
   },
   hospital: {
-    x: 62,
-    bottom: 222,
-    width: 190,
-    height: 210,
-    flip: false
+    x: 65,
+    bottom: 250,
+    width: 205,
+    height: 226,
+    flip: true,
+    hero: {
+      x: 35,
+      bottom: 100,
+      width: 190,
+      height: 209,
+      flip: false
+    }
   }
 };
 

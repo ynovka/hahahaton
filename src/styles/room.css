@@ -168,7 +168,13 @@
   box-shadow: none;
 }
 
-.btn-tweak-actor {
+.room-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-tweak-actor, .btn-room-tweak {
   background: var(--clay-gold);
   color: #5D3B00;
   font-family: var(--font-heading);
@@ -185,7 +191,8 @@
   transition: transform 0.1s;
 }
 
-.btn-tweak-actor:active, .btn-tweak-actor.active {
+.btn-tweak-actor:active, .btn-tweak-actor.active,
+.btn-room-tweak:active, .btn-room-tweak.active {
   background: #FFB300;
   transform: translateY(2px);
   box-shadow: none;
@@ -243,10 +250,46 @@
   font-weight: bold;
 }
 
+.tweaker-target-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.tweaker-tab-btn {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.tweaker-tab-btn.active {
+  background: var(--clay-purple);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(100, 70, 200, 0.35);
+}
+
+.tweaker-tab-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .tweaker-hint {
   font-size: 11px;
   color: #666;
-  margin-top: -3px;
+  margin-top: -2px;
 }
 
 .tweaker-controls-grid {
@@ -287,15 +330,25 @@
 }
 
 /* Визуальная подсветка в режиме редактирования */
-.tweaker-active .room-character-actor,
+.tweaker-active .npc-actor-container,
+.tweaker-active .hero-actor-container,
 .tweaker-active .pet-actor-container {
-  outline: 3px dashed var(--clay-pink) !important;
+  outline: 2px dashed rgba(255, 90, 150, 0.6) !important;
   outline-offset: 4px;
   border-radius: 18px;
   cursor: grab !important;
+  pointer-events: auto !important;
 }
 
-.tweaker-active .room-character-actor:active,
+.tweaker-active .npc-actor-container.tweaker-selected,
+.tweaker-active .hero-actor-container.tweaker-selected,
+.tweaker-active .pet-actor-container.tweaker-selected {
+  outline: 3px solid var(--clay-pink) !important;
+  box-shadow: 0 0 16px rgba(255, 105, 180, 0.5) !important;
+}
+
+.tweaker-active .npc-actor-container:active,
+.tweaker-active .hero-actor-container:active,
 .tweaker-active .pet-actor-container:active {
   cursor: grabbing !important;
 }

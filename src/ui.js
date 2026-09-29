@@ -19,6 +19,7 @@ import {
 import { gameState, TREATMENT_COST } from './state.js';
 import { sound } from './audio.js';
 import { fireConfetti } from './confetti.js';
+import { tutorial } from './tutorial.js';
 
 export class UIController {
   constructor() {
@@ -357,9 +358,10 @@ export class UIController {
         playerGender
       });
 
-      // План расходов нужен до первой прогулки, поэтому показываем его
-      // сразу после перехода в комнату.
-      this.openModal('budget');
+      // Сразу после экрана создания персонажа ОБЯЗАТЕЛЬНО запускаем интерактивное обучение
+      setTimeout(() => {
+        tutorial.start(0);
+      }, 150);
     });
 
     // Бюджет: +/- кнопки
@@ -798,6 +800,8 @@ export class UIController {
     pinConfigs.forEach((cfg) => {
       const pin = document.createElement('button');
       pin.type = 'button';
+      pin.id = `map-pin-${cfg.id}`;
+      pin.dataset.pinId = cfg.id;
       pin.setAttribute('aria-label', `Открыть: ${cfg.title}`);
       pin.className = `map-pin ${cfg.type}`;
       pin.style.left = `${cfg.x}%`;
@@ -904,22 +908,11 @@ export class UIController {
     };
 
     const cfg = roomPartyConfigs[loc] || roomPartyConfigs.myroom;
-    this.roomHeroActor.style.left = cfg.hero.left;
-    this.roomHeroActor.style.bottom = cfg.hero.bottom;
-    this.roomHeroImg.style.transform = cfg.hero.faceRight ? 'scaleX(1)' : 'scaleX(-1)';
 
     // Управление живым NPC
     if (this.roomNpcActor) {
       if (cfg.npc) {
         this.roomNpcActor.style.display = 'flex';
-        const actorCfg = ROOM_ACTOR_CONFIGS[loc];
-        if (actorCfg) {
-          this.roomNpcActor.style.left = `${actorCfg.x}%`;
-          this.roomNpcActor.style.bottom = `${actorCfg.bottom}px`;
-        } else {
-          this.roomNpcActor.style.left = cfg.npc.left;
-          this.roomNpcActor.style.bottom = cfg.npc.bottom;
-        }
         const friendMatch = loc.match(/^friend_(\d+)$/);
         const friend = friendMatch
           ? FRIENDS_LIST.find((item) => item.id === Number(friendMatch[1]))
@@ -932,7 +925,6 @@ export class UIController {
         if (this.roomNpcImg) {
           this.roomNpcImg.src = friend?.idle || cfg.npc.asset;
           this.roomNpcImg.alt = friend?.name || employeeNames[loc] || 'Сотрудник';
-          this.roomNpcImg.style.transform = cfg.npc.faceRight ? 'scaleX(1)' : 'scaleX(-1)';
         }
         if (this.roomNpcEmoji) this.roomNpcEmoji.textContent = friend?.emoji || cfg.npc.emoji;
         if (this.roomNpcText) this.roomNpcText.textContent = friend?.greeting || cfg.npc.phrase;
@@ -1269,6 +1261,13 @@ export class UIController {
 
   getStoredActorConfigs() {
     try {
+      const version = 'v3';
+      const storedVer = localStorage.getItem('room_actor_configs_ver');
+      if (storedVer !== version) {
+        localStorage.removeItem('room_actor_configs');
+        localStorage.setItem('room_actor_configs_ver', version);
+        return { ...ROOM_ACTOR_CONFIGS };
+      }
       const saved = localStorage.getItem('room_actor_configs');
       return saved ? { ...ROOM_ACTOR_CONFIGS, ...JSON.parse(saved) } : { ...ROOM_ACTOR_CONFIGS };
     } catch {
@@ -1287,25 +1286,71 @@ export class UIController {
   applyRoomActorConfig(loc) {
     const all = this.getStoredActorConfigs();
     const cfg = all[loc] || { x: 75, bottom: 120, width: 180, height: 200, flip: false };
-    const target = (loc === 'myroom') ? this.roomPetActor : this.roomCharacterActor;
-    const targetImg = (loc === 'myroom') ? this.roomPetImg : this.roomCharacterImg;
+    const heroCfg = cfg.hero || { x: 26, bottom: 120, width: 160, height: 180, flip: false };
 
-    if (target) {
-      target.style.left = `${cfg.x}%`;
-      target.style.right = 'auto';
-      target.style.bottom = `${cfg.bottom}px`;
-      target.style.transform = `translateX(-50%) ${cfg.flip ? 'scaleX(-1)' : ''}`;
+    // 1. Позиционирование NPC (или питомца в myroom)
+    const npcTarget = (loc === 'myroom') ? this.roomPetActor : this.roomNpcActor;
+    const npcImg = (loc === 'myroom') ? this.roomPetImg : this.roomNpcImg;
+
+    if (npcTarget) {
+      npcTarget.style.left = `${cfg.x}%`;
+      npcTarget.style.right = 'auto';
+      npcTarget.style.bottom = `${cfg.bottom}px`;
+      if (loc !== 'myroom') {
+        npcTarget.style.width = `${cfg.width || 180}px`;
+        npcTarget.style.height = `${cfg.height || 200}px`;
+      }
     }
-    if (targetImg) {
-      targetImg.style.width = `${cfg.width}px`;
-      targetImg.style.height = `${cfg.height}px`;
+    if (npcImg) {
+      npcImg.style.transform = cfg.flip ? 'scaleX(-1)' : 'scaleX(1)';
     }
 
+    // 2. Позиционирование героя (игрока) в гостевых комнатах
+    if (this.roomHeroActor) {
+      if (loc === 'myroom') {
+        this.roomHeroActor.style.display = 'none';
+      } else {
+        this.roomHeroActor.style.display = 'flex';
+        this.roomHeroActor.style.left = `${heroCfg.x}%`;
+        this.roomHeroActor.style.right = 'auto';
+        this.roomHeroActor.style.bottom = `${heroCfg.bottom}px`;
+        this.roomHeroActor.style.width = `${heroCfg.width || 160}px`;
+        this.roomHeroActor.style.height = `${heroCfg.height || 180}px`;
+        if (this.roomHeroImg) {
+          this.roomHeroImg.style.transform = heroCfg.flip ? 'scaleX(-1)' : 'scaleX(1)';
+        }
+      }
+    }
+
+    // 3. Синхронизация с элементами панели дебага
     if (this.isTweakerActive && this.tweakerRangeX) {
+      const isHero = (this.tweakerTarget === 'hero' && loc !== 'myroom');
+      const activeSubCfg = isHero ? heroCfg : cfg;
+
+      // Обновляем визуальную подсветку выбранного персонажа
+      this.roomHeroActor?.classList.toggle('tweaker-selected', isHero);
+      if (npcTarget) {
+        npcTarget.classList.toggle('tweaker-selected', !isHero);
+      }
+
+      // Обновляем вкладки целей
+      if (this.tweakerTabNpc && this.tweakerTabHero) {
+        if (loc === 'myroom') {
+          this.tweakerTabNpc.textContent = '🐾 Питомец';
+          this.tweakerTabNpc.classList.add('active');
+          this.tweakerTabHero.style.display = 'none';
+        } else {
+          this.tweakerTabNpc.textContent = '🐾 Персонаж (NPC)';
+          this.tweakerTabHero.style.display = 'inline-flex';
+          this.tweakerTabNpc.classList.toggle('active', !isHero);
+          this.tweakerTabHero.classList.toggle('active', isHero);
+        }
+      }
+
       const locNames = {
         myroom: 'Моя комната (Питомец)',
         friend_1: 'Миша (Медвежонок)',
-        friend_2: 'Белла (Белочка)',
+        friend_2: 'Рыжик (Белочка)',
         friend_3: 'Рикки (Енот)',
         friend_4: 'София (Сова)',
         friend_5: 'Алиса (Лисичка)',
@@ -1316,26 +1361,29 @@ export class UIController {
         hospital: 'Клиника (Доктор Сова)'
       };
       if (this.tweakerLocName) this.tweakerLocName.textContent = locNames[loc] || loc;
-      if (this.tweakerRangeX) this.tweakerRangeX.value = cfg.x;
-      if (this.tweakerValX) this.tweakerValX.textContent = `${cfg.x}%`;
-      if (this.tweakerRangeBottom) this.tweakerRangeBottom.value = cfg.bottom;
-      if (this.tweakerValBottom) this.tweakerValBottom.textContent = `${cfg.bottom}px`;
-      if (this.tweakerRangeSize) this.tweakerRangeSize.value = cfg.width;
-      if (this.tweakerValSize) this.tweakerValSize.textContent = `${cfg.width}px`;
+      if (this.tweakerRangeX) this.tweakerRangeX.value = activeSubCfg.x;
+      if (this.tweakerValX) this.tweakerValX.textContent = `${activeSubCfg.x}%`;
+      if (this.tweakerRangeBottom) this.tweakerRangeBottom.value = activeSubCfg.bottom;
+      if (this.tweakerValBottom) this.tweakerValBottom.textContent = `${activeSubCfg.bottom}px`;
+      if (this.tweakerRangeSize) this.tweakerRangeSize.value = activeSubCfg.width || 180;
+      if (this.tweakerValSize) this.tweakerValSize.textContent = `${activeSubCfg.width || 180}px`;
       if (this.tweakerBtnFlip) {
-        this.tweakerBtnFlip.textContent = cfg.flip ? '↔️ Отражено' : '↔️ Отразить';
-        this.tweakerBtnFlip.style.background = cfg.flip ? 'var(--clay-purple)' : '';
-        this.tweakerBtnFlip.style.color = cfg.flip ? '#FFF' : '';
+        this.tweakerBtnFlip.textContent = activeSubCfg.flip ? '↔️ Отражено' : '↔️ Отразить';
+        this.tweakerBtnFlip.style.background = activeSubCfg.flip ? 'var(--clay-purple)' : '';
+        this.tweakerBtnFlip.style.color = activeSubCfg.flip ? '#FFF' : '';
       }
     }
   }
 
   setupActorTweaker() {
     this.isTweakerActive = false;
+    this.tweakerTarget = 'npc';
     this.btnRoomTweakActor = document.getElementById('btn-room-tweak-actor');
     this.actorTweakerPanel = document.getElementById('actor-tweaker-panel');
     this.tweakerLocName = document.getElementById('tweaker-loc-name');
     this.tweakerCloseBtn = document.getElementById('tweaker-close-btn');
+    this.tweakerTabNpc = document.getElementById('tweaker-tab-npc');
+    this.tweakerTabHero = document.getElementById('tweaker-tab-hero');
     this.tweakerRangeX = document.getElementById('tweaker-range-x');
     this.tweakerValX = document.getElementById('tweaker-val-x');
     this.tweakerRangeBottom = document.getElementById('tweaker-range-bottom');
@@ -1361,6 +1409,19 @@ export class UIController {
     this.btnRoomTweakActor?.addEventListener('click', toggleTweaker);
     this.tweakerCloseBtn?.addEventListener('click', toggleTweaker);
 
+    // Переключение между NPC и Героем
+    this.tweakerTabNpc?.addEventListener('click', () => {
+      sound.playPop();
+      this.tweakerTarget = 'npc';
+      this.applyRoomActorConfig(gameState.state.currentLocation);
+    });
+
+    this.tweakerTabHero?.addEventListener('click', () => {
+      sound.playPop();
+      this.tweakerTarget = 'hero';
+      this.applyRoomActorConfig(gameState.state.currentLocation);
+    });
+
     // Горячие клавиши: F2 или T в комнате
     window.addEventListener('keydown', (e) => {
       if ((e.key === 'F2' || (e.key === 't' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName))) && gameState.state.currentLocation !== 'citymap') {
@@ -1376,38 +1437,45 @@ export class UIController {
       const loc = gameState.state.currentLocation;
       const all = this.getStoredActorConfigs();
       const cfg = { ...(all[loc] || { x: 75, bottom: 120, width: 180, height: 200, flip: false }) };
-      updater(cfg);
+      if (!cfg.hero) {
+        cfg.hero = { x: 26, bottom: 120, width: 160, height: 180, flip: false };
+      } else {
+        cfg.hero = { ...cfg.hero };
+      }
+
+      const targetObj = (this.tweakerTarget === 'hero' && loc !== 'myroom') ? cfg.hero : cfg;
+      updater(targetObj);
       this.saveActorConfig(loc, cfg);
       this.applyRoomActorConfig(loc);
     };
 
     this.tweakerRangeX?.addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
-      updateCurrent((cfg) => { cfg.x = val; });
+      updateCurrent((obj) => { obj.x = val; });
     });
 
     this.tweakerRangeBottom?.addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
-      updateCurrent((cfg) => { cfg.bottom = val; });
+      updateCurrent((obj) => { obj.bottom = val; });
     });
 
     this.tweakerRangeSize?.addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
-      updateCurrent((cfg) => {
-        cfg.width = val;
-        cfg.height = Math.round(val * 1.1);
+      updateCurrent((obj) => {
+        obj.width = val;
+        obj.height = Math.round(val * 1.1);
       });
     });
 
     this.tweakerBtnFlip?.addEventListener('click', () => {
       sound.playPop();
-      updateCurrent((cfg) => { cfg.flip = !cfg.flip; });
+      updateCurrent((obj) => { obj.flip = !obj.flip; });
     });
 
     this.tweakerBtnReset?.addEventListener('click', () => {
       sound.playPop();
       const loc = gameState.state.currentLocation;
-      const defaultCfg = ROOM_ACTOR_CONFIGS[loc] || { x: 75, bottom: 120, width: 180, height: 200, flip: false };
+      const defaultCfg = JSON.parse(JSON.stringify(ROOM_ACTOR_CONFIGS[loc] || { x: 75, bottom: 120, width: 180, height: 200, flip: false }));
       this.saveActorConfig(loc, defaultCfg);
       this.applyRoomActorConfig(loc);
     });
@@ -1428,8 +1496,12 @@ export class UIController {
     // Интерактивное перетаскивание мышкой (Drag & Drop)
     let isDragging = false;
 
-    const startDrag = (e) => {
+    const startDrag = (e, targetType) => {
       if (!this.isTweakerActive) return;
+      if (targetType) {
+        this.tweakerTarget = targetType;
+        this.applyRoomActorConfig(gameState.state.currentLocation);
+      }
       isDragging = true;
       e.stopPropagation();
       e.preventDefault();
@@ -1447,9 +1519,9 @@ export class UIController {
       const newX = Math.round(Math.max(5, Math.min(95, rawX)));
       const newBottom = Math.round(Math.max(20, Math.min(450, rawBottom)));
 
-      updateCurrent((cfg) => {
-        cfg.x = newX;
-        cfg.bottom = newBottom;
+      updateCurrent((obj) => {
+        obj.x = newX;
+        obj.bottom = newBottom;
       });
     };
 
@@ -1459,10 +1531,12 @@ export class UIController {
       }
     };
 
-    this.roomCharacterActor?.addEventListener('mousedown', startDrag);
-    this.roomCharacterActor?.addEventListener('touchstart', startDrag, { passive: false });
-    this.roomPetActor?.addEventListener('mousedown', startDrag);
-    this.roomPetActor?.addEventListener('touchstart', startDrag, { passive: false });
+    this.roomNpcActor?.addEventListener('mousedown', (e) => startDrag(e, 'npc'));
+    this.roomNpcActor?.addEventListener('touchstart', (e) => startDrag(e, 'npc'), { passive: false });
+    this.roomHeroActor?.addEventListener('mousedown', (e) => startDrag(e, 'hero'));
+    this.roomHeroActor?.addEventListener('touchstart', (e) => startDrag(e, 'hero'), { passive: false });
+    this.roomPetActor?.addEventListener('mousedown', (e) => startDrag(e, 'npc'));
+    this.roomPetActor?.addEventListener('touchstart', (e) => startDrag(e, 'npc'), { passive: false });
 
     window.addEventListener('mousemove', doDrag);
     window.addEventListener('touchmove', doDrag, { passive: false });
@@ -1534,7 +1608,14 @@ export class UIController {
         </div>
       `;
 
+      card.dataset.itemId = item.id;
+      card.dataset.category = item.category;
       const buyBtn = card.querySelector('button');
+      if (buyBtn) {
+        buyBtn.dataset.itemId = item.id;
+        buyBtn.dataset.category = item.category;
+        buyBtn.classList.add('shop-item-buy-btn');
+      }
       if (!isOwned) {
         buyBtn?.addEventListener('click', () => {
           const res = gameState.buyShopItem(item.id);
@@ -1640,7 +1721,7 @@ export class UIController {
     if (!friend || !puzzle) return;
 
     const requiredLesson = FINANCIAL_LESSONS.find((lesson) => lesson.id === puzzle.lessonId);
-    if (requiredLesson && !gameState.state.completedLessonIds.includes(requiredLesson.id)) {
+    if (!tutorial?.isActive && requiredLesson && !gameState.state.completedLessonIds.includes(requiredLesson.id)) {
       gameState.state.advisorTip = `Подручный ждёт тебя с темой «${requiredLesson.title}». Сначала разберём правило, потом поможем ${friend.name}.`;
       gameState.notify();
       this.openModal('advisor');
@@ -1690,6 +1771,8 @@ export class UIController {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'puzzle-opt-btn';
+      btn.dataset.optionId = opt.id;
+      btn.dataset.isCorrect = opt.isCorrect ? 'true' : 'false';
       btn.innerHTML = `
         <span class="puzzle-choice-heading"><span class="puzzle-choice-letter">${index === 0 ? 'А' : 'Б'}</span><span class="puzzle-choice-emoji">${opt.emoji}</span></span>
         <span class="puzzle-choice-text">${opt.text}</span>

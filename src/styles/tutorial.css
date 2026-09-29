@@ -1,0 +1,348 @@
+/* ============================================================================
+   ИНТЕРАКТИВНЫЙ ОБУЧАЮЩИЙ ДЕМО-ТУР (SPOTLIGHT & GUIDE)
+   Стили подсветки, оверлея, карточки наставника и анимаций для детей и жюри
+   ============================================================================ */
+
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100040;
+  pointer-events: none;
+  overflow: hidden;
+  animation: tutorialFadeIn 0.3s ease-out;
+}
+
+@keyframes tutorialFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* SVG-маска с прозрачным вырезом */
+.tutorial-svg-mask {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 100042;
+}
+
+#tutorial-svg-path {
+  pointer-events: auto;
+  cursor: default;
+}
+
+/* Затемняющий оверлей с круглым/прямоугольным вырезом подсвеченного элемента */
+.tutorial-spotlight-hole {
+  position: absolute;
+  border-radius: 20px;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 0 28px rgba(255, 204, 0, 0.95),
+              inset 0 0 12px rgba(255, 204, 0, 0.4);
+  border: 3.5px solid #FFD54F;
+  z-index: 100045;
+}
+
+/* Пульсирующее свечение вокруг выреза */
+.tutorial-spotlight-pulse {
+  position: absolute;
+  inset: -8px;
+  border-radius: 24px;
+  border: 2px dashed rgba(255, 224, 102, 0.9);
+  animation: tutorialPulseRing 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes tutorialPulseRing {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+    border-color: #FFA000;
+  }
+  100% {
+    transform: scale(0.98);
+    opacity: 0.4;
+  }
+}
+
+/* Подсветка целевого элемента */
+.tutorial-target-highlighted {
+  cursor: pointer !important;
+  outline: 2px solid #FFD54F !important;
+  outline-offset: 3px !important;
+}
+
+/* Карточка наставника с крупным детским текстом */
+.tutorial-card {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 440px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF7 100%);
+  border: 3.5px solid var(--clay-purple);
+  border-radius: 24px;
+  padding: 12px 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5),
+              0 4px 12px rgba(100, 70, 200, 0.3);
+  z-index: 100050;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: top 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+              bottom 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: tutorialCardSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tutorialCardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* Шапка карточки */
+.tutorial-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tutorial-mentor-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tutorial-mentor-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #FFF3E0;
+  border: 2px solid #FFB74D;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.tutorial-mentor-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.tutorial-mentor-name {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 800;
+  color: #2D1B4E;
+}
+
+.tutorial-step-indicator {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--clay-purple);
+  background: rgba(126, 87, 194, 0.12);
+  padding: 2px 8px;
+  border-radius: 10px;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.tutorial-skip-btn {
+  background: rgba(0, 0, 0, 0.06);
+  border: none;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #666;
+  padding: 6px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.tutorial-skip-btn:hover {
+  background: rgba(244, 67, 54, 0.15);
+  color: #D32F2F;
+}
+
+/* Полоса прогресса */
+.tutorial-progress-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.07);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.tutorial-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFB74D, #FF7043, #AB47BC);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* Тело подсказки */
+.tutorial-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tutorial-card-title {
+  font-family: var(--font-heading);
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #1A1A2E;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.tutorial-card-desc {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.38;
+  color: #3C3C43;
+  margin: 0;
+}
+
+.tutorial-card-desc strong {
+  color: #E65100;
+  font-weight: 800;
+}
+
+/* Подсказка к действию */
+.tutorial-action-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 179, 0, 0.15);
+  border: 1.5px solid rgba(255, 179, 0, 0.5);
+  padding: 6px 10px;
+  border-radius: 12px;
+  margin-top: 3px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #5D3B00;
+}
+
+.tutorial-pointer-emoji {
+  font-size: 18px;
+  animation: tutorialPointerHop 1.2s ease-in-out infinite;
+}
+
+@keyframes tutorialPointerHop {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+/* Кнопка в футере (если требуется явный переход) */
+.tutorial-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.tutorial-next-btn {
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 800;
+  border-radius: 14px;
+}
+
+/* Анимированная стрелка-указатель от карточки к цели */
+.tutorial-arrow-pointer {
+  position: absolute;
+  width: 0;
+  height: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+}
+
+.tutorial-arrow-pointer.pointing-down {
+  bottom: -14px;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 14px solid var(--clay-purple);
+  animation: tutorialArrowBobDown 1.1s ease-in-out infinite;
+}
+
+.tutorial-arrow-pointer.pointing-up {
+  top: -14px;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-bottom: 14px solid var(--clay-purple);
+  animation: tutorialArrowBobUp 1.1s ease-in-out infinite;
+}
+
+@keyframes tutorialArrowBobDown {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(5px); }
+}
+
+@keyframes tutorialArrowBobUp {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
+}
+
+/* Кнопка быстрого запуска демо в HUD */
+.hud-tutorial-quick-btn {
+  background: linear-gradient(135deg, #FFB300 0%, #FF8F00 100%);
+  color: #FFFFFF;
+  border: 1.5px solid #FFE082;
+  border-radius: 14px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 10px;
+  box-shadow: 0 2px 0 #C98A00, 0 3px 8px rgba(255, 143, 0, 0.35);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.hud-tutorial-quick-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 143, 0, 0.45);
+}
+
+.hud-tutorial-quick-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Эффекты привлечения внимания при клике мимо цели */
+@keyframes tutorialCardNudge {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  25% { transform: translateX(-52%) scale(1.02); }
+  75% { transform: translateX(-48%) scale(1.02); }
+}
+
+.tutorial-card-nudge {
+  animation: tutorialCardNudge 0.32s ease-in-out !important;
+}
+
+@keyframes tutorialHoleNudge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 16px #FFD54F); }
+}
+
+.tutorial-spotlight-nudge {
+  animation: tutorialHoleNudge 0.35s ease-in-out !important;
+}
