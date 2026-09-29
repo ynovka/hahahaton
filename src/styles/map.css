@@ -154,8 +154,8 @@
 }
 
 /* Цвета рамок для разных персонажей и учреждений */
-.map-pin.pin-bear .pin-avatar-wrap { border-color: var(--clay-orange); }
-.map-pin.pin-squirrel .pin-avatar-wrap { border-color: #FF8A65; }
+.map-pin.pin-panda .pin-avatar-wrap { border-color: var(--clay-orange); }
+.map-pin.pin-cat .pin-avatar-wrap { border-color: #8d9fc6; }
 .map-pin.pin-raccoon .pin-avatar-wrap { border-color: var(--clay-purple); }
 .map-pin.pin-owl .pin-avatar-wrap { border-color: var(--clay-gold); }
 .map-pin.pin-fox .pin-avatar-wrap { border-color: #FF7043; }

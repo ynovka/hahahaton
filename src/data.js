@@ -12,6 +12,7 @@ export const PET_SPECIES = [
     desc: 'Любит мягкие пледы, солнечные лучики и тихое мурлыканье.',
     portrait: 'assets/characters/pet_cat_v2.png',
     idle: 'assets/characters/pet_cat_v2.png',
+    poseFrames: [1, 2, 3].map((pose) => `assets/characters/pet-poses/cat_pose${pose}.png`),
     favoriteFood: 'Вкусный паштет с рыбкой'
   },
   {
@@ -21,6 +22,7 @@ export const PET_SPECIES = [
     desc: 'Преданный друг, весело виляет хвостиком и готов бегать за мячом.',
     portrait: 'assets/characters/pet_dog_v2.png',
     idle: 'assets/characters/pet_dog_v2.png',
+    poseFrames: [1, 2, 3].map((pose) => `assets/characters/pet-poses/dog_pose${pose}.png`),
     favoriteFood: 'Хрустящий мясной корм'
   },
   {
@@ -30,6 +32,7 @@ export const PET_SPECIES = [
     desc: 'Любопытный озорник с пушистым рыжим хвостом и умным взглядом.',
     portrait: 'assets/characters/pet_fox_v2.png',
     idle: 'assets/characters/pet_fox_v2.png',
+    poseFrames: [1, 2, 3].map((pose) => `assets/characters/pet-poses/fox_pose${pose}.png`),
     favoriteFood: 'Ягодное лакомство'
   },
   {
@@ -39,6 +42,7 @@ export const PET_SPECIES = [
     desc: 'Добрый пухляш, обожает сочный бамбук и уютный дневной сон.',
     portrait: 'assets/characters/pet_panda_v2.png',
     idle: 'assets/characters/pet_panda_v2.png',
+    poseFrames: [1, 2, 3].map((pose) => `assets/characters/pet-poses/panda_pose${pose}.png`),
     favoriteFood: 'Свежие побеги и витамины'
   },
   {
@@ -48,6 +52,7 @@ export const PET_SPECIES = [
     desc: 'Шустрый попрыгун с длинными ушками, любит хрустящие морковки.',
     portrait: 'assets/characters/pet_bunny_v2.png',
     idle: 'assets/characters/pet_bunny_v2.png',
+    poseFrames: [1, 2, 3].map((pose) => `assets/characters/pet-poses/bunny_pose${pose}.png`),
     favoriteFood: 'Морковные хрустяшки'
   },
   {
@@ -57,6 +62,7 @@ export const PET_SPECIES = [
     desc: 'Ловкий непоседа и чистюля, всегда находит интересные вещицы.',
     portrait: 'assets/characters/pet_raccoon_v2.png',
     idle: 'assets/characters/pet_raccoon_v2.png',
+    poseFrames: [1, 2, 3].map((pose) => `assets/characters/pet-poses/raccoon_pose${pose}.png`),
     favoriteFood: 'Сладкие ореховые батончики'
   },
   {
@@ -66,6 +72,7 @@ export const PET_SPECIES = [
     desc: 'Мудрый птенец с большими круглыми глазами и добрым сердцем.',
     portrait: 'assets/characters/pet_owl_v2.png',
     idle: 'assets/characters/pet_owl_v2.png',
+    poseFrames: [1, 2, 3].map((pose) => `assets/characters/pet-poses/owl_pose${pose}.png`),
     favoriteFood: 'Зерновые снеки'
   }
 ];
@@ -241,9 +248,9 @@ export const SHOP_CATALOG = [
 export const FRIENDS_LIST = [
   {
     id: 1,
-    name: 'Мишка Потап',
-    species: 'Медвежонок',
-    emoji: '🐻',
+    name: 'Панда Потап',
+    species: 'Панда',
+    emoji: '🐼',
     houseName: 'Берлога со сладостями',
     portrait: 'assets/characters/friend_1_v2.png',
     idle: 'assets/characters/friend_1_v2.png',
@@ -251,22 +258,22 @@ export const FRIENDS_LIST = [
     theme: 'Планирование бюджета',
     greeting: 'Привет, сосед! Я как раз собираюсь на городскую ярмарку. Поможешь мне выбрать покупки с умом?',
     perk: 'Крепкий Запас (+50 к вместимости копилки)',
-    favoriteItems: ['🍯 Медок', '🍎 Яблочки', '🪵 Еловые шишки'],
+    favoriteItems: ['🎋 Бамбук', '🍎 Яблочки', '🍯 Медок'],
     color: '#FFB74D'
   },
   {
     id: 2,
-    name: 'Белочка Рыжик',
-    species: 'Белочка',
-    emoji: '🐿️',
-    houseName: 'Домик на высоком дубе',
+    name: 'Котик Рыжик',
+    species: 'Котёнок',
+    emoji: '🐱',
+    houseName: 'Домик под старым дубом',
     portrait: 'assets/characters/friend_2_v2.png',
     idle: 'assets/characters/friend_2_v2.png',
     bg: 'assets/bg_room_friend_2.png',
     theme: 'Формирование сбережений',
-    greeting: 'Ура, ты заглянул в гости! Я собрала сегодня целую корзину золотых лесных орешков!',
-    perk: 'Золотой Орешек (+10% бонусных монет в копилке)',
-    favoriteItems: ['🌰 Орешки', '🍄 Грибочки', '🌲 Желуди'],
+    greeting: 'Ура, ты заглянул в гости! Я коплю монетки на уютную лежанку. Поможешь составить запас?',
+    perk: 'Кошачий запас (+10% бонусных монет в копилке)',
+    favoriteItems: ['🐟 Рыбка', '🥛 Молоко', '🧶 Клубок'],
     color: '#FF8A65'
   },
   {
@@ -350,9 +357,9 @@ export const KID_PUZZLES = {
   1: {
     friendId: 1,
     lessonId: 'needs_wants',
-    title: 'Умная корзинка Мишки',
+    title: 'Умная корзинка панды Потапа',
     theme: 'Планирование бюджета: нужное и желаемое',
-    storyPrompt: 'Мишка Потап пришёл на ярмарку. В кармане ровно столько монет, сколько нужно на самое главное. Что обязательно нужно купить в первую очередь?',
+    storyPrompt: 'Панда Потап пришёл на ярмарку. В кармане ровно столько монет, сколько нужно на самое главное. Что обязательно нужно купить в первую очередь?',
     emoji: '🧺',
     options: [
       {
@@ -378,28 +385,28 @@ export const KID_PUZZLES = {
   2: {
     friendId: 2,
     lessonId: 'saving',
-    title: 'Запасы Белочки Рыжика',
+    title: 'Копилка котика Рыжика',
     theme: 'Формирование сбережений: копилка',
-    storyPrompt: 'Рыжик собрала 10 золотых орешков. Как поступить, чтобы зимой не остаться без запасов в снежную бурю?',
-    emoji: '🌰',
+    storyPrompt: 'Рыжик получил 10 монет. Как поступить, чтобы накопить на важную покупку и не остаться без запаса?',
+    emoji: '🪙',
     options: [
       {
         id: 'p2_opt1',
-        text: 'Съесть все 10 орешков прямо сейчас!',
+        text: 'Потратить все 10 монет на игрушку прямо сейчас!',
         emoji: '😋',
         isCorrect: false,
-        feedback: 'Сейчас сладко, но зимой в лесу будет холодно и совсем пусто!'
+        feedback: 'Сейчас игрушка порадует, но на важную покупку запаса уже не останется.'
       },
       {
         id: 'p2_opt2',
-        text: 'Спрятать 3-4 орешка в дупло-копилку',
+        text: 'Отложить 3–4 монеты в копилку',
         emoji: '🏺',
         isCorrect: true,
-        feedback: 'Умница! Часть съели с удовольствием, а надёжный запас остался на будущее!'
+        feedback: 'Умница! Ты оставил часть монет на будущее и сохранил запас.'
       }
     ],
     rewardCoins: 20,
-    successExplanation: 'Правило копилки: если откладывать часть от каждого дохода, твои сбережения растут сами собой, и ты готов к любым холодам!',
+    successExplanation: 'Правило копилки: если откладывать часть от каждого дохода, сбережения растут, и ты готов к важным покупкам!',
     errorExplanation: 'Тратить всё до последней копейки рискованно: всегда должен быть запас на завтра.'
   },
 

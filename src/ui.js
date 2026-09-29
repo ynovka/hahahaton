@@ -29,6 +29,10 @@ export class UIController {
     this.selectedSpeciesIndex = 0;
     this.setupSwipeStartX = null;
     this.titleSplashDismissed = this.readTitleSplashState();
+    this.petPoseTimer = null;
+    this.petPoseKey = null;
+    this.petPoseLoadingKey = null;
+    this.petPoseIndex = 0;
 
     this.initDOMElements();
     this.bindGlobalEvents();
@@ -761,11 +765,11 @@ export class UIController {
     // Координаты для вертикальной и горизонтальной карты
     const pinConfigs = this.isMapPanorama
       ? [
-          { id: 'friend_2', title: 'Рыжик', asset: 'characters/friend_2_v2', x: 16, y: 18, type: 'pin-squirrel' },
+          { id: 'friend_2', title: 'Рыжик', asset: 'characters/friend_2_v2', x: 16, y: 18, type: 'pin-cat' },
           { id: 'shop', title: 'Лавка', asset: 'building_shop', x: 33, y: 35, type: 'pin-shop' },
           { id: 'bank', title: 'Банк', asset: 'building_bank', x: 50, y: 27, type: 'pin-bank' },
           { id: 'hospital', title: 'Клиника', asset: 'building_hospital', x: 67, y: 37, type: 'pin-hospital' },
-          { id: 'friend_1', title: 'Потап', asset: 'characters/friend_1_v2', x: 18, y: 55, type: 'pin-bear' },
+          { id: 'friend_1', title: 'Потап', asset: 'characters/friend_1_v2', x: 18, y: 55, type: 'pin-panda' },
           { id: 'friend_3', title: 'Тёма', asset: 'characters/friend_3_v2', x: 10, y: 65, type: 'pin-raccoon' },
           { id: 'friend_6', title: 'Сеня', asset: 'characters/friend_6_v2', x: 33, y: 71, type: 'pin-bunny' },
           { id: 'friend_5', title: 'Алиса', asset: 'characters/friend_5_v2', x: 42, y: 73, type: 'pin-fox' },
@@ -774,8 +778,8 @@ export class UIController {
           { id: 'myroom', title: 'Мой дом', asset: 'building_home', x: 88, y: 83, type: 'pin-home' }
         ]
       : [
-          { id: 'friend_2', title: 'Рыжик', asset: 'characters/friend_2_v2', x: 14, y: 44, type: 'pin-squirrel' },
-          { id: 'friend_1', title: 'Потап', asset: 'characters/friend_1_v2', x: 16, y: 30, type: 'pin-bear' },
+          { id: 'friend_2', title: 'Рыжик', asset: 'characters/friend_2_v2', x: 14, y: 44, type: 'pin-cat' },
+          { id: 'friend_1', title: 'Потап', asset: 'characters/friend_1_v2', x: 16, y: 30, type: 'pin-panda' },
           { id: 'friend_3', title: 'Тёма', asset: 'characters/friend_3_v2', x: 68, y: 27, type: 'pin-raccoon' },
           { id: 'friend_4', title: 'София', asset: 'characters/friend_4_v2', x: 89, y: 31, type: 'pin-owl' },
           { id: 'friend_6', title: 'Сеня', asset: 'characters/friend_6_v2', x: 36, y: 37, type: 'pin-bunny' },
@@ -906,12 +910,22 @@ export class UIController {
         this.roomNpcActor.style.display = 'flex';
         this.roomNpcActor.style.left = cfg.npc.left;
         this.roomNpcActor.style.bottom = cfg.npc.bottom;
+        const friendMatch = loc.match(/^friend_(\d+)$/);
+        const friend = friendMatch
+          ? FRIENDS_LIST.find((item) => item.id === Number(friendMatch[1]))
+          : null;
+        const employeeNames = {
+          shop: 'Продавец Енотик',
+          bank: 'Банкир',
+          hospital: 'Доктор Сова'
+        };
         if (this.roomNpcImg) {
-          this.roomNpcImg.src = cfg.npc.asset;
+          this.roomNpcImg.src = friend?.idle || cfg.npc.asset;
+          this.roomNpcImg.alt = friend?.name || employeeNames[loc] || 'Сотрудник';
           this.roomNpcImg.style.transform = cfg.npc.faceRight ? 'scaleX(1)' : 'scaleX(-1)';
         }
-        if (this.roomNpcEmoji) this.roomNpcEmoji.textContent = cfg.npc.emoji;
-        if (this.roomNpcText) this.roomNpcText.textContent = cfg.npc.phrase;
+        if (this.roomNpcEmoji) this.roomNpcEmoji.textContent = friend?.emoji || cfg.npc.emoji;
+        if (this.roomNpcText) this.roomNpcText.textContent = friend?.greeting || cfg.npc.phrase;
       } else {
         this.roomNpcActor.style.display = 'none';
       }
@@ -924,7 +938,7 @@ export class UIController {
       this.roomPetActor.style.bottom = '14%';
       this.roomPetActor.className = `pet-actor-container stage-${state.pet.growthStage}`;
       this.roomPetActor.dataset.pattern = state.pet.pattern || 'classic';
-      this.roomPetImg.src = this.getPetAssetPath(state.pet.species, state.pet.pattern);
+      this.updatePetPoseAnimation(state, true);
       const equipped = state.pet.equippedAccessories;
       const renderEquippedAccessory = (layer, accessoryId) => {
         layer.replaceChildren();
@@ -939,7 +953,58 @@ export class UIController {
       renderEquippedAccessory(this.petAccHead, equipped.head);
       renderEquippedAccessory(this.petAccNeck, equipped.neck);
       renderEquippedAccessory(this.petAccGlasses, equipped.glasses);
+    } else {
+      this.updatePetPoseAnimation(state, false);
     }
+  }
+
+  updatePetPoseAnimation(state, isHome) {
+    const pet = PET_SPECIES.find((item) => item.id === state.pet.species);
+    const pattern = state.pet.pattern || 'classic';
+    const frames = pet?.poseFrames || [];
+
+    if (!isHome || pattern !== 'classic' || frames.length < 2) {
+      clearInterval(this.petPoseTimer);
+      this.petPoseTimer = null;
+      this.petPoseKey = null;
+      this.petPoseLoadingKey = null;
+      this.roomPetImg.src = this.getPetAssetPath(state.pet.species, pattern);
+      return;
+    }
+
+    const key = `${pet.id}:${pattern}`;
+    if (this.petPoseKey === key || this.petPoseLoadingKey === key) return;
+    clearInterval(this.petPoseTimer);
+    this.petPoseTimer = null;
+    this.petPoseKey = null;
+    this.petPoseLoadingKey = key;
+
+    Promise.all(frames.map((src) => new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => resolve(true);
+      image.onerror = () => resolve(false);
+      image.src = src;
+    }))).then((loaded) => {
+      if (this.petPoseLoadingKey !== key) return;
+      this.petPoseLoadingKey = null;
+      if (loaded.some((ok) => !ok) || state.currentLocation !== 'myroom') {
+        this.roomPetImg.src = this.getPetAssetPath(state.pet.species, pattern);
+        return;
+      }
+      this.petPoseKey = key;
+      this.petPoseIndex = 0;
+      this.roomPetImg.src = frames[this.petPoseIndex];
+      this.petPoseTimer = setInterval(() => {
+        if (gameState.state.currentLocation !== 'myroom' || gameState.state.pet.species !== pet.id || gameState.state.pet.pattern !== pattern) {
+          clearInterval(this.petPoseTimer);
+          this.petPoseTimer = null;
+          this.petPoseKey = null;
+          return;
+        }
+        this.petPoseIndex = (this.petPoseIndex + 1) % frames.length;
+        this.roomPetImg.src = frames[this.petPoseIndex];
+      }, 1400);
+    });
   }
 
   // Отрисовка сцены комнаты (11 интерьеров)
