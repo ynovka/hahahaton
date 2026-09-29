@@ -30,7 +30,7 @@ export class UIController {
     this.lastRenderedLocation = null;
     this.selectedSpeciesIndex = 0;
     this.setupSwipeStartX = null;
-    this.titleSplashDismissed = this.readTitleSplashState();
+    this.isMainMenuActive = true;
     this.petPoseTimer = null;
     this.petPoseKey = null;
     this.petPoseLoadingKey = null;
@@ -51,7 +51,23 @@ export class UIController {
     this.screenSetup = document.getElementById('screen-setup');
     this.screenMap = document.getElementById('screen-map');
     this.screenRoom = document.getElementById('screen-room');
-    this.titleSplash = document.getElementById('title-splash');
+    this.screenMainMenu = document.getElementById('screen-main-menu');
+
+    // Главное меню
+    this.btnMenuContinue = document.getElementById('btn-menu-continue');
+    this.btnMenuNewGame = document.getElementById('btn-menu-newgame');
+    this.btnMenuDemo = document.getElementById('btn-menu-demo');
+    this.btnMenuSettings = document.getElementById('btn-menu-settings');
+    this.btnMenuAdult = document.getElementById('btn-menu-adult');
+    this.btnHudMainMenu = document.getElementById('btn-hud-main-menu');
+    this.btnSetupBackMenu = document.getElementById('btn-setup-back-menu');
+    this.modalNewGameConfirm = document.getElementById('modal-newgame-confirm');
+    this.btnCancelNewGame = document.getElementById('btn-cancel-newgame');
+    this.btnConfirmNewGame = document.getElementById('btn-confirm-newgame');
+    this.menuPetImg = document.getElementById('menu-pet-img');
+    this.menuPetStatusPill = document.getElementById('menu-pet-status-pill');
+    this.menuSaveInfo = document.getElementById('menu-save-info');
+    this.newgamePetName = document.getElementById('newgame-pet-name');
     this.btnEnterGame = document.getElementById('btn-enter-game');
 
     // HUD элементы
@@ -125,7 +141,8 @@ export class UIController {
       advisor: document.getElementById('modal-advisor'),
       adult: document.getElementById('modal-adult'),
       settings: document.getElementById('modal-settings'),
-      resetConfirm: document.getElementById('modal-reset-confirm')
+      resetConfirm: document.getElementById('modal-reset-confirm'),
+      newgameConfirm: document.getElementById('modal-newgame-confirm')
     };
 
     // Настройка интерактивной подгонки персонажей
@@ -133,12 +150,94 @@ export class UIController {
   }
 
   bindGlobalEvents() {
-    // Свойство onclick здесь намеренно: заставка находится выше всей игры и
-    // должна закрываться даже после горячей перезагрузки Vite во время демо.
+    // Совместимость со старой кнопкой входа
     if (this.btnEnterGame) this.btnEnterGame.onclick = () => {
       sound.playPop();
-      this.dismissTitleSplash();
+      this.hideMainMenu();
     };
+
+    // Главное меню: Продолжить игру
+    this.btnMenuContinue?.addEventListener('click', () => {
+      sound.playPop();
+      this.hideMainMenu();
+    });
+
+    // Главное меню: Новая игра
+    this.btnMenuNewGame?.addEventListener('click', () => {
+      sound.playPop();
+      if (gameState.state.isGameStarted) {
+        if (this.newgamePetName) {
+          this.newgamePetName.textContent = gameState.state.pet?.name || 'Финни';
+        }
+        this.openModal('newgameConfirm');
+      } else {
+        this.hideMainMenu();
+        this.showScreen('screen-setup');
+      }
+    });
+
+    // Главное меню: Подтверждение новой игры
+    this.btnCancelNewGame?.addEventListener('click', () => {
+      sound.playPop();
+      this.closeModal('newgameConfirm');
+    });
+
+    this.btnConfirmNewGame?.addEventListener('click', () => {
+      sound.playPop();
+      this.closeModal('newgameConfirm');
+      gameState.resetDemo();
+      this.selectedSpeciesIndex = 0;
+      document.querySelectorAll('.species-chip').forEach((chip, idx) => chip.classList.toggle('selected', idx === 0));
+      this.updateSetupPreview(PET_SPECIES[0]?.id || 'cat', 'classic');
+      this.hideMainMenu();
+      this.showScreen('screen-setup');
+    });
+
+    // Главное меню: Демо-тур для жюри (мягкий запуск)
+    this.btnMenuDemo?.addEventListener('click', () => {
+      sound.playLevelUp();
+      if (!gameState.state.isGameStarted) {
+        gameState.startNewGame({
+          petName: 'Финни',
+          species: 'cat',
+          pattern: 'classic',
+          playerName: 'Юный финансист',
+          playerGender: 'boy'
+        });
+      }
+      this.hideMainMenu();
+      setTimeout(() => {
+        tutorial.start(0);
+      }, 150);
+    });
+
+    // Главное меню: Настройки
+    this.btnMenuSettings?.addEventListener('click', () => {
+      sound.playPop();
+      this.openModal('settings');
+    });
+
+    // Главное меню: Раздел для родителей
+    this.btnMenuAdult?.addEventListener('click', () => {
+      sound.playPop();
+      this.generateAdultMathQuestion();
+      this.openModal('adult');
+    });
+
+    // Экран настройки: Назад в главное меню
+    this.btnSetupBackMenu?.addEventListener('click', () => {
+      sound.playPop();
+      this.showMainMenu();
+    });
+
+    // HUD: Выход в главное меню
+    this.btnHudMainMenu?.addEventListener('click', () => {
+      sound.playPop();
+      this.closeHudMenu();
+      this.closeAllModals();
+      tutorial.stop();
+      this.showMainMenu();
+    });
 
     // Закрытие модальных окон
     document.querySelectorAll('[data-close]').forEach((btn) => {
@@ -567,6 +666,12 @@ export class UIController {
   // --- ОТРИСОВКА ИНТЕРФЕЙСА ---
 
   render(state) {
+    if (this.isMainMenuActive) {
+      this.renderMainMenu(state);
+      if (this.topHud) this.topHud.style.display = 'none';
+      return;
+    }
+
     // Локация меняется независимо от модальных окон. Закрываем временные
     // окна при переходе, чтобы они не перекрывали новую сцену.
     if (this.lastRenderedLocation !== null && this.lastRenderedLocation !== state.currentLocation) {
@@ -577,14 +682,9 @@ export class UIController {
     if (!state.isGameStarted) {
       this.topHud.style.display = 'none';
       this.showScreen('screen-setup');
-      this.showTitleSplashIfNeeded();
       return;
     }
 
-    this.titleSplashDismissed = true;
-    try { window.localStorage.setItem('finny_title_splash_seen', '1'); } catch (_) {}
-    try { window.sessionStorage.setItem('finny_title_splash_seen', '1'); } catch (_) {}
-    this.hideTitleSplashImmediately();
     this.topHud.style.display = 'flex';
 
     // 1. Обновляем верхний HUD
@@ -626,36 +726,68 @@ export class UIController {
     document.getElementById(screenId)?.classList.add('active');
   }
 
-  readTitleSplashState() {
-    try {
-      if (window.localStorage.getItem('finny_title_splash_seen') === '1') return true;
-    } catch (_) { /* Try tab storage below. */ }
-    try {
-      return window.sessionStorage.getItem('finny_title_splash_seen') === '1';
-    } catch (_) { return false; }
+  showMainMenu() {
+    this.isMainMenuActive = true;
+    if (this.screenMainMenu) {
+      this.screenMainMenu.hidden = false;
+      this.screenMainMenu.style.display = 'grid';
+      this.screenMainMenu.classList.remove('is-leaving');
+    }
+    if (this.topHud) this.topHud.style.display = 'none';
+    this.renderMainMenu(gameState.state);
   }
 
-  showTitleSplashIfNeeded() {
-    if (!this.titleSplash || this.titleSplashDismissed) return;
-    this.titleSplash.hidden = false;
-    this.titleSplash.classList.remove('is-leaving');
+  hideMainMenu() {
+    this.isMainMenuActive = false;
+    if (this.screenMainMenu) {
+      this.screenMainMenu.classList.add('is-leaving');
+      setTimeout(() => {
+        if (!this.isMainMenuActive && this.screenMainMenu) {
+          this.screenMainMenu.hidden = true;
+          this.screenMainMenu.style.display = 'none';
+          this.screenMainMenu.classList.remove('is-leaving');
+        }
+      }, 240);
+    }
+    this.render(gameState.state);
   }
 
-  dismissTitleSplash() {
-    if (!this.titleSplash) return;
-    this.titleSplashDismissed = true;
-    try { window.localStorage.setItem('finny_title_splash_seen', '1'); } catch (_) {}
-    try { window.sessionStorage.setItem('finny_title_splash_seen', '1'); } catch (_) {}
-    this.titleSplash.classList.add('is-leaving');
-    window.setTimeout(() => {
-      if (this.titleSplash) this.titleSplash.hidden = true;
-    }, 360);
-  }
+  renderMainMenu(state) {
+    if (!this.screenMainMenu) return;
+    const hasSave = Boolean(state && state.isGameStarted);
 
-  hideTitleSplashImmediately() {
-    if (!this.titleSplash) return;
-    this.titleSplash.classList.remove('is-leaving');
-    this.titleSplash.hidden = true;
+    if (this.btnMenuContinue) {
+      this.btnMenuContinue.style.display = hasSave ? 'flex' : 'none';
+    }
+    if (this.menuSaveInfo && hasSave) {
+      this.menuSaveInfo.textContent = `Период ${state.period} · ${state.wallet.coins} 🪙`;
+    }
+    if (this.menuPetStatusPill) {
+      if (hasSave && state.pet) {
+        this.menuPetStatusPill.style.display = 'inline-block';
+        const moodEmojis = {
+          happy: '✨ Счастливый',
+          hungry: '🥣 Проголодался',
+          playful: '🎈 Игривый',
+          proud_saver: '🏺 Гордый',
+          sleepy: '💤 Уютный'
+        };
+        const moodText = moodEmojis[state.pet.mood] || '✨ Доволен';
+        this.menuPetStatusPill.textContent = `${state.pet.name} · ${moodText}`;
+      } else {
+        this.menuPetStatusPill.style.display = 'none';
+      }
+    }
+    if (this.menuPetImg) {
+      if (hasSave && state.pet) {
+        this.menuPetImg.src = this.getPetAssetPath(state.pet.species, state.pet.pattern);
+      } else {
+        this.menuPetImg.src = 'assets/characters/pet_cat_v2.png';
+      }
+    }
+    if (this.newgamePetName && state.pet) {
+      this.newgamePetName.textContent = state.pet.name;
+    }
   }
 
   toggleHudMenu(force) {

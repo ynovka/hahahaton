@@ -18,28 +18,77 @@
   <!-- Салют из конфетти -->
   <canvas id="confetti-canvas"></canvas>
 
-  <!-- Небольшая заставка: показывается только при первом запуске новой игры. -->
-  <section class="title-splash" id="title-splash" aria-labelledby="title-splash-heading" hidden>
+  <!-- ======================================================================
+       ГЛАВНОЕ МЕНЮ ИГРЫ
+       ====================================================================== -->
+  <section class="main-menu-screen title-splash" id="screen-main-menu" aria-labelledby="main-menu-heading">
     <div class="title-splash-glow title-splash-glow-left"></div>
     <div class="title-splash-glow title-splash-glow-right"></div>
     <span class="title-spark spark-one">✦</span>
     <span class="title-spark spark-two">✦</span>
     <span class="title-spark spark-three">●</span>
-    <div class="title-splash-card">
+    
+    <div class="main-menu-card title-splash-card">
       <div class="title-paw-mark">🐾</div>
-      <p class="title-kicker">ТВОЙ МАЛЕНЬКИЙ ГОРОД</p>
-      <h1 id="title-splash-heading">Питомец<br><span>Финни</span></h1>
-      <p class="title-splash-copy">Заботься, планируй монетки<br>и исполняй мечты вместе.</p>
+      <p class="title-kicker">ОБРАЗОВАТЕЛЬНАЯ ФИНАНСОВАЯ ИГРА</p>
+      <h1 id="main-menu-heading">Питомец<br><span>Финни</span></h1>
+      <p class="title-splash-copy">Заботься, планируй монетки<br>и исполняй мечты вместе!</p>
+
+      <!-- Сцена с маскотом / текущим питомцем -->
       <div class="title-pet-stage" aria-hidden="true">
-        <span class="title-coin coin-left">✦</span>
-        <span class="title-coin coin-right">✦</span>
+        <span class="title-coin coin-left floating-anim">✦</span>
+        <span class="title-coin coin-right floating-anim-delayed">✦</span>
         <span class="title-ground"></span>
-        <img src="assets/characters/pet_cat_v2.png" alt="">
+        <img id="menu-pet-img" src="assets/characters/pet_cat_v2.png" alt="Питомец">
       </div>
-      <button class="title-enter-btn" type="button" id="btn-enter-game">
-        <span>Начать приключение</span><b>→</b>
-      </button>
-      <p class="title-footnote">7 питомцев · друзья · финансовые привычки</p>
+      <div class="menu-pet-badge-wrap">
+        <span class="menu-pet-status-pill" id="menu-pet-status-pill" style="display: none;">Финни · ✨ Доволен</span>
+      </div>
+
+      <!-- Основной стек действий меню -->
+      <div class="menu-actions-stack">
+        <!-- Кнопка «Продолжить» с бейджем сохранения -->
+        <button class="menu-btn menu-btn-continue" type="button" id="btn-menu-continue" style="display: none;">
+          <div class="menu-btn-icon-wrap">▶</div>
+          <div class="menu-btn-meta">
+            <span class="menu-btn-title">Продолжить игру</span>
+            <span class="menu-btn-subtitle" id="menu-save-info">Период 1 · 100 🪙</span>
+          </div>
+        </button>
+
+        <!-- Кнопка «Новая игра» -->
+        <button class="menu-btn menu-btn-newgame" type="button" id="btn-menu-newgame">
+          <div class="menu-btn-icon-wrap">✨</div>
+          <div class="menu-btn-meta">
+            <span class="menu-btn-title">Новая игра</span>
+            <span class="menu-btn-subtitle">Создай любимого друга</span>
+          </div>
+        </button>
+
+        <!-- Кнопка «Демо-тур» -->
+        <button class="menu-btn menu-btn-demo" type="button" id="btn-menu-demo">
+          <div class="menu-btn-icon-wrap">🎓</div>
+          <div class="menu-btn-meta">
+            <span class="menu-btn-title">Демо-тур для жюри</span>
+            <span class="menu-btn-subtitle">Интерактивный экспресс-тур</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Второстепенная строка кнопок -->
+      <div class="menu-secondary-row">
+        <button class="clay-btn btn-ghost menu-sub-btn" type="button" id="btn-menu-settings" title="Настройки звука и игры">
+          ⚙️ Настройки
+        </button>
+        <button class="clay-btn btn-ghost menu-sub-btn" type="button" id="btn-menu-adult" title="Раздел для родителей">
+          👨‍👩‍👧 Родителям
+        </button>
+      </div>
+
+      <!-- Невидимая ссылка-кнопка для совместимости со старыми тестами -->
+      <button type="button" id="btn-enter-game" style="display: none;" aria-hidden="true"></button>
+
+      <p class="title-footnote">7 питомцев · 4 друга · 3 горшочка бюджета</p>
     </div>
   </section>
 
@@ -83,6 +132,7 @@
           </div>
         </div>
         <div class="hud-actions hud-menu-actions">
+          <button class="hud-icon-btn" id="btn-hud-main-menu" title="Выйти в главное меню">🏠<span>В меню</span></button>
           <button class="hud-icon-btn" id="btn-start-tutorial" title="Пройти интерактивное обучение">🎓<span>Обучение</span></button>
           <button class="hud-icon-btn" id="btn-open-advisor" title="Советы и уроки">💡<span>Советы</span></button>
           <button class="hud-icon-btn" id="btn-open-finance" title="История и план/факт">📊<span>Финансы</span></button>
@@ -100,6 +150,7 @@
          ЭКРАН 1: СОЗДАНИЕ ПИТОМЦА И ЗНАКОМСТВО
          ====================================================================== -->
     <main class="screen active" id="screen-setup">
+      <button type="button" class="setup-back-btn" id="btn-setup-back-menu">‹ В главное меню</button>
       <h1 class="setup-title">🐾 Питомец Финни</h1>
       <p class="setup-subtitle">Создай любимого друга и научись управлять монетами!</p>
 
@@ -743,6 +794,32 @@
         <div class="reset-confirm-actions">
           <button type="button" class="clay-btn btn-ghost" id="btn-cancel-reset">Оставить прогресс</button>
           <button type="button" class="clay-btn btn-pink" id="btn-confirm-reset">Сбросить игру</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Подтверждение новой игры при наличии сохранения -->
+  <div class="modal-backdrop" id="modal-newgame-confirm">
+    <div class="modal-card reset-confirm-card" role="dialog" aria-modal="true" aria-labelledby="newgame-confirm-title">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge">✨</div>
+          <h2 class="modal-title" id="newgame-confirm-title">Начать новую игру?</h2>
+        </div>
+        <button class="modal-close-btn" data-close="modal-newgame-confirm" aria-label="Отмена">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="reset-confirm-copy">
+          У тебя уже есть питомец <strong id="newgame-pet-name">Финни</strong>! При создании нового питомца текущий прогресс будет перезаписан.
+        </p>
+        <div class="reset-confirm-actions">
+          <button type="button" class="clay-btn btn-ghost" id="btn-cancel-newgame" data-close="modal-newgame-confirm">
+            Оставить текущего
+          </button>
+          <button type="button" class="clay-btn btn-pink" id="btn-confirm-newgame">
+            Начать заново ➔
+          </button>
         </div>
       </div>
     </div>

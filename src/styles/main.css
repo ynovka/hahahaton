@@ -1007,21 +1007,37 @@ body::before { display: none; }
 
 /* --------------------------------------------------------------------------
    Короткая заставка перед созданием питомца. Она не является отдельным
-   «экраном игры»: просто знакомит с настроением мира и уходит за один тап. */
+/* ============================================================================
+   ГЛАВНОЕ МЕНЮ ИГРЫ (MAIN MENU SCREEN)
+   ============================================================================ */
+.main-menu-screen,
 .title-splash {
   position: fixed;
   inset: 0;
   z-index: 12000;
   display: grid;
   place-items: center;
-  overflow: hidden;
-  padding: 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
   background:
     radial-gradient(circle at 24% 16%, rgba(255,255,255,.9) 0 4%, transparent 22%),
     radial-gradient(circle at 76% 8%, rgba(255,220,155,.6) 0 3%, transparent 20%),
     linear-gradient(155deg, #fff8e9 0%, #f6e5cf 49%, #d6ebdd 100%);
+  transition: opacity .25s ease, transform .25s ease;
 }
-.title-splash.is-leaving { animation: title-splash-out .24s ease forwards; pointer-events: none; }
+
+.main-menu-screen[hidden],
+.title-splash[hidden] {
+  display: none !important;
+}
+
+.main-menu-screen.is-leaving,
+.title-splash.is-leaving {
+  animation: title-splash-out .24s ease forwards;
+  pointer-events: none;
+}
+
 .title-splash-glow {
   position: absolute;
   width: 310px;
@@ -1033,17 +1049,22 @@ body::before { display: none; }
 }
 .title-splash-glow-left { top: -125px; left: -120px; background: #ffd399; }
 .title-splash-glow-right { right: -135px; bottom: -130px; background: #afd7c0; }
+
+.main-menu-card,
 .title-splash-card {
   position: relative;
   z-index: 1;
-  width: min(100%, 392px);
-  padding: 25px 24px 21px;
-  border: 5px solid rgba(255,255,255,.94);
-  border-radius: 38px;
-  background: rgba(255,251,242,.76);
-  box-shadow: 0 26px 56px rgba(91,57,41,.22), inset 0 2px 0 rgba(255,255,255,.95);
+  width: min(100%, 410px);
+  padding: 24px 22px 18px;
+  border: 5px solid rgba(255,255,255,.95);
+  border-radius: 36px;
+  background: rgba(255,251,242,.85);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 24px 50px rgba(91,57,41,.18), inset 0 2px 0 rgba(255,255,255,.95);
   text-align: center;
+  margin: auto;
 }
+
 .title-paw-mark {
   display: grid;
   place-items: center;
@@ -1056,57 +1077,69 @@ body::before { display: none; }
   font-size: 24px;
   transform: rotate(-8deg);
 }
+
 .title-kicker {
   color: #a7644e;
   font: 800 10px/1 var(--font-body);
   letter-spacing: .13em;
 }
+
+.main-menu-card h1,
 .title-splash h1 {
   margin: 6px 0 5px;
   color: #4e362e;
-  font: 700 clamp(40px, 12vw, 55px)/.84 var(--font-heading);
+  font: 700 clamp(38px, 11vw, 52px)/.86 var(--font-heading);
   letter-spacing: -.035em;
   text-shadow: 0 3px 0 #fff;
 }
+.main-menu-card h1 span,
 .title-splash h1 span { color: #ef775e; }
+
 .title-splash-copy {
   color: #76594d;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 800;
   line-height: 1.35;
 }
+
 .title-pet-stage {
   position: relative;
   display: grid;
   place-items: end center;
-  height: 195px;
-  margin: 7px auto 8px;
+  height: 180px;
+  margin: 6px auto 6px;
 }
 .title-pet-stage img {
   position: relative;
   z-index: 2;
-  width: 190px;
-  height: 190px;
+  width: 175px;
+  height: 175px;
   object-fit: contain;
-  filter: drop-shadow(0 15px 12px rgba(93,57,38,.21));
+  filter: drop-shadow(0 14px 12px rgba(93,57,38,.2));
+  transition: transform .25s ease;
 }
+.title-pet-stage:hover img {
+  transform: scale(1.05);
+}
+
 .title-ground {
   position: absolute;
   z-index: 1;
-  bottom: 12px;
-  width: 160px;
-  height: 22px;
+  bottom: 10px;
+  width: 155px;
+  height: 20px;
   border-radius: 50%;
   background: rgba(115,75,51,.17);
   filter: blur(2px);
 }
+
 .title-coin {
   position: absolute;
   z-index: 3;
   display: grid;
   place-items: center;
-  width: 31px;
-  height: 31px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #ffd264;
   border: 2px solid #fff1b6;
@@ -1114,26 +1147,174 @@ body::before { display: none; }
   color: #bc6b24;
   font-size: 16px;
 }
-.coin-left { left: 48px; top: 62px; }
-.coin-right { right: 43px; top: 96px; }
-.title-enter-btn {
-  width: 100%;
-  min-height: 56px;
-  border: 0;
-  border-bottom: 5px solid #d9575a;
-  border-radius: 20px;
-  background: linear-gradient(180deg, #ff8d79, #f66d6d);
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.38), 0 10px 18px rgba(211,91,82,.21);
-  color: #fff;
-  cursor: pointer;
-  font: 700 18px var(--font-heading);
-  transition: transform .16s ease, box-shadow .16s ease;
+.coin-left { left: 44px; top: 56px; }
+.coin-right { right: 40px; top: 90px; }
+
+@keyframes float-coin {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
 }
-.title-enter-btn b { margin-left: 9px; font-size: 25px; line-height: 0; }
-.title-enter-btn:hover { transform: translateY(-2px); box-shadow: inset 0 2px 0 rgba(255,255,255,.4), 0 13px 22px rgba(211,91,82,.27); }
-.title-enter-btn:active { transform: translateY(3px); border-bottom-width: 2px; box-shadow: inset 0 2px 0 rgba(255,255,255,.3); }
-.title-enter-btn:focus-visible { outline: 4px solid #60413a; outline-offset: 4px; }
-.title-footnote { margin-top: 14px; color: #a18472; font-size: 11px; font-weight: 800; }
+.floating-anim {
+  animation: float-coin 2.4s ease-in-out infinite;
+}
+.floating-anim-delayed {
+  animation: float-coin 2.4s ease-in-out infinite 1.2s;
+}
+
+.menu-pet-badge-wrap {
+  margin-top: -4px;
+  margin-bottom: 6px;
+}
+.menu-pet-status-pill {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(255, 238, 215, 0.95);
+  color: #8c5222;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1.5px solid rgba(230, 160, 90, 0.45);
+  box-shadow: 0 4px 10px rgba(140,82,34,.1);
+}
+
+/* Стек действий главного меню */
+.menu-actions-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+  user-select: none;
+}
+.menu-btn:hover {
+  transform: translateY(-2px);
+}
+.menu-btn:active {
+  transform: translateY(2px);
+}
+.menu-btn:focus-visible {
+  outline: 3px solid #ff9d79;
+  outline-offset: 3px;
+}
+
+.menu-btn-icon-wrap {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  font-size: 21px;
+  flex-shrink: 0;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.35);
+}
+
+.menu-btn-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.menu-btn-title {
+  font-family: var(--font-heading);
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.menu-btn-subtitle {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: .88;
+}
+
+/* Кнопка «Продолжить» */
+.menu-btn-continue {
+  background: linear-gradient(180deg, #4ade80, #22c55e);
+  border-bottom: 4px solid #15803d;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(34,197,94,.28), inset 0 2px 0 rgba(255,255,255,.35);
+}
+.menu-btn-continue .menu-btn-icon-wrap {
+  background: rgba(255,255,255,.22);
+}
+
+/* Кнопка «Новая игра» */
+.menu-btn-newgame {
+  background: linear-gradient(180deg, #ff8d79, #f66d6d);
+  border-bottom: 4px solid #c24143;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(246,109,109,.26), inset 0 2px 0 rgba(255,255,255,.35);
+}
+.menu-btn-newgame .menu-btn-icon-wrap {
+  background: rgba(255,255,255,.22);
+}
+
+/* Кнопка «Демо-тур» */
+.menu-btn-demo {
+  background: linear-gradient(180deg, #fbbf24, #f59e0b);
+  border-bottom: 4px solid #b45309;
+  color: #78350f;
+  box-shadow: 0 8px 18px rgba(245,158,11,.24), inset 0 2px 0 rgba(255,255,255,.45);
+}
+.menu-btn-demo .menu-btn-icon-wrap {
+  background: rgba(255,255,255,.35);
+}
+
+/* Второстепенная строка кнопок (Настройки, Родителям) */
+.menu-secondary-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.menu-sub-btn {
+  flex: 1;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Кнопка возврата в меню из экрана создания персонажа */
+.setup-back-btn {
+  background: transparent;
+  border: 0;
+  color: #8c5222;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 6px 14px;
+  margin-bottom: 6px;
+  border-radius: 14px;
+  transition: background .15s ease, transform .15s ease;
+  align-self: flex-start;
+}
+.setup-back-btn:hover {
+  background: rgba(140,82,34,0.08);
+  transform: translateX(-2px);
+}
+.setup-back-btn:active {
+  transform: translateY(1px);
+}
+
+.title-footnote {
+  margin-top: 13px;
+  color: #a18472;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .title-spark {
   position: absolute;
   z-index: 1;
@@ -1144,11 +1325,18 @@ body::before { display: none; }
 .spark-one { top: 14%; left: max(7%, calc(50% - 248px)); }
 .spark-two { right: max(6%, calc(50% - 250px)); top: 27%; }
 .spark-three { bottom: 17%; left: max(9%, calc(50% - 226px)); color: #eb9375; font-size: 17px; }
-@keyframes title-splash-out { to { opacity: 0; } }
+
+@keyframes title-splash-out { to { opacity: 0; transform: scale(.97); } }
+
 @media (max-height: 690px) {
-  .title-splash-card { padding: 17px 22px 15px; }
-  .title-pet-stage { height: 145px; margin: 2px auto; }
-  .title-pet-stage img { width: 145px; height: 145px; }
-  .title-splash h1 { font-size: 42px; }
+  .main-menu-card,
+  .title-splash-card { padding: 16px 20px 14px; }
+  .title-pet-stage { height: 135px; margin: 2px auto; }
+  .title-pet-stage img { width: 135px; height: 135px; }
+  .main-menu-card h1,
+  .title-splash h1 { font-size: 38px; }
   .title-footnote { margin-top: 8px; }
+  .menu-btn { padding: 9px 14px; }
+  .menu-btn-icon-wrap { width: 38px; height: 38px; font-size: 18px; }
 }
+
