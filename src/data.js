@@ -106,14 +106,14 @@ export const DREAM_GOALS = [
 ];
 
 export const WARDROBE_ACCESSORIES = [
-  { id: 'hat_party', name: 'Праздничный колпак', slot: 'head', emoji: '🎉', price: 15, asset: 'assets/item_hat_party.png' },
-  { id: 'hat_cap', name: 'Спортивная кепка', slot: 'head', emoji: '🧢', price: 20, asset: null },
-  { id: 'hat_crown', name: 'Золотая корона', slot: 'head', emoji: '👑', price: 50, asset: null },
-  { id: 'neck_bell', name: 'Колокольчик на ленте', slot: 'neck', emoji: '🔔', price: 15, asset: null },
-  { id: 'neck_scarf', name: 'Тёплый вязаный шарфик', slot: 'neck', emoji: '🧣', price: 25, asset: null },
-  { id: 'neck_bow', name: 'Красный атласный бантик', slot: 'neck', emoji: '🎀', price: 20, asset: 'assets/item_neck_bow.png' },
-  { id: 'glasses_sun', name: 'Крутые солнечные очки', slot: 'glasses', emoji: '🕶️', price: 30, asset: null },
-  { id: 'glasses_smart', name: 'Очки профессора', slot: 'glasses', emoji: '👓', price: 35, asset: null }
+  { id: 'hat_party', name: 'Праздничный колпак', slot: 'head', price: 15, asset: 'assets/wardrobe/hat-party.svg' },
+  { id: 'hat_cap', name: 'Спортивная кепка', slot: 'head', price: 20, asset: 'assets/wardrobe/hat-cap.svg' },
+  { id: 'hat_crown', name: 'Золотая корона', slot: 'head', price: 50, asset: 'assets/wardrobe/hat-crown.svg' },
+  { id: 'neck_bell', name: 'Колокольчик на ленте', slot: 'neck', price: 15, asset: 'assets/wardrobe/neck-bell.svg' },
+  { id: 'neck_scarf', name: 'Тёплый вязаный шарфик', slot: 'neck', price: 25, asset: 'assets/wardrobe/neck-scarf.svg' },
+  { id: 'neck_bow', name: 'Красный атласный бантик', slot: 'neck', price: 20, asset: 'assets/wardrobe/neck-bow.svg' },
+  { id: 'glasses_sun', name: 'Крутые солнечные очки', slot: 'glasses', price: 30, asset: 'assets/wardrobe/glasses-sun.svg' },
+  { id: 'glasses_smart', name: 'Очки профессора', slot: 'glasses', price: 35, asset: 'assets/wardrobe/glasses-smart.svg' }
 ];
 
 export const SHOP_CATALOG = [
@@ -198,7 +198,7 @@ export const SHOP_CATALOG = [
     isMandatory: false,
     price: 15,
     emoji: '🎉',
-    asset: 'assets/item_hat_party.png',
+    asset: 'assets/wardrobe/hat-party.svg',
     wardrobeId: 'hat_party',
     description: 'Яркий праздничный колпачок с помпоном для отличного настроения!'
   },
@@ -221,7 +221,7 @@ export const SHOP_CATALOG = [
     isMandatory: false,
     price: 20,
     emoji: '🎀',
-    asset: 'assets/item_neck_bow.png',
+    asset: 'assets/wardrobe/neck-bow.svg',
     wardrobeId: 'neck_bow',
     description: 'Превращает питомца в настоящего элегантного джентльмена или леди!'
   },

@@ -29,38 +29,49 @@
   top: 0;
   left: 0;
   pointer-events: none;
+  /* Each illustrated room has a different camera crop set by renderRoom(). */
+  transform: scale(var(--room-bg-scale, 1.12));
+  transform-origin: var(--room-bg-origin, center 53%);
 }
 
-/* Игрок и питомец перемещаются по сцене касанием, а не по стрелкам. */
+/* Герой появляется в фиксированной точке локации с плавной живой анимацией дыхания */
 .hero-actor-container {
   position: absolute;
-  left: 36%;
-  bottom: 21%;
-  width: 148px;
-  height: 190px;
+  left: 26%;
+  bottom: clamp(94px, 18vh, 150px);
+  width: clamp(160px, 34vw, 210px);
+  height: clamp(170px, 36vh, 220px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   transform: translateX(-50%);
   transform-origin: bottom center;
-  z-index: 34;
+  z-index: 24;
   pointer-events: none;
-  transition: left .42s cubic-bezier(.22,.78,.25,1), bottom .42s cubic-bezier(.22,.78,.25,1), transform .16s ease;
+  animation: heroBreathe 3s ease-in-out infinite;
 }
-
-.hero-actor-container.is-walking { animation: heroWalk .22s ease-in-out infinite alternate; }
-.hero-actor-container.facing-left { transform: translateX(-50%) scaleX(-1); }
 
 .hero-sprite-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 14px 18px rgba(8,12,34,.34));
+  filter: drop-shadow(0 14px 18px rgba(8, 12, 34, .34));
 }
 
-@keyframes heroWalk {
-  from { margin-bottom: 0; }
-  to { margin-bottom: 5px; }
+.hero-actor-container[data-gender="girl"] .hero-sprite-img {
+  transform: scale(1.08);
+}
+
+@keyframes heroBreathe {
+
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1, 1);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-5px) scale(0.99, 1.02);
+  }
 }
 
 /* Панель навигации комнаты (под HUD) */
@@ -119,25 +130,37 @@
 
 .pet-actor-container {
   position: absolute;
-  bottom: 18%;
-  left: 48%;
+  bottom: clamp(92px, 15vh, 130px);
+  left: 52%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  z-index: 40;
+  z-index: 25;
   cursor: pointer;
-  transition: left .42s cubic-bezier(.22,.78,.25,1), bottom .42s cubic-bezier(.22,.78,.25,1), transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: petBreathe 2.5s ease-in-out infinite 0.2s;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pet-actor-container:hover {
+  transform: translateX(-50%) scale(1.05);
 }
 
 .pet-actor-container:active {
   transform: translateX(-50%) scale(0.92);
 }
 
-/* Стадии роста меняют визуальный размер питомца! */
-.pet-actor-container.stage-baby .pet-figure { transform: scale(0.85); }
-.pet-actor-container.stage-junior .pet-figure { transform: scale(1.0); }
-.pet-actor-container.stage-adult .pet-figure { transform: scale(1.18); }
+@keyframes petBreathe {
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1, 1);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-4px) scale(1.02, 0.98);
+  }
+}
 
 .pet-figure {
   width: 170px;
@@ -146,13 +169,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: petIdle 2.6s infinite ease-in-out alternate;
-}
-
-@keyframes petIdle {
-  0% { transform: translateY(0px) scale(1, 1); }
-  50% { transform: translateY(-4px) scale(0.98, 1.02); }
-  100% { transform: translateY(0px) scale(1, 1); }
 }
 
 .pet-base-img {
@@ -165,24 +181,49 @@
 /* Надетые аксессуары на питомце */
 .pet-accessory-layer {
   position: absolute;
+  inset: 0;
   pointer-events: none;
 }
 
 .pet-accessory-layer.slot-head {
-  top: 6px;
-  font-size: 38px;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.2));
+  z-index: 2;
+  filter: drop-shadow(0 2px 3px rgba(48, 31, 24, .28));
 }
 
 .pet-accessory-layer.slot-neck {
-  top: 72px;
-  font-size: 30px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  z-index: 1;
+  filter: drop-shadow(0 2px 3px rgba(48, 31, 24, .24));
 }
 
 .pet-accessory-layer.slot-glasses {
-  top: 40px;
-  font-size: 34px;
+  z-index: 3;
+  filter: drop-shadow(0 1px 2px rgba(25, 28, 40, .28));
+}
+
+.pet-accessory-layer img {
+  position: absolute;
+  left: 50%;
+  display: block;
+  object-fit: contain;
+  transform: translateX(-50%);
+}
+
+.pet-accessory-layer.slot-head img {
+  top: -8px;
+  width: 88px;
+  height: 60px;
+}
+
+.pet-accessory-layer.slot-neck img {
+  top: 103px;
+  width: 76px;
+  height: 54px;
+}
+
+.pet-accessory-layer.slot-glasses img {
+  top: 56px;
+  width: 90px;
+  height: 44px;
 }
 
 /* Речевое облачко настроения питомца */
@@ -200,100 +241,6 @@
   align-items: center;
   gap: 4px;
   white-space: nowrap;
-  animation: cloudBob 2s infinite ease-in-out alternate;
-}
-
-@keyframes cloudBob {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-4px); }
-}
-
-/* ============================================================================
-   Персонаж-хозяин или сотрудник в учреждении / у друга
-   ============================================================================ */
-
-.room-character-actor {
-  position: absolute;
-  bottom: 120px;
-  right: 18%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 35;
-  cursor: pointer;
-  animation: characterBreath 3s infinite ease-in-out alternate;
-}
-
-@keyframes characterBreath {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-5px); }
-}
-
-.character-sprite-img {
-  width: 160px;
-  height: 180px;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.25));
-}
-
-/* Плавающий бейдж действия над персонажем */
-.room-action-prompt {
-  position: absolute;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 22px;
-  padding: 10px 18px;
-  border: 2.5px solid var(--clay-pink);
-  box-shadow: var(--clay-shadow-md);
-  font-family: var(--font-heading);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-dark);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  z-index: 70;
-  transition: transform 0.12s;
-  animation: promptPulse 1.8s infinite ease-in-out alternate;
-}
-
-.room-stage::after {
-  content: 'Нажми на свободное место — герой пойдёт туда';
-  position: absolute;
-  left: 50%;
-  bottom: 98px;
-  transform: translateX(-50%);
-  z-index: 22;
-  color: rgba(255,255,255,.94);
-  background: rgba(20,29,67,.72);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-actor-container,
-  .pet-actor-container { transition: none; }
-  .hero-actor-container.is-walking { animation: none; }
-}
-
-.room-action-prompt:hover {
-  transform: translate(-50%, -54%) scale(1.06);
-}
-
-.room-action-prompt:active {
-  transform: translate(-50%, -46%) scale(0.95);
-}
-
-@keyframes promptPulse {
-  0% { transform: translate(-50%, -50%) translateY(0); }
-  100% { transform: translate(-50%, -50%) translateY(-6px); }
 }
 
 /* ============================================================================
@@ -346,12 +293,35 @@
   border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
-.dock-btn.feed .dock-btn-icon { background: var(--clay-orange-bg); border-color: var(--clay-orange); }
-.dock-btn.wash .dock-btn-icon { background: var(--clay-blue-bg); border-color: var(--clay-blue); }
-.dock-btn.play .dock-btn-icon { background: var(--clay-green-bg); border-color: var(--clay-green); }
-.dock-btn.wardrobe .dock-btn-icon { background: var(--clay-pink-bg); border-color: var(--clay-pink); }
-.dock-btn.budget .dock-btn-icon { background: var(--clay-purple-bg); border-color: var(--clay-purple); }
-.dock-btn.finish .dock-btn-icon { background: var(--clay-gold-bg); border-color: var(--clay-gold); }
+.dock-btn.feed .dock-btn-icon {
+  background: var(--clay-orange-bg);
+  border-color: var(--clay-orange);
+}
+
+.dock-btn.wash .dock-btn-icon {
+  background: var(--clay-blue-bg);
+  border-color: var(--clay-blue);
+}
+
+.dock-btn.play .dock-btn-icon {
+  background: var(--clay-green-bg);
+  border-color: var(--clay-green);
+}
+
+.dock-btn.wardrobe .dock-btn-icon {
+  background: var(--clay-pink-bg);
+  border-color: var(--clay-pink);
+}
+
+.dock-btn.budget .dock-btn-icon {
+  background: var(--clay-purple-bg);
+  border-color: var(--clay-purple);
+}
+
+.dock-btn.finish .dock-btn-icon {
+  background: var(--clay-gold-bg);
+  border-color: var(--clay-gold);
+}
 
 .dock-btn-label {
   font-family: var(--font-heading);
@@ -360,12 +330,43 @@
   color: var(--text-dark);
 }
 
-/* Aurora room layer */
-#screen-room { background: #17214b; }
-.room-bg-img { filter: saturate(.9) contrast(1.04) brightness(.92); }
-.room-nav-bar { background: rgba(20,29,67,.90); border: 1px solid rgba(255,255,255,.16); border-radius: 16px; box-shadow: 0 12px 25px rgba(8,12,34,.28); }
-.room-title-wrap { color: #f4f5ff; }
-.btn-back-city { background: rgba(93,156,255,.92); border: 1px solid rgba(255,255,255,.34); box-shadow: none; }
-.pet-speech-cloud { background: rgba(255,255,255,.94); border: 1px solid #ff7866; border-radius: 12px; box-shadow: 0 8px 18px rgba(8,12,34,.16); }
-.pet-base-img, .character-sprite-img { filter: drop-shadow(0 14px 18px rgba(8,12,34,.34)); }
-.room-action-prompt { background: rgba(20,29,67,.94); color: #fff; border: 1px solid rgba(255,120,102,.75); border-radius: 14px; box-shadow: 0 12px 26px rgba(8,12,34,.30); }
+/* Тёплая оболочка комнат */
+#screen-room {
+  background: #f6e6d6;
+}
+
+.room-bg-img {
+  filter: saturate(.88) contrast(1.03) brightness(.97) sepia(.035);
+}
+
+.room-nav-bar {
+  background: rgba(255, 249, 239, .92);
+  border: 1px solid rgba(255, 255, 255, .88);
+  border-radius: 16px;
+  box-shadow: 0 12px 25px rgba(86, 49, 34, .18);
+}
+
+.room-title-wrap {
+  color: #58382b;
+}
+
+.btn-back-city {
+  background: #ef8b6a;
+  border: 1px solid rgba(255, 255, 255, .7);
+  box-shadow: 0 3px 0 #ca684f;
+}
+
+.btn-back-city.is-hidden {
+  display: none;
+}
+
+.pet-speech-cloud {
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid #ff7866;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(8, 12, 34, .16);
+}
+
+.pet-base-img {
+  filter: drop-shadow(0 14px 18px rgba(8, 12, 34, .34));
+}

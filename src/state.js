@@ -44,6 +44,7 @@ function createInitialState() {
   return {
     isGameStarted: false,
     playerName: 'Юный финансист',
+    playerGender: 'boy',
     pet: {
       name: 'Финни',
       species: 'cat',
@@ -82,7 +83,6 @@ function createInitialState() {
     period: 1, // 1..5
     isGameFinished: false,
     currentLocation: 'setup', // 'setup' | 'myroom' | 'citymap' | 'shop' | 'bank' | 'hospital' | 'friend_1'..'friend_7'
-    playerPosition: { location: 'myroom', x: 36, y: 21 },
     puzzles: createDefaultPuzzles(),
     friendships: createDefaultFriendships(),
     inventory: [
@@ -145,7 +145,7 @@ class GameStateManager {
   }
 
   // Старые сохранения были созданы до появления настоящих конвертов бюджета
-  // и позиции игрока. Миграция сохраняет прогресс ребёнка и добавляет недостающие поля.
+  // и настоящих конвертов бюджета. Миграция сохраняет прогресс ребёнка и добавляет недостающие поля.
   migrateLoadedState(state) {
     const initial = createInitialState();
     // Запоминаем наличие полей до объединения с начальными значениями. Иначе
@@ -161,6 +161,7 @@ class GameStateManager {
         ...(state.pet?.equippedAccessories || {})
       }
     };
+    state.playerGender = state.playerGender === 'girl' ? 'girl' : 'boy';
     state.wallet = { ...initial.wallet, ...(state.wallet || {}) };
     state.budget = { ...initial.budget, ...(state.budget || {}) };
     state.puzzles = { ...initial.puzzles, ...(state.puzzles || {}) };
@@ -187,14 +188,10 @@ class GameStateManager {
       }
     }
 
-    const position = state.playerPosition;
-    if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y)) {
-      state.playerPosition = { ...initial.playerPosition };
-    } else {
-      // В комнатах герой ходит по полу, а не забирается на мебель фона.
-      state.playerPosition.x = Math.min(92, Math.max(8, position.x));
-      state.playerPosition.y = Math.min(38, Math.max(14, position.y));
-    }
+    // Ранние веб-сборки позволяли ходить по фоновой иллюстрации. Эта механика
+    // отменена: герой появляется в заданной точке сцены, поэтому старую
+    // координату больше не сохраняем.
+    delete state.playerPosition;
 
     return state;
   }
@@ -205,19 +202,6 @@ class GameStateManager {
     } catch (e) {
       console.error('Ошибка записи сохранения в localStorage', e);
     }
-  }
-
-  setPlayerPosition(x, y) {
-    const safeX = Math.round(Math.min(92, Math.max(8, Number(x) || 36)));
-    const safeY = Math.round(Math.min(38, Math.max(14, Number(y) || 21)));
-    this.state.playerPosition = {
-      location: this.state.currentLocation,
-      x: safeX,
-      y: safeY
-    };
-    // Позиция должна переживать закрытие браузера, но движение не должно
-    // пересобирать весь интерфейс на каждом касании.
-    this.save();
   }
 
   answerLesson(lessonId, optionId) {
@@ -254,20 +238,20 @@ class GameStateManager {
   // --- ДЕЙСТВИЯ ИГРЫ ---
 
   // Старт новой игры (после экрана создания питомца)
-  startNewGame({ petName, species, pattern, playerName }) {
+  startNewGame({ petName, species, pattern, playerName, playerGender }) {
     const s = this.state;
     const safePetName = (petName || 'Финни').trim().slice(0, 16);
     const safePlayerName = (playerName || 'Юный финансист').trim().slice(0, 20);
 
     s.isGameStarted = true;
     s.playerName = safePlayerName;
+    s.playerGender = playerGender === 'girl' ? 'girl' : 'boy';
     s.pet.name = safePetName;
     s.pet.species = species || 'cat';
     s.pet.pattern = pattern || 'classic';
     s.pet.isHungry = true;
     s.isGameFinished = false;
     s.currentLocation = 'myroom';
-    s.playerPosition = { location: 'myroom', x: 36, y: 21 };
     s.advisorTip = `Знакомься: твой питомец ${safePetName}! Разложи монетки по горшочкам и подтверди план, чтобы выйти в город.`;
 
     this.notify();
@@ -285,16 +269,6 @@ class GameStateManager {
     }
 
     s.currentLocation = locationId;
-    const defaultPositions = {
-      myroom: { x: 36, y: 21 },
-      shop: { x: 28, y: 20 },
-      bank: { x: 28, y: 20 },
-      hospital: { x: 28, y: 20 }
-    };
-    s.playerPosition = {
-      location: locationId,
-      ...(defaultPositions[locationId] || (locationId.startsWith('friend_') ? { x: 26, y: 20 } : { x: 36, y: 21 }))
-    };
 
     if (locationId === 'myroom') {
       s.advisorTip = `Ты дома с ${s.pet.name}! Покорми питомца, примери наряды или составь план.`;
@@ -828,7 +802,7 @@ class GameStateManager {
       s.advisorTip = `Сняли: ${acc.name}.`;
     } else {
       s.pet.equippedAccessories[acc.slot] = acc.id; // надеть
-      s.advisorTip = `Питомец примерил: ${acc.name} ${acc.emoji}! Выглядит просто потрясающе!`;
+      s.advisorTip = `Питомец примерил: ${acc.name}! Выглядит просто потрясающе!`;
     }
 
     s.pet.mood = 'happy';

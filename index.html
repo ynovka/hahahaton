@@ -17,6 +17,31 @@
   <!-- Салют из конфетти -->
   <canvas id="confetti-canvas"></canvas>
 
+  <!-- Небольшая заставка: показывается только при первом запуске новой игры. -->
+  <section class="title-splash" id="title-splash" aria-labelledby="title-splash-heading" hidden>
+    <div class="title-splash-glow title-splash-glow-left"></div>
+    <div class="title-splash-glow title-splash-glow-right"></div>
+    <span class="title-spark spark-one">✦</span>
+    <span class="title-spark spark-two">✦</span>
+    <span class="title-spark spark-three">●</span>
+    <div class="title-splash-card">
+      <div class="title-paw-mark">🐾</div>
+      <p class="title-kicker">ТВОЙ МАЛЕНЬКИЙ ГОРОД</p>
+      <h1 id="title-splash-heading">Питомец<br><span>Финни</span></h1>
+      <p class="title-splash-copy">Заботься, планируй монетки<br>и исполняй мечты вместе.</p>
+      <div class="title-pet-stage" aria-hidden="true">
+        <span class="title-coin coin-left">✦</span>
+        <span class="title-coin coin-right">✦</span>
+        <span class="title-ground"></span>
+        <img src="assets/characters/pet_cat_v2.png" alt="">
+      </div>
+      <button class="title-enter-btn" type="button" id="btn-enter-game">
+        <span>Начать приключение</span><b>→</b>
+      </button>
+      <p class="title-footnote">7 питомцев · друзья · финансовые привычки</p>
+    </div>
+  </section>
+
   <div id="app-container">
 
     <!-- ======================================================================
@@ -75,7 +100,7 @@
 
       <div class="setup-pet-carousel" id="setup-pet-carousel" aria-label="Выбор питомца">
         <button type="button" class="species-nav-btn" id="btn-species-prev" aria-label="Предыдущий питомец">‹</button>
-        <div class="setup-preview-card">
+        <div class="setup-preview-card" id="setup-preview-card" data-pattern="classic">
           <img class="setup-preview-img" id="setup-preview-img" src="assets/characters/pet_cat_v2.png" alt="Питомец">
         </div>
         <button type="button" class="species-nav-btn" id="btn-species-next" aria-label="Следующий питомец">›</button>
@@ -106,6 +131,21 @@
         <label class="setup-label" for="setup-player-name">Твоё игровое имя:</label>
         <input type="text" id="setup-player-name" class="setup-input" value="Юный финансист" maxlength="20" placeholder="Как тебя зовут?">
       </div>
+
+      <fieldset class="setup-input-group gender-choice-group">
+        <legend class="setup-label">Выбери героя</legend>
+        <div class="gender-choice-row" role="group" aria-label="Пол героя">
+          <button type="button" class="gender-choice selected" data-gender="boy" aria-pressed="true">
+            <img src="assets/characters/hero_v2.png" alt="" class="gender-choice-avatar">
+            <span>Мальчик</span>
+          </button>
+          <button type="button" class="gender-choice" data-gender="girl" aria-pressed="false">
+            <img src="assets/hero_idle.png" alt="" class="gender-choice-avatar">
+            <span>Девочка</span>
+          </button>
+        </div>
+        <p class="gender-choice-note">Изменятся герой и оформление его комнаты.</p>
+      </fieldset>
 
       <button type="button" class="clay-btn btn-pink" id="btn-start-game" style="width: 100%; margin-top: 10px; font-size: 16px;">
         ✨ Начать приключение!
@@ -182,7 +222,7 @@
         <!-- Фон интерьера -->
         <img id="room-bg-img" class="room-bg-img" src="assets/bg_room_myroom.png" alt="Комната">
 
-        <!-- Главный герой: идёт к точке, в которую нажал ребёнок -->
+        <!-- Главный герой: стоит в заранее выбранной точке текущей локации -->
         <div class="hero-actor-container" id="room-hero-actor" aria-hidden="true">
           <img class="hero-sprite-img" id="room-hero-img" src="assets/characters/hero_v2.png" alt="">
         </div>
@@ -201,16 +241,14 @@
           </div>
         </div>
 
-        <!-- Персонаж-житель или сотрудник учреждения -->
-        <div class="room-character-actor" id="room-character-actor" style="display: none;">
-          <img class="character-sprite-img" id="room-character-img" src="assets/characters/friend_1_v2.png" alt="Житель">
+        <!-- Хозяин комнаты (друг или служащий) как отдельный живой персонаж -->
+        <div class="npc-actor-container" id="room-npc-actor" role="button" tabindex="0" aria-label="Поговорить с персонажем">
+          <div class="npc-speech-cloud" id="room-npc-bubble">
+            <span id="room-npc-emoji">👋</span> <span id="room-npc-text">Привет!</span>
+          </div>
+          <img class="npc-sprite-img" id="room-npc-img" src="assets/characters/friend_1_v2.png" alt="Персонаж">
         </div>
 
-        <!-- Плавающий бейдж действия над персонажем -->
-        <button type="button" class="room-action-prompt" id="room-action-prompt" style="display: none;">
-          <span id="prompt-emoji">💬</span>
-          <span id="prompt-text">Поговорить</span>
-        </button>
       </div>
 
       <!-- Нижний док действий в комнате -->
@@ -401,26 +439,54 @@
         <button class="modal-close-btn" data-close="modal-friend">✕</button>
       </div>
       <div class="modal-body">
-        <div class="friend-dialogue-card">
-          <img class="friend-dialogue-avatar" id="friend-dialogue-avatar" src="assets/characters/friend_1_v2.png" alt="Друг">
-          <div class="friend-dialogue-bubble" id="friend-dialogue-text">
-            Привет, сосед! Поможешь мне разобраться с покупками?
+        <section class="friend-intro-stage" id="friend-intro-stage" aria-labelledby="friend-dialogue-name">
+          <div class="friend-dialogue-card">
+            <img class="friend-dialogue-avatar" id="friend-dialogue-avatar" src="assets/characters/friend_1_v2.png" alt="Друг">
+            <div class="friend-dialogue-copy">
+              <div class="friend-dialogue-name" id="friend-dialogue-name">Мишка Потап</div>
+              <div class="friend-dialogue-bubble" id="friend-dialogue-text">
+                Привет, сосед! Поможешь мне разобраться с покупками?
+              </div>
+            </div>
           </div>
+
+          <div class="friend-intro-scene">
+            <div class="friend-intro-emblem" id="friend-intro-emblem" aria-hidden="true">🧺</div>
+            <div class="friend-intro-copy">
+              <span>Друг просит помочь</span>
+              <h3 id="friend-intro-title">Умная корзинка Мишки</h3>
+              <p id="friend-intro-theme">Планирование бюджета</p>
+            </div>
+          </div>
+
+          <div class="friend-intro-actions">
+            <button type="button" class="clay-btn btn-pink" id="btn-friend-begin">Давай помогу</button>
+            <button type="button" class="clay-btn btn-ghost" data-close="modal-friend">Закончить разговор</button>
+          </div>
+        </section>
+
+        <section class="friend-challenge-stage" id="friend-challenge-stage" aria-label="Задание друга" hidden>
+          <div class="friend-challenge-heading">
+            <button type="button" class="friend-back-btn" id="btn-friend-back" aria-label="Вернуться к разговору">←</button>
+            <div><span>Задание от</span><strong id="friend-challenge-name">Мишки Потапа</strong></div>
+            <span class="friend-challenge-emblem" id="friend-challenge-emblem" aria-hidden="true">🧺</span>
+          </div>
+          <div class="puzzle-topic-chip" id="puzzle-topic-chip">Финансовая грамотность</div>
+          <div class="puzzle-story-prompt" id="puzzle-story-prompt">
+            Что обязательно нужно купить в первую очередь?
+          </div>
+
+          <div class="puzzle-options-list" id="puzzle-options-list">
+            <!-- Генерируется из KID_PUZZLES -->
+          </div>
+
+          <div class="puzzle-feedback-card" id="puzzle-feedback-card"></div>
+
+          <button type="button" class="clay-btn btn-gold" id="btn-claim-puzzle-reward" style="width: 100%; display: none;">
+            🪙 Забрать награду (+20 монет)!
+          </button>
+          <button type="button" class="friend-finish-btn" id="btn-friend-finish">Закончить разговор</button>
         </div>
-
-        <div class="puzzle-story-prompt" id="puzzle-story-prompt">
-          Что обязательно нужно купить в первую очередь?
-        </div>
-
-        <div class="puzzle-options-list" id="puzzle-options-list">
-          <!-- Генерируется из KID_PUZZLES -->
-        </div>
-
-        <div class="puzzle-feedback-card" id="puzzle-feedback-card"></div>
-
-        <button type="button" class="clay-btn btn-gold" id="btn-claim-puzzle-reward" style="width: 100%; display: none;">
-          🪙 Забрать награду (+20 монет)!
-        </button>
       </div>
     </div>
   </div>
@@ -630,6 +696,18 @@
       </div>
     </div>
   </div>
+
+  <!-- При прямом открытии браузер блокирует ES-модули. Сообщаем, как запустить игру правильно. -->
+  <script>
+    if (location.protocol === 'file:') {
+      document.addEventListener('DOMContentLoaded', function () {
+        var notice = document.createElement('div');
+        notice.className = 'local-file-notice';
+        notice.innerHTML = '<strong>Игра открыта как файл — кнопки не смогут работать.</strong><span>Закрой эту вкладку, дважды нажми <b>start_game.bat</b> в папке игры и открой <b>http://localhost:3000</b>.</span>';
+        document.body.appendChild(notice);
+      });
+    }
+  </script>
 
   <!-- Скрипт игры -->
   <script type="module" src="src/main.js"></script>

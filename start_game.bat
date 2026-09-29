@@ -12,6 +12,15 @@ if not exist node_modules (
 
 echo.
 echo Запускаем локальный веб-сервер игры...
-start "" http://localhost:5173/
-call npx vite --port 5173 --host
+echo Важно: не открывайте index.html двойным кликом.
+echo Игра откроется по адресу http://localhost:3000/
+powershell -NoProfile -Command "try { Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:3000/' -TimeoutSec 1 ^| Out-Null; exit 0 } catch { exit 1 }"
+if errorlevel 1 (
+    start "Питомец Финни — сервер" /min cmd /k "npm run dev"
+    timeout /t 2 /nobreak > nul
+) else (
+    echo Сервер уже запущен.
+)
+start "" http://localhost:3000/
+echo Игра открыта в браузере. Сервер можно закрыть после игры.
 pause

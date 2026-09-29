@@ -28,7 +28,7 @@ export class UIController {
     this.lastRenderedLocation = null;
     this.selectedSpeciesIndex = 0;
     this.setupSwipeStartX = null;
-    this.roomWalkTimer = null;
+    this.titleSplashDismissed = this.readTitleSplashState();
 
     this.initDOMElements();
     this.bindGlobalEvents();
@@ -45,6 +45,8 @@ export class UIController {
     this.screenSetup = document.getElementById('screen-setup');
     this.screenMap = document.getElementById('screen-map');
     this.screenRoom = document.getElementById('screen-room');
+    this.titleSplash = document.getElementById('title-splash');
+    this.btnEnterGame = document.getElementById('btn-enter-game');
 
     // HUD элементы
     this.hudPetName = document.getElementById('hud-pet-name');
@@ -59,8 +61,10 @@ export class UIController {
 
     // Настройка питомца
     this.setupPreviewImg = document.getElementById('setup-preview-img');
+    this.setupPreviewCard = document.getElementById('setup-preview-card');
     this.setupPetNameInput = document.getElementById('setup-pet-name');
     this.setupPlayerNameInput = document.getElementById('setup-player-name');
+    this.setupGenderButtons = document.querySelectorAll('.gender-choice');
     this.speciesGrid = document.getElementById('setup-species-grid');
     this.setupSelectedSpecies = document.getElementById('setup-selected-species');
     this.setupCarousel = document.getElementById('setup-pet-carousel');
@@ -82,15 +86,24 @@ export class UIController {
     this.roomPetImg = document.getElementById('room-pet-img');
     this.petSpeechText = document.getElementById('pet-speech-text');
     this.petSpeechEmoji = document.getElementById('pet-speech-emoji');
+    this.btnRoomExitCity = document.getElementById('btn-room-exit-city');
     this.petAccHead = document.getElementById('pet-acc-head');
     this.petAccNeck = document.getElementById('pet-acc-neck');
     this.petAccGlasses = document.getElementById('pet-acc-glasses');
-    this.roomCharacterActor = document.getElementById('room-character-actor');
-    this.roomCharacterImg = document.getElementById('room-character-img');
-    this.roomActionPrompt = document.getElementById('room-action-prompt');
-    this.promptEmoji = document.getElementById('prompt-emoji');
-    this.promptText = document.getElementById('prompt-text');
+    this.roomNpcActor = document.getElementById('room-npc-actor');
+    this.roomNpcImg = document.getElementById('room-npc-img');
+    this.roomNpcBubble = document.getElementById('room-npc-bubble');
+    this.roomNpcEmoji = document.getElementById('room-npc-emoji');
+    this.roomNpcText = document.getElementById('room-npc-text');
     this.roomDock = document.getElementById('room-dock');
+    this.friendIntroStage = document.getElementById('friend-intro-stage');
+    this.friendChallengeStage = document.getElementById('friend-challenge-stage');
+    this.friendIntroTitle = document.getElementById('friend-intro-title');
+    this.friendIntroTheme = document.getElementById('friend-intro-theme');
+    this.friendIntroEmblem = document.getElementById('friend-intro-emblem');
+    this.friendBeginButton = document.getElementById('btn-friend-begin');
+    this.friendChallengeName = document.getElementById('friend-challenge-name');
+    this.friendChallengeEmblem = document.getElementById('friend-challenge-emblem');
 
     // Модальные окна
     this.modals = {
@@ -111,6 +124,13 @@ export class UIController {
   }
 
   bindGlobalEvents() {
+    // Свойство onclick здесь намеренно: заставка находится выше всей игры и
+    // должна закрываться даже после горячей перезагрузки Vite во время демо.
+    if (this.btnEnterGame) this.btnEnterGame.onclick = () => {
+      sound.playPop();
+      this.dismissTitleSplash();
+    };
+
     // Закрытие модальных окон
     document.querySelectorAll('[data-close]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
@@ -204,6 +224,25 @@ export class UIController {
       this.openModal('adult');
     });
 
+    // Клик по хозяину комнаты или служащему (NPC)
+    this.roomNpcActor?.addEventListener('click', () => {
+      sound.playPop();
+      this.roomNpcActor.classList.add('bounce');
+      setTimeout(() => this.roomNpcActor?.classList.remove('bounce'), 450);
+
+      const loc = gameState.state.currentLocation;
+      if (loc.startsWith('friend_')) {
+        const friendId = parseInt(loc.split('_')[1], 10);
+        this.openFriendDialogue(friendId);
+      } else if (loc === 'shop') {
+        this.openModal('shop');
+      } else if (loc === 'bank') {
+        this.openModal('bank');
+      } else if (loc === 'hospital') {
+        this.openModal('hospital');
+      }
+    });
+
     // Хотбар на карте
     document.getElementById('hotbar-home')?.addEventListener('click', () => {
       sound.playPop();
@@ -242,7 +281,7 @@ export class UIController {
     });
 
     // Кнопка выхода из комнаты в город
-    document.getElementById('btn-room-exit-city')?.addEventListener('click', () => {
+    this.btnRoomExitCity?.addEventListener('click', () => {
       sound.playPop();
       gameState.changeLocation('citymap');
     });
@@ -255,14 +294,6 @@ export class UIController {
       const randIdx = Math.floor(Math.random() * phrases.length);
       this.petSpeechText.textContent = phrases[randIdx];
       this.petSpeechEmoji.textContent = emojis[randIdx];
-      this.roomPetActor.classList.add('bounced');
-      setTimeout(() => this.roomPetActor.classList.remove('bounced'), 400);
-    });
-
-    // Комната — игровая сцена: нажимаем на свободное место и герой идёт туда.
-    this.roomStage?.addEventListener('click', (event) => {
-      if (event.target.closest('button, .room-character-actor, .pet-actor-container, .hero-actor-container')) return;
-      this.movePlayerToPointer(event);
     });
 
     // Карусель выбора питомца: стрелки и свайп по аватару
@@ -290,6 +321,17 @@ export class UIController {
       });
     });
 
+    this.setupGenderButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        sound.playPop();
+        this.setupGenderButtons.forEach((choice) => {
+          const selected = choice === event.currentTarget;
+          choice.classList.toggle('selected', selected);
+          choice.setAttribute('aria-pressed', String(selected));
+        });
+      });
+    });
+
     // Кнопка старта игры
     document.getElementById('btn-start-game')?.addEventListener('click', () => {
       sound.playLevelUp();
@@ -297,12 +339,14 @@ export class UIController {
       const selectedPattern = document.querySelector('.pattern-btn.selected')?.getAttribute('data-pattern') || 'classic';
       const petName = this.setupPetNameInput.value.trim() || 'Финни';
       const playerName = this.setupPlayerNameInput.value.trim() || 'Юный финансист';
+      const playerGender = document.querySelector('.gender-choice.selected')?.getAttribute('data-gender') || 'boy';
 
       gameState.startNewGame({
         petName,
         species: selectedSpecies,
         pattern: selectedPattern,
-        playerName
+        playerName,
+        playerGender
       });
 
       // План расходов нужен до первой прогулки, поэтому показываем его
@@ -427,6 +471,19 @@ export class UIController {
       }
     });
 
+    this.friendBeginButton?.addEventListener('click', () => {
+      sound.playPop();
+      this.setFriendDialogueStage('challenge');
+    });
+    document.getElementById('btn-friend-back')?.addEventListener('click', () => {
+      sound.playPop();
+      this.setFriendDialogueStage('intro');
+    });
+    document.getElementById('btn-friend-finish')?.addEventListener('click', () => {
+      sound.playPop();
+      this.closeModal('friend');
+    });
+
     // Итоги периода: начать следующий период
     document.getElementById('btn-start-next-period')?.addEventListener('click', () => {
       sound.playLevelUp();
@@ -510,9 +567,14 @@ export class UIController {
     if (!state.isGameStarted) {
       this.topHud.style.display = 'none';
       this.showScreen('screen-setup');
+      this.showTitleSplashIfNeeded();
       return;
     }
 
+    this.titleSplashDismissed = true;
+    try { window.localStorage.setItem('finny_title_splash_seen', '1'); } catch (_) {}
+    try { window.sessionStorage.setItem('finny_title_splash_seen', '1'); } catch (_) {}
+    this.hideTitleSplashImmediately();
     this.topHud.style.display = 'flex';
 
     // 1. Обновляем верхний HUD
@@ -525,7 +587,7 @@ export class UIController {
       sleepy: '💤 Уютный'
     };
     this.hudPetMood.textContent = moodEmojis[state.pet.mood] || '✨ Доволен';
-    this.hudPetAvatar.src = `assets/characters/pet_${state.pet.species}_v2.png`;
+    this.hudPetAvatar.src = this.getPetAssetPath(state.pet.species, state.pet.pattern);
     this.hudPeriodNum.textContent = state.period;
     this.hudCoinsVal.textContent = state.wallet.coins;
     this.hudSavingsVal.textContent = state.wallet.savings;
@@ -552,6 +614,38 @@ export class UIController {
   showScreen(screenId) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
     document.getElementById(screenId)?.classList.add('active');
+  }
+
+  readTitleSplashState() {
+    try {
+      if (window.localStorage.getItem('finny_title_splash_seen') === '1') return true;
+    } catch (_) { /* Try tab storage below. */ }
+    try {
+      return window.sessionStorage.getItem('finny_title_splash_seen') === '1';
+    } catch (_) { return false; }
+  }
+
+  showTitleSplashIfNeeded() {
+    if (!this.titleSplash || this.titleSplashDismissed) return;
+    this.titleSplash.hidden = false;
+    this.titleSplash.classList.remove('is-leaving');
+  }
+
+  dismissTitleSplash() {
+    if (!this.titleSplash) return;
+    this.titleSplashDismissed = true;
+    try { window.localStorage.setItem('finny_title_splash_seen', '1'); } catch (_) {}
+    try { window.sessionStorage.setItem('finny_title_splash_seen', '1'); } catch (_) {}
+    this.titleSplash.classList.add('is-leaving');
+    window.setTimeout(() => {
+      if (this.titleSplash) this.titleSplash.hidden = true;
+    }, 360);
+  }
+
+  hideTitleSplashImmediately() {
+    if (!this.titleSplash) return;
+    this.titleSplash.classList.remove('is-leaving');
+    this.titleSplash.hidden = true;
   }
 
   toggleHudMenu(force) {
@@ -618,15 +712,26 @@ export class UIController {
       });
       this.speciesGrid.appendChild(chip);
     });
+    this.updateSetupPreview(PET_SPECIES[0]?.id || 'cat', 'classic');
   }
 
   updateSetupPreview(speciesId, pattern) {
     const pet = PET_SPECIES.find((p) => p.id === speciesId);
     if (pet) {
-      this.setupPreviewImg.src = pet.portrait;
+      const assetPath = this.getPetAssetPath(pet.id, pattern);
+      this.setupPreviewImg.src = assetPath;
       this.setupPreviewImg.alt = pet.name;
-      if (this.setupSelectedSpecies) this.setupSelectedSpecies.textContent = `${pet.emoji} ${pet.name}`;
+      const patternName = COLOR_PATTERNS.find((item) => item.id === pattern)?.name || 'Классический';
+      if (this.setupSelectedSpecies) this.setupSelectedSpecies.textContent = `${pet.emoji} ${pet.name} · ${patternName}`;
+      if (this.setupPreviewCard) {
+        this.setupPreviewCard.dataset.pattern = pattern;
+      }
     }
+  }
+
+  getPetAssetPath(speciesId, pattern = 'classic') {
+    const variant = pattern === 'spotted' ? '_spotted' : '';
+    return `assets/characters/pet_${speciesId}${variant}_v2.png`;
   }
 
   cycleSpecies(direction) {
@@ -728,82 +833,149 @@ export class UIController {
     });
   }
 
-  // Герой и питомец путешествуют вместе по всем интерьерам.
-  renderTravelParty(state) {
+  // В каждой сцене персонажи (герой, питомец, хозяин комнаты / служащий)
+  // представлены отдельными живыми анимированными актерами.
+  renderRoomParty(state) {
     if (!this.roomHeroActor || !this.roomPetActor) return;
+
+    const loc = state.currentLocation;
+    const isHome = loc === 'myroom';
 
     this.roomHeroActor.style.display = 'flex';
-    this.roomPetActor.style.display = 'flex';
-    this.roomHeroImg.src = 'assets/characters/hero_v2.png';
-    this.roomPetActor.className = `pet-actor-container stage-${state.pet.growthStage}`;
-    this.roomPetImg.src = `assets/characters/pet_${state.pet.species}_v2.png`;
+    const playerGender = state.playerGender === 'girl' ? 'girl' : 'boy';
+    this.roomHeroActor.dataset.gender = playerGender;
+    this.roomHeroImg.src = playerGender === 'girl'
+      ? 'assets/hero_idle.png'
+      : 'assets/characters/hero_v2.png';
 
-    const equipped = state.pet.equippedAccessories;
-    this.petAccHead.textContent = equipped.head ? WARDROBE_ACCESSORIES.find((a) => a.id === equipped.head)?.emoji || '' : '';
-    this.petAccNeck.textContent = equipped.neck ? WARDROBE_ACCESSORIES.find((a) => a.id === equipped.neck)?.emoji || '' : '';
-    this.petAccGlasses.textContent = equipped.glasses ? WARDROBE_ACCESSORIES.find((a) => a.id === equipped.glasses)?.emoji || '' : '';
+    const roomPartyConfigs = {
+      myroom: {
+        hero: { left: '29%', bottom: '19%', faceRight: true },
+        npc: null
+      },
+      friend_1: {
+        hero: { left: '74%', bottom: '19%', faceRight: false },
+        npc: { left: '28%', bottom: '19%', faceRight: true, asset: 'assets/characters/friend_1_v2.png', emoji: '🐻', phrase: 'Привет, заходи!' }
+      },
+      friend_2: {
+        hero: { left: '72%', bottom: '20%', faceRight: false },
+        npc: { left: '28%', bottom: '20%', faceRight: true, asset: 'assets/characters/friend_2_v2.png', emoji: '🐿️', phrase: 'Поболтаем?' }
+      },
+      friend_3: {
+        hero: { left: '26%', bottom: '19%', faceRight: true },
+        npc: { left: '72%', bottom: '20%', faceRight: false, asset: 'assets/characters/friend_3_v2.png', emoji: '🦊', phrase: 'Хи-хи, привет!' }
+      },
+      friend_4: {
+        hero: { left: '74%', bottom: '20%', faceRight: false },
+        npc: { left: '28%', bottom: '20%', faceRight: true, asset: 'assets/characters/friend_4_v2.png', emoji: '🐰', phrase: 'Рад встрече!' }
+      },
+      friend_5: {
+        hero: { left: '28%', bottom: '19%', faceRight: true },
+        npc: { left: '70%', bottom: '20%', faceRight: false, asset: 'assets/characters/friend_5_v2.png', emoji: '🦉', phrase: 'Добрый день!' }
+      },
+      friend_6: {
+        hero: { left: '74%', bottom: '18%', faceRight: false },
+        npc: { left: '28%', bottom: '18%', faceRight: true, asset: 'assets/characters/friend_6_v2.png', emoji: '🦔', phrase: 'Заглядывай на чай!' }
+      },
+      friend_7: {
+        hero: { left: '26%', bottom: '19%', faceRight: true },
+        npc: { left: '72%', bottom: '20%', faceRight: false, asset: 'assets/characters/friend_7_v2.png', emoji: '🦝', phrase: 'Мастерю новенькое!' }
+      },
+      shop: {
+        hero: { left: '26%', bottom: '19%', faceRight: true },
+        npc: { left: '70%', bottom: '21%', faceRight: false, asset: 'assets/characters/worker_shop_v2.png', emoji: '🛒', phrase: 'Свежие товары!' }
+      },
+      bank: {
+        hero: { left: '28%', bottom: '20%', faceRight: true },
+        npc: { left: '68%', bottom: '22%', faceRight: false, asset: 'assets/characters/worker_bank_v2.png', emoji: '🏦', phrase: 'Вклады и копилка!' }
+      },
+      hospital: {
+        hero: { left: '72%', bottom: '19%', faceRight: false },
+        npc: { left: '28%', bottom: '20%', faceRight: true, asset: 'assets/characters/worker_hospital_v2.png', emoji: '🩺', phrase: 'Проверим здоровье!' }
+      }
+    };
 
-    const position = state.playerPosition?.location === state.currentLocation
-      ? state.playerPosition
-      : { x: 36, y: 21 };
-    this.applyPlayerPosition(position.x, position.y, false);
-  }
+    const cfg = roomPartyConfigs[loc] || roomPartyConfigs.myroom;
+    this.roomHeroActor.style.left = cfg.hero.left;
+    this.roomHeroActor.style.bottom = cfg.hero.bottom;
+    this.roomHeroImg.style.transform = cfg.hero.faceRight ? 'scaleX(1)' : 'scaleX(-1)';
 
-  applyPlayerPosition(x, y, animate = true) {
-    if (!this.roomHeroActor || !this.roomPetActor) return;
-    const previousX = Number(this.roomHeroActor.dataset.x ?? x);
-    const directionLeft = x < previousX;
-    this.roomHeroActor.dataset.x = String(x);
-    this.roomHeroActor.style.left = `${x}%`;
-    this.roomHeroActor.style.bottom = `${y}%`;
-    this.roomHeroActor.classList.toggle('facing-left', directionLeft);
-    this.roomHeroActor.classList.toggle('is-walking', animate);
-
-    const petX = Math.min(92, Math.max(8, x + (directionLeft ? 12 : -12)));
-    const petY = Math.min(38, Math.max(14, y - 3));
-    this.roomPetActor.style.left = `${petX}%`;
-    this.roomPetActor.style.bottom = `${petY}%`;
-
-    if (this.roomWalkTimer) window.clearTimeout(this.roomWalkTimer);
-    if (animate) {
-      this.roomWalkTimer = window.setTimeout(() => {
-        this.roomHeroActor?.classList.remove('is-walking');
-      }, 460);
+    // Управление живым NPC
+    if (this.roomNpcActor) {
+      if (cfg.npc) {
+        this.roomNpcActor.style.display = 'flex';
+        this.roomNpcActor.style.left = cfg.npc.left;
+        this.roomNpcActor.style.bottom = cfg.npc.bottom;
+        if (this.roomNpcImg) {
+          this.roomNpcImg.src = cfg.npc.asset;
+          this.roomNpcImg.style.transform = cfg.npc.faceRight ? 'scaleX(1)' : 'scaleX(-1)';
+        }
+        if (this.roomNpcEmoji) this.roomNpcEmoji.textContent = cfg.npc.emoji;
+        if (this.roomNpcText) this.roomNpcText.textContent = cfg.npc.phrase;
+      } else {
+        this.roomNpcActor.style.display = 'none';
+      }
     }
-  }
 
-  movePlayerTo(x, y, onArrival = null) {
-    const safeX = Math.round(Math.min(92, Math.max(8, x)));
-    const safeY = Math.round(Math.min(38, Math.max(14, y)));
-    this.applyPlayerPosition(safeX, safeY, true);
-    gameState.setPlayerPosition(safeX, safeY);
-    if (onArrival) window.setTimeout(onArrival, 440);
-  }
-
-  movePlayerToPointer(event) {
-    const rect = this.roomStage.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((rect.bottom - event.clientY) / rect.height) * 100;
-    this.movePlayerTo(x, y);
-  }
-
-  walkToInteraction(action) {
-    this.movePlayerTo(54, 22, action);
+    // Управление питомцем игрока
+    this.roomPetActor.style.display = isHome ? 'flex' : 'none';
+    if (isHome) {
+      this.roomPetActor.style.left = '51%';
+      this.roomPetActor.style.bottom = '14%';
+      this.roomPetActor.className = `pet-actor-container stage-${state.pet.growthStage}`;
+      this.roomPetActor.dataset.pattern = state.pet.pattern || 'classic';
+      this.roomPetImg.src = this.getPetAssetPath(state.pet.species, state.pet.pattern);
+      const equipped = state.pet.equippedAccessories;
+      const renderEquippedAccessory = (layer, accessoryId) => {
+        layer.replaceChildren();
+        const accessory = WARDROBE_ACCESSORIES.find((item) => item.id === accessoryId);
+        if (!accessory?.asset) return;
+        const image = document.createElement('img');
+        image.src = accessory.asset;
+        image.alt = '';
+        image.draggable = false;
+        layer.appendChild(image);
+      };
+      renderEquippedAccessory(this.petAccHead, equipped.head);
+      renderEquippedAccessory(this.petAccNeck, equipped.neck);
+      renderEquippedAccessory(this.petAccGlasses, equipped.glasses);
+    }
   }
 
   // Отрисовка сцены комнаты (11 интерьеров)
   renderRoom(state) {
     const loc = state.currentLocation;
 
-    this.renderTravelParty(state);
+    this.renderRoomParty(state);
+    const roomCameras = {
+      myroom: [1.12, 'center 54%'],
+      friend_1: [1.18, 'center 50%'],
+      friend_2: [1.08, 'center 48%'],
+      friend_3: [1.16, 'center 51%'],
+      friend_4: [1.06, 'center 50%'],
+      friend_5: [1.10, 'center 50%'],
+      friend_6: [1.08, 'center 51%'],
+      friend_7: [1.38, 'center 53%'],
+      shop: [1.18, 'center 52%'],
+      bank: [1.34, 'center 52%'],
+      hospital: [1.12, 'center 53%']
+    };
+    const [cameraScale, cameraOrigin] = roomCameras[loc] || roomCameras.myroom;
+    this.roomStage?.style.setProperty('--room-bg-scale', cameraScale);
+    this.roomStage?.style.setProperty('--room-bg-origin', cameraOrigin);
+    // В гостях и учреждениях выход есть в нижней панели. Верхнюю копию
+    // скрываем, чтобы не дублировать одно и то же действие.
+    this.btnRoomExitCity?.classList.toggle('is-hidden', loc !== 'myroom');
+    // При горячем обновлении Vite подписка состояния может сработать раньше,
+    // чем пересоздан узел сцены. В обычном запуске он уже существует.
+    if (this.roomStage) this.roomStage.dataset.location = loc;
 
     if (loc === 'myroom') {
       this.roomNavTitle.textContent = 'Моя уютная комната';
       this.roomNavEmoji.textContent = '🏠';
-      this.roomBgImg.src = 'assets/bg_room_myroom.png';
-
-      this.roomCharacterActor.style.display = 'none';
-      this.roomActionPrompt.style.display = 'none';
+      this.roomBgImg.src = state.playerGender === 'girl'
+        ? 'assets/bg_room_myroom.png'
+        : 'assets/bg_room_myroom_boy.png';
 
       // Нижний док для дома
       this.roomDock.innerHTML = `
@@ -812,7 +984,7 @@ export class UIController {
           <span class="dock-btn-label">${state.pet.isHungry ? 'Покормить' : 'Сыт'}</span>
         </button>
         <button class="dock-btn wash" id="dock-btn-wash">
-          <div class="dock-btn-icon">🫧</div>
+          <div class="dock-btn-icon">🧼</div>
           <span class="dock-btn-label">Уход</span>
         </button>
         <button class="dock-btn play" id="dock-btn-play">
@@ -898,19 +1070,10 @@ export class UIController {
       this.roomNavEmoji.textContent = friend ? friend.emoji : '🏡';
       this.roomBgImg.src = `assets/bg_room_friend_${friendId}.png`;
 
-      this.roomCharacterActor.style.display = 'flex';
-      this.roomCharacterImg.src = `assets/characters/friend_${friendId}_v2.png`;
-
-      this.roomActionPrompt.style.display = 'flex';
-      this.promptEmoji.textContent = '💬';
-      this.promptText.textContent = `Поговорить с ${friend?.name || 'Другом'}`;
-
       const openFriend = () => {
         sound.playPop();
         this.openFriendDialogue(friendId);
       };
-      this.roomActionPrompt.onclick = () => this.walkToInteraction(openFriend);
-      this.roomCharacterActor.onclick = () => this.walkToInteraction(openFriend);
 
       this.roomDock.innerHTML = `
         <button class="clay-btn btn-pink" id="room-friend-dialogue-btn" style="flex: 1;">
@@ -944,19 +1107,10 @@ export class UIController {
       this.roomNavEmoji.textContent = '🛒';
       this.roomBgImg.src = 'assets/bg_room_shop.png';
 
-      this.roomCharacterActor.style.display = 'flex';
-      this.roomCharacterImg.src = 'assets/characters/worker_shop_v2.png';
-
-      this.roomActionPrompt.style.display = 'flex';
-      this.promptEmoji.textContent = '🛒';
-      this.promptText.textContent = 'Заглянуть на прилавок товаров';
-
       const openShop = () => {
         sound.playPop();
         this.openModal('shop');
       };
-      this.roomActionPrompt.onclick = () => this.walkToInteraction(openShop);
-      this.roomCharacterActor.onclick = () => this.walkToInteraction(openShop);
 
       this.roomDock.innerHTML = `
         <button class="clay-btn btn-pink" id="room-shop-open-btn" style="flex: 1;">
@@ -981,19 +1135,10 @@ export class UIController {
       this.roomNavEmoji.textContent = '🏦';
       this.roomBgImg.src = 'assets/bg_room_bank.png';
 
-      this.roomCharacterActor.style.display = 'flex';
-      this.roomCharacterImg.src = 'assets/characters/worker_bank_v2.png';
-
-      this.roomActionPrompt.style.display = 'flex';
-      this.promptEmoji.textContent = '🏦';
-      this.promptText.textContent = 'Подойти к кассе Банкира';
-
       const openBank = () => {
         sound.playPop();
         this.openModal('bank');
       };
-      this.roomActionPrompt.onclick = () => this.walkToInteraction(openBank);
-      this.roomCharacterActor.onclick = () => this.walkToInteraction(openBank);
 
       this.roomDock.innerHTML = `
         <button class="clay-btn btn-gold" id="room-bank-open-btn" style="flex: 1;">
@@ -1018,19 +1163,10 @@ export class UIController {
       this.roomNavEmoji.textContent = '🏥';
       this.roomBgImg.src = 'assets/bg_room_hospital.png';
 
-      this.roomCharacterActor.style.display = 'flex';
-      this.roomCharacterImg.src = 'assets/characters/worker_hospital_v2.png';
-
-      this.roomActionPrompt.style.display = 'flex';
-      this.promptEmoji.textContent = '🩺';
-      this.promptText.textContent = 'Подойти к Доктору Сове';
-
       const openHospital = () => {
         sound.playPop();
         this.openModal('hospital');
       };
-      this.roomActionPrompt.onclick = () => this.walkToInteraction(openHospital);
-      this.roomCharacterActor.onclick = () => this.walkToInteraction(openHospital);
 
       this.roomDock.innerHTML = `
         <button class="clay-btn btn-blue" id="room-hospital-open-btn" style="flex: 1;">
@@ -1209,6 +1345,12 @@ export class UIController {
     return result;
   }
 
+  setFriendDialogueStage(stage) {
+    const showIntro = stage !== 'challenge';
+    if (this.friendIntroStage) this.friendIntroStage.hidden = !showIntro;
+    if (this.friendChallengeStage) this.friendChallengeStage.hidden = showIntro;
+  }
+
   openFriendDialogue(friendId) {
     this.activeFriendId = friendId;
     const friend = FRIENDS_LIST.find((f) => f.id === friendId);
@@ -1224,10 +1366,20 @@ export class UIController {
     }
 
     document.getElementById('friend-modal-icon').textContent = friend.emoji;
-    document.getElementById('friend-modal-title').textContent = `В гостях у ${friend.name}`;
+    document.getElementById('friend-modal-title').textContent = puzzle.title;
     document.getElementById('friend-dialogue-avatar').src = friend.portrait;
+    document.getElementById('friend-dialogue-name').textContent = friend.name;
     document.getElementById('friend-dialogue-text').textContent = friend.greeting;
+    document.getElementById('puzzle-topic-chip').textContent = puzzle.theme;
     document.getElementById('puzzle-story-prompt').textContent = puzzle.storyPrompt;
+    this.friendIntroTitle.textContent = puzzle.title;
+    this.friendIntroTheme.textContent = friend.theme;
+    this.friendIntroEmblem.textContent = puzzle.emoji;
+    this.friendChallengeName.textContent = friend.name;
+    this.friendChallengeEmblem.textContent = puzzle.emoji;
+    this.friendBeginButton.textContent = 'Давай разберёмся';
+    this.modals.friend.querySelector('.modal-card')?.style.setProperty('--friend-accent', friend.color);
+    this.modals.friend.dataset.friendId = String(friendId);
 
     const optionsContainer = document.getElementById('puzzle-options-list');
     optionsContainer.innerHTML = '';
@@ -1239,6 +1391,7 @@ export class UIController {
     claimBtn.style.display = 'none';
 
     const pState = gameState.state.puzzles[friendId]?.state;
+    this.setFriendDialogueStage(pState === 'available' ? 'intro' : 'challenge');
 
     if (pState === 'completed') {
       feedbackCard.className = 'puzzle-feedback-card success';
@@ -1251,13 +1404,16 @@ export class UIController {
       feedbackCard.textContent = `Правильно! Забирай свои ${puzzle.rewardCoins} монет!`;
     }
 
-    this.shuffleItems(puzzle.options).forEach((opt) => {
+    this.shuffleItems(puzzle.options).forEach((opt, index) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'puzzle-opt-btn';
-      btn.innerHTML = `<span>${opt.emoji}</span> <span>${opt.text}</span>`;
+      btn.innerHTML = `
+        <span class="puzzle-choice-heading"><span class="puzzle-choice-letter">${index === 0 ? 'А' : 'Б'}</span><span class="puzzle-choice-emoji">${opt.emoji}</span></span>
+        <span class="puzzle-choice-text">${opt.text}</span>
+      `;
 
-      if (pState === 'completed') {
+      if (pState !== 'available') {
         btn.disabled = true;
       }
 
@@ -1332,7 +1488,7 @@ export class UIController {
       card.setAttribute('aria-label', isUnlocked ? `${isEquipped ? 'Снять' : 'Надеть'}: ${acc.name}` : `${acc.name} недоступен`);
       card.className = `wardrobe-item-card ${isEquipped ? 'equipped' : ''} ${!isUnlocked ? 'locked' : ''}`;
       card.innerHTML = `
-        <span class="wardrobe-icon">${acc.emoji}</span>
+        <img class="wardrobe-icon" src="${acc.asset}" alt="" loading="lazy">
         <span class="wardrobe-name">${acc.name}</span>
         <span style="font-size: 10px; font-weight: 800; color: ${isEquipped ? 'var(--clay-pink-shadow)' : 'var(--text-muted)'}; margin-top: 4px;">
           ${!isUnlocked ? '🔒 В лавке' : (isEquipped ? '✓ Надето' : 'Примерить')}

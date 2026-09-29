@@ -441,84 +441,292 @@
    ============================================================================ */
 
 .friend-dialogue-card {
-  background: #FFFFFF;
-  border-radius: 22px;
-  border: 2.5px solid rgba(0, 0, 0, 0.08);
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF8 100%);
+  border-radius: 28px;
+  border: 3px solid color-mix(in srgb, var(--friend-accent, #ffb74d) 65%, white);
   padding: 16px;
   display: flex;
-  gap: 14px;
+  gap: 16px;
   align-items: center;
-  box-shadow: var(--clay-shadow-sm);
+  box-shadow: 0 10px 24px rgba(72, 42, 29, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.9);
+  position: relative;
+  overflow: visible;
 }
 
 .friend-dialogue-avatar {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  border: 3px solid var(--clay-orange);
-  object-fit: cover;
+  width: 96px;
+  height: 104px;
+  padding: 6px;
+  border-radius: 24px;
+  border: 3px solid color-mix(in srgb, var(--friend-accent, #ffb74d) 60%, white);
+  background: linear-gradient(145deg, #FFFFFF 0%, #FFF9F2 100%);
+  object-fit: contain;
   flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.07);
+  animation: friendAvatarWobble 3.2s ease-in-out infinite;
+}
+
+@keyframes friendAvatarWobble {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  30% {
+    transform: translateY(-3px) rotate(-1.5deg);
+  }
+  70% {
+    transform: translateY(-2px) rotate(1.5deg);
+  }
+}
+
+.friend-dialogue-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.friend-dialogue-name {
+  color: #3E2723;
+  font: 800 16px/1.2 var(--font-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .friend-dialogue-bubble {
-  background: var(--clay-orange-bg);
-  border-radius: 18px;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #4E342E;
+  background: color-mix(in srgb, var(--friend-accent, #ffb74d) 10%, #FFFFFF);
+  border: 2px solid color-mix(in srgb, var(--friend-accent, #ffb74d) 35%, white);
+  border-radius: 4px 20px 20px 20px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: #3E2723;
   position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+}
+
+.friend-intro-stage,
+.friend-challenge-stage {
+  display: grid;
+  gap: 14px;
+}
+.friend-intro-stage[hidden],
+.friend-challenge-stage[hidden] { display: none !important; }
+.friend-intro-scene {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--friend-accent, #ffb74d) 45%, white);
+  border-radius: 20px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--friend-accent, #ffb74d) 16%, white),
+    #fffdf8 78%);
+}
+.friend-intro-emblem {
+  width: 66px;
+  height: 66px;
+  flex: 0 0 66px;
+  display: grid;
+  place-items: center;
+  border: 2px solid color-mix(in srgb, var(--friend-accent, #ffb74d) 55%, white);
+  border-radius: 22px 14px 22px 14px;
+  background: color-mix(in srgb, var(--friend-accent, #ffb74d) 24%, white);
+  font-size: 33px;
+  filter: drop-shadow(0 5px 7px rgba(63, 43, 31, .12));
+}
+.friend-intro-copy { min-width: 0; }
+.friend-intro-copy > span,
+.friend-challenge-heading > div > span {
+  color: #82756b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.friend-intro-copy h3 {
+  margin: 3px 0 4px;
+  color: #49352d;
+  font: 700 16px/1.15 var(--font-heading);
+}
+.friend-intro-copy p { color: #69574d; font-size: 12px; line-height: 1.3; }
+.friend-intro-actions { display: grid; gap: 7px; }
+.friend-intro-actions .clay-btn { width: 100%; }
+.friend-intro-actions [data-close] {
+  min-height: 38px;
+  padding: 7px 12px;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: #776a60;
+}
+.friend-intro-actions [data-close]:hover { background: #f5eee4; }
+.friend-challenge-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--friend-accent, #ffb74d) 14%, white);
+}
+.friend-back-btn {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 1px solid color-mix(in srgb, var(--friend-accent, #ffb74d) 50%, white);
+  border-radius: 12px;
+  background: white;
+  color: #49352d;
+  font: 700 24px/1 var(--font-body);
+  cursor: pointer;
+}
+.friend-challenge-heading > div { display: grid; gap: 2px; min-width: 0; }
+.friend-challenge-heading > div > strong {
+  overflow: hidden;
+  color: #49352d;
+  font: 700 14px/1.2 var(--font-heading);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.friend-challenge-emblem { margin-left: auto; font-size: 27px; }
+.friend-finish-btn {
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: #776a60;
+  font: 700 12px var(--font-body);
+  cursor: pointer;
+}
+.friend-finish-btn:hover { background: #f5eee4; }
+
+/* У каждого друга свой знак просьбы: форма помогает узнать персонажа даже по цвету. */
+#modal-friend[data-friend-id="2"] .friend-intro-emblem { border-radius: 50%; }
+#modal-friend[data-friend-id="3"] .friend-intro-emblem { border-radius: 16px 26px 16px 26px; }
+#modal-friend[data-friend-id="4"] .friend-intro-emblem { border-radius: 12px; }
+#modal-friend[data-friend-id="5"] .friend-intro-emblem { border-radius: 50% 50% 14px 14px; }
+#modal-friend[data-friend-id="6"] .friend-intro-emblem { border-radius: 50% 50% 18px 18px; }
+#modal-friend[data-friend-id="7"] .friend-intro-emblem { border-radius: 50% 50% 50% 12px; }
+
+.puzzle-topic-chip {
+  align-self: flex-start;
+  padding: 6px 10px;
+  border: 1px solid var(--friend-accent, #ffb74d);
+  border-radius: 999px;
+  background: #fff2df;
+  color: #614236;
+  font: 800 10px/1.2 var(--font-body);
+  letter-spacing: .035em;
+  text-transform: uppercase;
 }
 
 .puzzle-story-prompt {
-  background: #FFFDF5;
-  border-left: 4px solid var(--clay-gold);
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 700;
+  position: relative;
+  background: #fffdf8;
+  border: 1px solid rgba(120,83,58,.12);
+  border-left: 4px solid var(--friend-accent, var(--clay-gold));
+  border-radius: 8px 16px 16px 8px;
+  padding: 14px 15px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 800;
   color: var(--text-dark);
 }
 
 .puzzle-options-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  margin-top: 4px;
 }
 
 .puzzle-opt-btn {
+  min-height: 64px;
   background: #FFFFFF;
-  border: 2.5px solid rgba(0, 0, 0, 0.08);
-  border-radius: 18px;
+  border: 2.5px solid #F0E6D8;
+  border-radius: 20px;
   padding: 12px 16px;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
-  font-family: var(--font-heading);
-  font-size: 13px;
+  gap: 14px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.4;
   font-weight: 700;
-  color: var(--text-dark);
+  color: #3E2723;
   cursor: pointer;
   text-align: left;
-  box-shadow: var(--clay-shadow-sm);
-  transition: all 0.12s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s, box-shadow 0.15s;
 }
 
 .puzzle-opt-btn:hover {
-  border-color: var(--clay-pink);
+  border-color: var(--friend-accent, #ffb74d);
   transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(72, 42, 29, 0.12);
+}
+
+.puzzle-opt-btn:active {
+  transform: scale(0.97);
+}
+
+.puzzle-choice-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.puzzle-choice-letter {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--friend-accent, #ffb74d) 20%, white);
+  color: #3E2723;
+  font: 800 14px var(--font-heading);
+  border: 1.5px solid color-mix(in srgb, var(--friend-accent, #ffb74d) 40%, white);
+}
+
+.puzzle-choice-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.puzzle-choice-text {
+  flex: 1;
+  display: block;
 }
 
 .puzzle-opt-btn.correct-selected {
-  background: var(--clay-green-bg);
-  border-color: var(--clay-green);
-  color: var(--clay-green-shadow);
+  background: #E8F5E9;
+  border-color: #4CAF50;
+  color: #1B5E20;
+  animation: correctBounce 0.4s ease-out;
+}
+
+@keyframes correctBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
 }
 
 .puzzle-opt-btn.wrong-selected {
   background: #FFEBEE;
   border-color: #EF5350;
   color: #C62828;
+  animation: wrongShake 0.4s ease-out;
+}
+
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
 }
 
 .puzzle-feedback-card {
@@ -584,7 +792,9 @@
 }
 
 .wardrobe-icon {
-  font-size: 32px;
+  width: 58px;
+  height: 48px;
+  object-fit: contain;
   margin-bottom: 4px;
 }
 
@@ -662,6 +872,7 @@
 .modal-icon-badge { width: 38px; height: 38px; background: rgba(255,120,102,.18); border: 1px solid rgba(255,120,102,.72); }
 .modal-close-btn { background: rgba(255,255,255,.11); border: 1px solid rgba(255,255,255,.26); color: #fff; }
 .modal-body { padding: 18px; }
+
 .clay-jar-item, .shop-card, .goal-card, .friend-dialogue-card, .period-summary-report { background: #fff; border: 1px solid rgba(82,99,159,.15); border-radius: 16px; box-shadow: 0 8px 18px rgba(31,43,89,.08); }
 .shop-tab, .preset-chip, .stepper-btn, .puzzle-opt-btn { border: 1px solid rgba(82,99,159,.18); border-radius: 11px; }
 .shop-tab.active { background: #ff7866; border-color: #ff7866; box-shadow: none; }
@@ -672,3 +883,52 @@
 .hospital-status-card { background: #edf4ff; border: 1px solid #8ab6ff; border-radius: 16px; }
 .friend-dialogue-bubble { background: #fff4e7; border-radius: 14px; }
 .puzzle-story-prompt { background: #fff8e5; border-left-color: #f6c85f; }
+
+/* Тёплая версия окон: та же палитра, что в комнатах и на карте. */
+.modal-backdrop {
+  background: rgba(68, 43, 33, .48);
+  backdrop-filter: blur(10px);
+}
+.modal-card {
+  background: #fffaf3;
+  border: 3px solid rgba(255,255,255,.94);
+  border-radius: 24px;
+  box-shadow: 0 26px 70px rgba(72, 42, 29, .34);
+}
+.modal-header {
+  padding: 15px 18px;
+  background: linear-gradient(135deg, #fff8eb, #ffe6d7);
+  border-bottom: 1px solid rgba(134, 80, 54, .12);
+}
+.modal-title { color: #58382b; }
+.modal-icon-badge {
+  width: 38px;
+  height: 38px;
+  background: #ffe9db;
+  border-color: #ef9a76;
+}
+.modal-close-btn {
+  background: #fffaf3;
+  border-color: rgba(159, 94, 64, .18);
+  color: #b75a47;
+}
+.modal-body { padding: 18px; }
+
+/* Диалог друга: один персонаж, его просьба и две ясные карточки-решения. */
+#modal-friend .friend-dialogue-card {
+  background: #fffaf2;
+  border: 1px solid var(--friend-accent, #ffb74d);
+  border-left: 5px solid var(--friend-accent, #ffb74d);
+  border-radius: 12px 20px 20px 12px;
+}
+#modal-friend .modal-header { border-top: 4px solid var(--friend-accent, #ffb74d); }
+#modal-friend .modal-icon-badge { border-color: var(--friend-accent, #ffb74d); }
+#modal-friend .friend-dialogue-bubble { background: #fff8ee; }
+#modal-friend .puzzle-topic-chip { background: #fff3e2; }
+#modal-friend .puzzle-story-prompt { border-left-color: var(--friend-accent, #ffb74d); }
+
+@media (max-width: 420px) {
+  #modal-friend .friend-dialogue-avatar { width: 76px; height: 94px; }
+  #modal-friend .puzzle-options-list { grid-template-columns: 1fr; }
+  #modal-friend .puzzle-opt-btn { min-height: 68px; flex-direction: row; align-items: center; }
+}
