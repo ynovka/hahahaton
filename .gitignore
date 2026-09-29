@@ -18,6 +18,7 @@ android/build/
 android/app/build/
 android/local.properties
 *.apk
+!app.apk
 
 graphify-out/
 .graphifyignore

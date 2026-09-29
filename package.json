@@ -7,7 +7,7 @@
     "dev": "vite --host --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "build:apk": "vite build && npx cap sync android && cd android && gradlew.bat assembleDebug"
+    "build:apk": "vite build && npx cap sync android && cd android && gradlew.bat assembleRelease"
   },
   "devDependencies": {
     "vite": "^5.0.0"

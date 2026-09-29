@@ -11,15 +11,15 @@ echo [2/3] Syncing Capacitor Android assets...
 call npx cap sync android
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-echo [3/3] Compiling APK with Gradle...
+echo [3/3] Compiling Release APK with Gradle...
 cd android
-call .\gradlew.bat assembleDebug
+call .\gradlew.bat assembleRelease
 if %errorlevel% neq 0 (
     cd ..
     exit /b %errorlevel%
 )
 cd ..
 
-copy /y "android\app\build\outputs\apk\debug\app-debug.apk" "FinnyPet-debug.apk" > nul
+copy /y "android\app\build\outputs\apk\release\app-release.apk" "app.apk" > nul
 echo.
-echo SUCCESS! APK built: FinnyPet-debug.apk
+echo SUCCESS! Release APK built: app.apk
