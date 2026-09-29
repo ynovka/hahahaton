@@ -218,6 +218,37 @@
         </button>
       </div>
 
+      <!-- Панель ручной подгонки персонажей в локациях -->
+      <div class="actor-tweaker-panel" id="actor-tweaker-panel" style="display: none;">
+        <div class="tweaker-header">
+          <div class="tweaker-title">
+            <span>🎯 Подгонка:</span>
+            <strong id="tweaker-loc-name">Локация</strong>
+          </div>
+          <button type="button" class="tweaker-close-btn" id="tweaker-close-btn" title="Закрыть (Esc)">✕</button>
+        </div>
+        <div class="tweaker-hint">💡 Таскай персонажа мышкой по экрану или настрой ползунками:</div>
+        <div class="tweaker-controls-grid">
+          <label class="tweaker-field">
+            <span>Позиция X (по горизонтали): <b id="tweaker-val-x">75%</b></span>
+            <input type="range" id="tweaker-range-x" min="5" max="95" step="1" value="75">
+          </label>
+          <label class="tweaker-field">
+            <span>Позиция Y (высота от пола): <b id="tweaker-val-bottom">120px</b></span>
+            <input type="range" id="tweaker-range-bottom" min="20" max="450" step="2" value="120">
+          </label>
+          <label class="tweaker-field">
+            <span>Размер спрайта: <b id="tweaker-val-size">180px</b></span>
+            <input type="range" id="tweaker-range-size" min="90" max="340" step="5" value="180">
+          </label>
+          <div class="tweaker-actions-row">
+            <button type="button" class="clay-btn btn-ghost" id="tweaker-btn-flip" title="Отразить зеркально">↔️ Отразить</button>
+            <button type="button" class="clay-btn btn-ghost" id="tweaker-btn-reset" title="Сбросить текущую комнату">↺ Сброс</button>
+            <button type="button" class="clay-btn btn-pink" id="tweaker-btn-copy" title="Скопировать готовый конфиг в буфер обмена">📋 Скопировать конфиг</button>
+          </div>
+        </div>
+      </div>
+
       <div class="room-stage" id="room-stage">
         <!-- Фон интерьера -->
         <img id="room-bg-img" class="room-bg-img" src="assets/bg_room_myroom.png" alt="Комната">
@@ -248,7 +279,6 @@
           </div>
           <img class="npc-sprite-img" id="room-npc-img" src="assets/characters/friend_1_v2.png" alt="Персонаж">
         </div>
-
       </div>
 
       <!-- Нижний док действий в комнате -->

@@ -5,10 +5,13 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
-
 # Локальные остатки прежней Android-сборки. Веб-версия их не использует.
 .gradle/
 .kotlin/
 app/
 build/
 local.properties
+
+graphify-out/
+.graphifyignore
+

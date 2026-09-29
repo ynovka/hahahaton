@@ -639,3 +639,92 @@ export const FINANCIAL_LESSONS = [
     options: [{ id: 'learn', text: 'Чтобы улучшить следующий план', isCorrect: true }, { id: 'hide', text: 'Чтобы не знать, куда ушли монеты', isCorrect: false }]
   }
 ];
+
+// ============================================================================
+// Конфигурация позиционирования персонажей и питомцев по локациям
+// x: позиция слева в % (0 - 100)
+// bottom: высота от пола в px
+// width/height: размер спрайта персонажа в px
+// flip: зеркальное отражение по горизонтали (true/false)
+// ============================================================================
+export const ROOM_ACTOR_CONFIGS = {
+  myroom: {
+    x: 50,
+    bottom: 246,
+    width: 170,
+    height: 170,
+    flip: false
+  },
+  friend_1: {
+    x: 55,
+    bottom: 276,
+    width: 180,
+    height: 200,
+    flip: false
+  },
+  friend_2: {
+    x: 46,
+    bottom: 346,
+    width: 170,
+    height: 190,
+    flip: false
+  },
+  friend_3: {
+    x: 39,
+    bottom: 208,
+    width: 175,
+    height: 195,
+    flip: false
+  },
+  friend_4: {
+    x: 54,
+    bottom: 112,
+    width: 180,
+    height: 200,
+    flip: false
+  },
+  friend_5: {
+    x: 53,
+    bottom: 254,
+    width: 170,
+    height: 190,
+    flip: false
+  },
+  friend_6: {
+    x: 45,
+    bottom: 246,
+    width: 170,
+    height: 190,
+    flip: false
+  },
+  friend_7: {
+    x: 53,
+    bottom: 248,
+    width: 180,
+    height: 200,
+    flip: false
+  },
+  shop: {
+    x: 51,
+    bottom: 190,
+    width: 190,
+    height: 210,
+    flip: false
+  },
+  bank: {
+    x: 59,
+    bottom: 248,
+    width: 190,
+    height: 210,
+    flip: false
+  },
+  hospital: {
+    x: 62,
+    bottom: 222,
+    width: 190,
+    height: 210,
+    flip: false
+  }
+};
+
+

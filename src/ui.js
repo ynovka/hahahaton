@@ -13,7 +13,8 @@ import {
   FRIENDS_LIST,
   KID_PUZZLES,
   WARDROBE_ACCESSORIES,
-  FINANCIAL_LESSONS
+  FINANCIAL_LESSONS,
+  ROOM_ACTOR_CONFIGS
 } from './data.js';
 import { gameState, TREATMENT_COST } from './state.js';
 import { sound } from './audio.js';
@@ -125,6 +126,9 @@ export class UIController {
       settings: document.getElementById('modal-settings'),
       resetConfirm: document.getElementById('modal-reset-confirm')
     };
+
+    // Настройка интерактивной подгонки персонажей
+    this.setupActorTweaker();
   }
 
   bindGlobalEvents() {
@@ -908,8 +912,14 @@ export class UIController {
     if (this.roomNpcActor) {
       if (cfg.npc) {
         this.roomNpcActor.style.display = 'flex';
-        this.roomNpcActor.style.left = cfg.npc.left;
-        this.roomNpcActor.style.bottom = cfg.npc.bottom;
+        const actorCfg = ROOM_ACTOR_CONFIGS[loc];
+        if (actorCfg) {
+          this.roomNpcActor.style.left = `${actorCfg.x}%`;
+          this.roomNpcActor.style.bottom = `${actorCfg.bottom}px`;
+        } else {
+          this.roomNpcActor.style.left = cfg.npc.left;
+          this.roomNpcActor.style.bottom = cfg.npc.bottom;
+        }
         const friendMatch = loc.match(/^friend_(\d+)$/);
         const friend = friendMatch
           ? FRIENDS_LIST.find((item) => item.id === Number(friendMatch[1]))
@@ -934,8 +944,9 @@ export class UIController {
     // Управление питомцем игрока
     this.roomPetActor.style.display = isHome ? 'flex' : 'none';
     if (isHome) {
-      this.roomPetActor.style.left = '51%';
-      this.roomPetActor.style.bottom = '14%';
+      const petCfg = ROOM_ACTOR_CONFIGS.myroom;
+      this.roomPetActor.style.left = petCfg ? `${petCfg.x}%` : '50%';
+      this.roomPetActor.style.bottom = petCfg ? `${petCfg.bottom}px` : '246px';
       this.roomPetActor.className = `pet-actor-container stage-${state.pet.growthStage}`;
       this.roomPetActor.dataset.pattern = state.pet.pattern || 'classic';
       this.updatePetPoseAnimation(state, true);
@@ -1141,13 +1152,13 @@ export class UIController {
       };
 
       this.roomDock.innerHTML = `
-        <button class="clay-btn btn-pink" id="room-friend-dialogue-btn" style="flex: 1;">
-          💬 Поговорить с ${friend?.name || 'другом'}
+        <button class="clay-btn btn-pink dock-action-btn" id="room-friend-dialogue-btn">
+          💬 Поговорить
         </button>
-        <button class="clay-btn btn-purple" id="room-friend-profile-btn" style="flex: 1;">
+        <button class="clay-btn btn-purple dock-action-btn" id="room-friend-profile-btn">
           🌟 Дружба (${state.friendships[friendId]?.level || 1} ур.)
         </button>
-        <button class="clay-btn btn-ghost" id="room-friend-exit-btn">
+        <button class="clay-btn btn-ghost dock-action-btn" id="room-friend-exit-btn">
           🚪 В город
         </button>
       `;
@@ -1178,10 +1189,10 @@ export class UIController {
       };
 
       this.roomDock.innerHTML = `
-        <button class="clay-btn btn-pink" id="room-shop-open-btn" style="flex: 1;">
-          🛒 Открыть прилавок товаров
+        <button class="clay-btn btn-pink dock-action-btn" id="room-shop-open-btn">
+          🛒 Прилавок товаров
         </button>
-        <button class="clay-btn btn-ghost" id="room-shop-exit-btn">
+        <button class="clay-btn btn-ghost dock-action-btn" id="room-shop-exit-btn">
           🚪 В город
         </button>
       `;
@@ -1206,10 +1217,10 @@ export class UIController {
       };
 
       this.roomDock.innerHTML = `
-        <button class="clay-btn btn-gold" id="room-bank-open-btn" style="flex: 1;">
-          🏦 Касса и копилка на мечту
+        <button class="clay-btn btn-gold dock-action-btn" id="room-bank-open-btn">
+          🏦 Касса и копилка
         </button>
-        <button class="clay-btn btn-ghost" id="room-bank-exit-btn">
+        <button class="clay-btn btn-ghost dock-action-btn" id="room-bank-exit-btn">
           🚪 В город
         </button>
       `;
@@ -1234,10 +1245,10 @@ export class UIController {
       };
 
       this.roomDock.innerHTML = `
-        <button class="clay-btn btn-blue" id="room-hospital-open-btn" style="flex: 1;">
-          🩺 Пройти осмотр врача
+        <button class="clay-btn btn-blue dock-action-btn" id="room-hospital-open-btn">
+          🩺 Осмотр врача
         </button>
-        <button class="clay-btn btn-ghost" id="room-hospital-exit-btn">
+        <button class="clay-btn btn-ghost dock-action-btn" id="room-hospital-exit-btn">
           🚪 В город
         </button>
       `;
@@ -1251,6 +1262,212 @@ export class UIController {
         gameState.changeLocation('citymap');
       });
     }
+
+    // Применяем персональные координаты и масштаб персонажа для локации
+    this.applyRoomActorConfig(loc);
+  }
+
+  getStoredActorConfigs() {
+    try {
+      const saved = localStorage.getItem('room_actor_configs');
+      return saved ? { ...ROOM_ACTOR_CONFIGS, ...JSON.parse(saved) } : { ...ROOM_ACTOR_CONFIGS };
+    } catch {
+      return { ...ROOM_ACTOR_CONFIGS };
+    }
+  }
+
+  saveActorConfig(loc, cfg) {
+    const all = this.getStoredActorConfigs();
+    all[loc] = { ...cfg };
+    try {
+      localStorage.setItem('room_actor_configs', JSON.stringify(all));
+    } catch {}
+  }
+
+  applyRoomActorConfig(loc) {
+    const all = this.getStoredActorConfigs();
+    const cfg = all[loc] || { x: 75, bottom: 120, width: 180, height: 200, flip: false };
+    const target = (loc === 'myroom') ? this.roomPetActor : this.roomCharacterActor;
+    const targetImg = (loc === 'myroom') ? this.roomPetImg : this.roomCharacterImg;
+
+    if (target) {
+      target.style.left = `${cfg.x}%`;
+      target.style.right = 'auto';
+      target.style.bottom = `${cfg.bottom}px`;
+      target.style.transform = `translateX(-50%) ${cfg.flip ? 'scaleX(-1)' : ''}`;
+    }
+    if (targetImg) {
+      targetImg.style.width = `${cfg.width}px`;
+      targetImg.style.height = `${cfg.height}px`;
+    }
+
+    if (this.isTweakerActive && this.tweakerRangeX) {
+      const locNames = {
+        myroom: 'Моя комната (Питомец)',
+        friend_1: 'Миша (Медвежонок)',
+        friend_2: 'Белла (Белочка)',
+        friend_3: 'Рикки (Енот)',
+        friend_4: 'София (Сова)',
+        friend_5: 'Алиса (Лисичка)',
+        friend_6: 'Сеня (Зайка)',
+        friend_7: 'Барбос (Щенок)',
+        shop: 'Лавка (Енотик)',
+        bank: 'Банк (Банкир)',
+        hospital: 'Клиника (Доктор Сова)'
+      };
+      if (this.tweakerLocName) this.tweakerLocName.textContent = locNames[loc] || loc;
+      if (this.tweakerRangeX) this.tweakerRangeX.value = cfg.x;
+      if (this.tweakerValX) this.tweakerValX.textContent = `${cfg.x}%`;
+      if (this.tweakerRangeBottom) this.tweakerRangeBottom.value = cfg.bottom;
+      if (this.tweakerValBottom) this.tweakerValBottom.textContent = `${cfg.bottom}px`;
+      if (this.tweakerRangeSize) this.tweakerRangeSize.value = cfg.width;
+      if (this.tweakerValSize) this.tweakerValSize.textContent = `${cfg.width}px`;
+      if (this.tweakerBtnFlip) {
+        this.tweakerBtnFlip.textContent = cfg.flip ? '↔️ Отражено' : '↔️ Отразить';
+        this.tweakerBtnFlip.style.background = cfg.flip ? 'var(--clay-purple)' : '';
+        this.tweakerBtnFlip.style.color = cfg.flip ? '#FFF' : '';
+      }
+    }
+  }
+
+  setupActorTweaker() {
+    this.isTweakerActive = false;
+    this.btnRoomTweakActor = document.getElementById('btn-room-tweak-actor');
+    this.actorTweakerPanel = document.getElementById('actor-tweaker-panel');
+    this.tweakerLocName = document.getElementById('tweaker-loc-name');
+    this.tweakerCloseBtn = document.getElementById('tweaker-close-btn');
+    this.tweakerRangeX = document.getElementById('tweaker-range-x');
+    this.tweakerValX = document.getElementById('tweaker-val-x');
+    this.tweakerRangeBottom = document.getElementById('tweaker-range-bottom');
+    this.tweakerValBottom = document.getElementById('tweaker-val-bottom');
+    this.tweakerRangeSize = document.getElementById('tweaker-range-size');
+    this.tweakerValSize = document.getElementById('tweaker-val-size');
+    this.tweakerBtnFlip = document.getElementById('tweaker-btn-flip');
+    this.tweakerBtnReset = document.getElementById('tweaker-btn-reset');
+    this.tweakerBtnCopy = document.getElementById('tweaker-btn-copy');
+    this.roomStage = document.getElementById('room-stage');
+
+    const toggleTweaker = () => {
+      sound.playPop();
+      this.isTweakerActive = !this.isTweakerActive;
+      if (this.actorTweakerPanel) this.actorTweakerPanel.style.display = this.isTweakerActive ? 'flex' : 'none';
+      if (this.btnRoomTweakActor) this.btnRoomTweakActor.classList.toggle('active', this.isTweakerActive);
+      document.getElementById('screen-room')?.classList.toggle('tweaker-active', this.isTweakerActive);
+      if (this.isTweakerActive) {
+        this.applyRoomActorConfig(gameState.state.currentLocation);
+      }
+    };
+
+    this.btnRoomTweakActor?.addEventListener('click', toggleTweaker);
+    this.tweakerCloseBtn?.addEventListener('click', toggleTweaker);
+
+    // Горячие клавиши: F2 или T в комнате
+    window.addEventListener('keydown', (e) => {
+      if ((e.key === 'F2' || (e.key === 't' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName))) && gameState.state.currentLocation !== 'citymap') {
+        e.preventDefault();
+        toggleTweaker();
+      }
+      if (e.key === 'Escape' && this.isTweakerActive) {
+        toggleTweaker();
+      }
+    });
+
+    const updateCurrent = (updater) => {
+      const loc = gameState.state.currentLocation;
+      const all = this.getStoredActorConfigs();
+      const cfg = { ...(all[loc] || { x: 75, bottom: 120, width: 180, height: 200, flip: false }) };
+      updater(cfg);
+      this.saveActorConfig(loc, cfg);
+      this.applyRoomActorConfig(loc);
+    };
+
+    this.tweakerRangeX?.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      updateCurrent((cfg) => { cfg.x = val; });
+    });
+
+    this.tweakerRangeBottom?.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      updateCurrent((cfg) => { cfg.bottom = val; });
+    });
+
+    this.tweakerRangeSize?.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      updateCurrent((cfg) => {
+        cfg.width = val;
+        cfg.height = Math.round(val * 1.1);
+      });
+    });
+
+    this.tweakerBtnFlip?.addEventListener('click', () => {
+      sound.playPop();
+      updateCurrent((cfg) => { cfg.flip = !cfg.flip; });
+    });
+
+    this.tweakerBtnReset?.addEventListener('click', () => {
+      sound.playPop();
+      const loc = gameState.state.currentLocation;
+      const defaultCfg = ROOM_ACTOR_CONFIGS[loc] || { x: 75, bottom: 120, width: 180, height: 200, flip: false };
+      this.saveActorConfig(loc, defaultCfg);
+      this.applyRoomActorConfig(loc);
+    });
+
+    this.tweakerBtnCopy?.addEventListener('click', () => {
+      sound.playLevelUp();
+      const all = this.getStoredActorConfigs();
+      const jsCode = `export const ROOM_ACTOR_CONFIGS = ${JSON.stringify(all, null, 2)};`;
+      navigator.clipboard.writeText(jsCode).then(() => {
+        const oldText = this.tweakerBtnCopy.textContent;
+        this.tweakerBtnCopy.textContent = '✅ Скопировано в буфер!';
+        setTimeout(() => { if (this.tweakerBtnCopy) this.tweakerBtnCopy.textContent = oldText; }, 2000);
+      }).catch(() => {
+        prompt('Скопируйте конфиг:', jsCode);
+      });
+    });
+
+    // Интерактивное перетаскивание мышкой (Drag & Drop)
+    let isDragging = false;
+
+    const startDrag = (e) => {
+      if (!this.isTweakerActive) return;
+      isDragging = true;
+      e.stopPropagation();
+      e.preventDefault();
+    };
+
+    const doDrag = (e) => {
+      if (!isDragging || !this.isTweakerActive || !this.roomStage) return;
+      const rect = this.roomStage.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      const rawX = ((clientX - rect.left) / rect.width) * 100;
+      const rawBottom = rect.bottom - clientY;
+
+      const newX = Math.round(Math.max(5, Math.min(95, rawX)));
+      const newBottom = Math.round(Math.max(20, Math.min(450, rawBottom)));
+
+      updateCurrent((cfg) => {
+        cfg.x = newX;
+        cfg.bottom = newBottom;
+      });
+    };
+
+    const stopDrag = () => {
+      if (isDragging) {
+        isDragging = false;
+      }
+    };
+
+    this.roomCharacterActor?.addEventListener('mousedown', startDrag);
+    this.roomCharacterActor?.addEventListener('touchstart', startDrag, { passive: false });
+    this.roomPetActor?.addEventListener('mousedown', startDrag);
+    this.roomPetActor?.addEventListener('touchstart', startDrag, { passive: false });
+
+    window.addEventListener('mousemove', doDrag);
+    window.addEventListener('touchmove', doDrag, { passive: false });
+    window.addEventListener('mouseup', stopDrag);
+    window.addEventListener('touchend', stopDrag);
   }
 
   // --- МОДАЛЬНЫЕ ОКНА: ДАННЫЕ И ЛОГИКА ---
