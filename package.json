@@ -6,9 +6,15 @@
   "scripts": {
     "dev": "vite --host --port 3000",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:apk": "vite build && npx cap sync android && cd android && gradlew.bat assembleDebug"
   },
   "devDependencies": {
     "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
   }
 }
