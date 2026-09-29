@@ -28,6 +28,7 @@ export class UIController {
     this.lastRenderedLocation = null;
     this.selectedSpeciesIndex = 0;
     this.setupSwipeStartX = null;
+    this.roomWalkTimer = null;
 
     this.initDOMElements();
     this.bindGlobalEvents();
@@ -73,7 +74,10 @@ export class UIController {
     // Комната
     this.roomNavTitle = document.getElementById('room-nav-title');
     this.roomNavEmoji = document.getElementById('room-nav-emoji');
+    this.roomStage = document.getElementById('room-stage');
     this.roomBgImg = document.getElementById('room-bg-img');
+    this.roomHeroActor = document.getElementById('room-hero-actor');
+    this.roomHeroImg = document.getElementById('room-hero-img');
     this.roomPetActor = document.getElementById('room-pet-actor');
     this.roomPetImg = document.getElementById('room-pet-img');
     this.petSpeechText = document.getElementById('pet-speech-text');
@@ -253,6 +257,12 @@ export class UIController {
       this.petSpeechEmoji.textContent = emojis[randIdx];
       this.roomPetActor.classList.add('bounced');
       setTimeout(() => this.roomPetActor.classList.remove('bounced'), 400);
+    });
+
+    // Комната — игровая сцена: нажимаем на свободное место и герой идёт туда.
+    this.roomStage?.addEventListener('click', (event) => {
+      if (event.target.closest('button, .room-character-actor, .pet-actor-container, .hero-actor-container')) return;
+      this.movePlayerToPointer(event);
     });
 
     // Карусель выбора питомца: стрелки и свайп по аватару
@@ -536,6 +546,7 @@ export class UIController {
     this.renderShopItems(state);
     this.renderWardrobeItems(state);
     this.renderFinanceModal(state);
+    this.renderAdvisorLessons(state);
   }
 
   showScreen(screenId) {
@@ -717,25 +728,79 @@ export class UIController {
     });
   }
 
+  // Герой и питомец путешествуют вместе по всем интерьерам.
+  renderTravelParty(state) {
+    if (!this.roomHeroActor || !this.roomPetActor) return;
+
+    this.roomHeroActor.style.display = 'flex';
+    this.roomPetActor.style.display = 'flex';
+    this.roomHeroImg.src = 'assets/characters/hero_v2.png';
+    this.roomPetActor.className = `pet-actor-container stage-${state.pet.growthStage}`;
+    this.roomPetImg.src = `assets/characters/pet_${state.pet.species}_v2.png`;
+
+    const equipped = state.pet.equippedAccessories;
+    this.petAccHead.textContent = equipped.head ? WARDROBE_ACCESSORIES.find((a) => a.id === equipped.head)?.emoji || '' : '';
+    this.petAccNeck.textContent = equipped.neck ? WARDROBE_ACCESSORIES.find((a) => a.id === equipped.neck)?.emoji || '' : '';
+    this.petAccGlasses.textContent = equipped.glasses ? WARDROBE_ACCESSORIES.find((a) => a.id === equipped.glasses)?.emoji || '' : '';
+
+    const position = state.playerPosition?.location === state.currentLocation
+      ? state.playerPosition
+      : { x: 36, y: 21 };
+    this.applyPlayerPosition(position.x, position.y, false);
+  }
+
+  applyPlayerPosition(x, y, animate = true) {
+    if (!this.roomHeroActor || !this.roomPetActor) return;
+    const previousX = Number(this.roomHeroActor.dataset.x ?? x);
+    const directionLeft = x < previousX;
+    this.roomHeroActor.dataset.x = String(x);
+    this.roomHeroActor.style.left = `${x}%`;
+    this.roomHeroActor.style.bottom = `${y}%`;
+    this.roomHeroActor.classList.toggle('facing-left', directionLeft);
+    this.roomHeroActor.classList.toggle('is-walking', animate);
+
+    const petX = Math.min(92, Math.max(8, x + (directionLeft ? 12 : -12)));
+    const petY = Math.min(38, Math.max(14, y - 3));
+    this.roomPetActor.style.left = `${petX}%`;
+    this.roomPetActor.style.bottom = `${petY}%`;
+
+    if (this.roomWalkTimer) window.clearTimeout(this.roomWalkTimer);
+    if (animate) {
+      this.roomWalkTimer = window.setTimeout(() => {
+        this.roomHeroActor?.classList.remove('is-walking');
+      }, 460);
+    }
+  }
+
+  movePlayerTo(x, y, onArrival = null) {
+    const safeX = Math.round(Math.min(92, Math.max(8, x)));
+    const safeY = Math.round(Math.min(38, Math.max(14, y)));
+    this.applyPlayerPosition(safeX, safeY, true);
+    gameState.setPlayerPosition(safeX, safeY);
+    if (onArrival) window.setTimeout(onArrival, 440);
+  }
+
+  movePlayerToPointer(event) {
+    const rect = this.roomStage.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((rect.bottom - event.clientY) / rect.height) * 100;
+    this.movePlayerTo(x, y);
+  }
+
+  walkToInteraction(action) {
+    this.movePlayerTo(54, 22, action);
+  }
+
   // Отрисовка сцены комнаты (11 интерьеров)
   renderRoom(state) {
     const loc = state.currentLocation;
+
+    this.renderTravelParty(state);
 
     if (loc === 'myroom') {
       this.roomNavTitle.textContent = 'Моя уютная комната';
       this.roomNavEmoji.textContent = '🏠';
       this.roomBgImg.src = 'assets/bg_room_myroom.png';
-
-      // Показываем питомца дома
-      this.roomPetActor.style.display = 'flex';
-      this.roomPetActor.className = `pet-actor-container stage-${state.pet.growthStage}`;
-      this.roomPetImg.src = `assets/characters/pet_${state.pet.species}_v2.png`;
-
-      // Надетые аксессуары
-      const equipped = state.pet.equippedAccessories;
-      this.petAccHead.textContent = equipped.head ? WARDROBE_ACCESSORIES.find((a) => a.id === equipped.head)?.emoji || '' : '';
-      this.petAccNeck.textContent = equipped.neck ? WARDROBE_ACCESSORIES.find((a) => a.id === equipped.neck)?.emoji || '' : '';
-      this.petAccGlasses.textContent = equipped.glasses ? WARDROBE_ACCESSORIES.find((a) => a.id === equipped.glasses)?.emoji || '' : '';
 
       this.roomCharacterActor.style.display = 'none';
       this.roomActionPrompt.style.display = 'none';
@@ -833,7 +898,6 @@ export class UIController {
       this.roomNavEmoji.textContent = friend ? friend.emoji : '🏡';
       this.roomBgImg.src = `assets/bg_room_friend_${friendId}.png`;
 
-      this.roomPetActor.style.display = 'none';
       this.roomCharacterActor.style.display = 'flex';
       this.roomCharacterImg.src = `assets/characters/friend_${friendId}_v2.png`;
 
@@ -841,10 +905,12 @@ export class UIController {
       this.promptEmoji.textContent = '💬';
       this.promptText.textContent = `Поговорить с ${friend?.name || 'Другом'}`;
 
-      this.roomActionPrompt.onclick = () => {
+      const openFriend = () => {
         sound.playPop();
         this.openFriendDialogue(friendId);
       };
+      this.roomActionPrompt.onclick = () => this.walkToInteraction(openFriend);
+      this.roomCharacterActor.onclick = () => this.walkToInteraction(openFriend);
 
       this.roomDock.innerHTML = `
         <button class="clay-btn btn-pink" id="room-friend-dialogue-btn" style="flex: 1;">
@@ -878,7 +944,6 @@ export class UIController {
       this.roomNavEmoji.textContent = '🛒';
       this.roomBgImg.src = 'assets/bg_room_shop.png';
 
-      this.roomPetActor.style.display = 'none';
       this.roomCharacterActor.style.display = 'flex';
       this.roomCharacterImg.src = 'assets/characters/worker_shop_v2.png';
 
@@ -886,10 +951,12 @@ export class UIController {
       this.promptEmoji.textContent = '🛒';
       this.promptText.textContent = 'Заглянуть на прилавок товаров';
 
-      this.roomActionPrompt.onclick = () => {
+      const openShop = () => {
         sound.playPop();
         this.openModal('shop');
       };
+      this.roomActionPrompt.onclick = () => this.walkToInteraction(openShop);
+      this.roomCharacterActor.onclick = () => this.walkToInteraction(openShop);
 
       this.roomDock.innerHTML = `
         <button class="clay-btn btn-pink" id="room-shop-open-btn" style="flex: 1;">
@@ -914,7 +981,6 @@ export class UIController {
       this.roomNavEmoji.textContent = '🏦';
       this.roomBgImg.src = 'assets/bg_room_bank.png';
 
-      this.roomPetActor.style.display = 'none';
       this.roomCharacterActor.style.display = 'flex';
       this.roomCharacterImg.src = 'assets/characters/worker_bank_v2.png';
 
@@ -922,10 +988,12 @@ export class UIController {
       this.promptEmoji.textContent = '🏦';
       this.promptText.textContent = 'Подойти к кассе Банкира';
 
-      this.roomActionPrompt.onclick = () => {
+      const openBank = () => {
         sound.playPop();
         this.openModal('bank');
       };
+      this.roomActionPrompt.onclick = () => this.walkToInteraction(openBank);
+      this.roomCharacterActor.onclick = () => this.walkToInteraction(openBank);
 
       this.roomDock.innerHTML = `
         <button class="clay-btn btn-gold" id="room-bank-open-btn" style="flex: 1;">
@@ -950,7 +1018,6 @@ export class UIController {
       this.roomNavEmoji.textContent = '🏥';
       this.roomBgImg.src = 'assets/bg_room_hospital.png';
 
-      this.roomPetActor.style.display = 'none';
       this.roomCharacterActor.style.display = 'flex';
       this.roomCharacterImg.src = 'assets/characters/worker_hospital_v2.png';
 
@@ -958,10 +1025,12 @@ export class UIController {
       this.promptEmoji.textContent = '🩺';
       this.promptText.textContent = 'Подойти к Доктору Сове';
 
-      this.roomActionPrompt.onclick = () => {
+      const openHospital = () => {
         sound.playPop();
         this.openModal('hospital');
       };
+      this.roomActionPrompt.onclick = () => this.walkToInteraction(openHospital);
+      this.roomCharacterActor.onclick = () => this.walkToInteraction(openHospital);
 
       this.roomDock.innerHTML = `
         <button class="clay-btn btn-blue" id="room-hospital-open-btn" style="flex: 1;">
@@ -1021,7 +1090,12 @@ export class UIController {
       card.className = 'shop-card';
 
       const isOwned = item.wardrobeId && state.pet.unlockedWardrobeIds.includes(item.wardrobeId);
-      const canAfford = state.wallet.coins >= item.price;
+      const isCarePurchase = item.category === 'food' || item.category === 'care';
+      const available = isCarePurchase
+        ? (state.budget.remainingFoodAndCareCoins || 0)
+        : (state.budget.remainingFunAndGamesCoins || 0);
+      const canAfford = state.budget.isConfirmed && available >= item.price && state.wallet.coins >= item.price;
+      const budgetName = isCarePurchase ? 'Миска и Забота' : 'Сундучок Радостей';
 
       let iconHtml = '';
       if (item.asset) {
@@ -1035,7 +1109,7 @@ export class UIController {
         <h4 class="shop-card-title">${item.title}</h4>
         <p class="shop-card-desc">${item.description}</p>
         <div class="shop-card-footer">
-          <span class="shop-price-tag">${item.price} 🪙</span>
+          <span class="shop-price-tag">${item.price} 🪙<small style="display:block; font-size:9px; opacity:.75;">${budgetName}: ${available}</small></span>
           <button type="button" class="clay-btn ${isOwned ? 'btn-ghost' : (canAfford ? 'btn-pink' : 'btn-ghost')}" style="padding: 6px 12px; font-size: 12px;" ${isOwned ? 'disabled' : ''}>
             ${isOwned ? 'Куплено' : 'Купить'}
           </button>
@@ -1140,6 +1214,14 @@ export class UIController {
     const friend = FRIENDS_LIST.find((f) => f.id === friendId);
     const puzzle = KID_PUZZLES[friendId];
     if (!friend || !puzzle) return;
+
+    const requiredLesson = FINANCIAL_LESSONS.find((lesson) => lesson.id === puzzle.lessonId);
+    if (requiredLesson && !gameState.state.completedLessonIds.includes(requiredLesson.id)) {
+      gameState.state.advisorTip = `Подручный ждёт тебя с темой «${requiredLesson.title}». Сначала разберём правило, потом поможем ${friend.name}.`;
+      gameState.notify();
+      this.openModal('advisor');
+      return;
+    }
 
     document.getElementById('friend-modal-icon').textContent = friend.emoji;
     document.getElementById('friend-modal-title').textContent = `В гостях у ${friend.name}`;
@@ -1320,11 +1402,11 @@ export class UIController {
       <h3 style="font-family: var(--font-heading); font-size: 15px; margin-bottom: 10px;">План текущего периода:</h3>
       <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
         <span>🥣 Миска и Забота (Обязательное):</span>
-        <strong>${b.foodAndCareCoins} м.</strong>
+        <strong>${b.foodAndCareCoins} м. <small style="color:var(--text-muted)">осталось ${b.remainingFoodAndCareCoins || 0}</small></strong>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
         <span>🎁 Сундучок Радостей (Желания):</span>
-        <strong>${b.funAndGamesCoins} м.</strong>
+        <strong>${b.funAndGamesCoins} м. <small style="color:var(--text-muted)">осталось ${b.remainingFunAndGamesCoins || 0}</small></strong>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
         <span>🏺 Копилка на Мечту (Сбережения):</span>
@@ -1363,22 +1445,47 @@ export class UIController {
     });
   }
 
-  renderAdvisorLessons() {
+  renderAdvisorLessons(state = gameState.state) {
     const list = document.getElementById('advisor-lessons-list');
     if (!list) return;
     list.innerHTML = '';
 
-    FINANCIAL_LESSONS.forEach((lesson) => {
+    const nextLesson = FINANCIAL_LESSONS.find((lesson) => !state.completedLessonIds.includes(lesson.id));
+
+    FINANCIAL_LESSONS.forEach((lesson, index) => {
+      const isCompleted = state.completedLessonIds.includes(lesson.id);
+      const isAvailable = nextLesson?.id === lesson.id;
       const card = document.createElement('div');
       card.className = 'clay-card';
       card.innerHTML = `
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
           <span style="font-size: 22px;">${lesson.emoji}</span>
-          <h4 style="font-family: var(--font-heading); font-size: 14px; font-weight: 700;">${lesson.title}</h4>
+          <div style="flex:1;">
+            <h4 style="font-family: var(--font-heading); font-size: 14px; font-weight: 700;">${index + 1}. ${lesson.title}</h4>
+            <span style="font-size:10px; font-weight:800; color:${isCompleted ? 'var(--clay-green-shadow)' : (isAvailable ? 'var(--clay-purple-shadow)' : 'var(--text-muted)')};">${isCompleted ? '✓ Тема освоена' : (isAvailable ? 'Подручный ждёт ответ' : '🔒 Откроется после предыдущего урока')}</span>
+          </div>
         </div>
         <p style="font-size: 12px; font-weight: 700; color: var(--clay-pink-shadow); margin-bottom: 4px;">«${lesson.rule}»</p>
         <p style="font-size: 11px; color: var(--text-dark); line-height: 1.35;">${lesson.fullText}</p>
+        ${isAvailable ? `
+          <p style="font-size:12px; font-weight:800; margin:10px 0 6px;">${lesson.question}</p>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            ${lesson.options.map((option) => `<button type="button" class="clay-btn btn-ghost lesson-answer-btn" data-lesson-id="${lesson.id}" data-option-id="${option.id}" style="text-align:left;">${option.text}</button>`).join('')}
+          </div>
+        ` : ''}
       `;
+
+      card.querySelectorAll('.lesson-answer-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+          const result = gameState.answerLesson(lesson.id, button.dataset.optionId);
+          if (result.success && result.reason !== 'already_completed') {
+            sound.playSuccess();
+            fireConfetti({ count: 32 });
+          } else if (!result.success) {
+            sound.playError();
+          }
+        });
+      });
       list.appendChild(card);
     });
   }

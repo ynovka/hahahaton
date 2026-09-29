@@ -11,7 +11,8 @@ import {
   SHOP_CATALOG,
   FRIENDS_LIST,
   KID_PUZZLES,
-  WARDROBE_ACCESSORIES
+  WARDROBE_ACCESSORIES,
+  FINANCIAL_LESSONS
 } from './data.js';
 
 const STORAGE_KEY = 'petme_finny_game_state_v1';
@@ -72,11 +73,16 @@ function createInitialState() {
       foodAndCareCoins: 50,
       funAndGamesCoins: 30,
       piggyBankCoins: 20,
+      // После утверждения плана это реальные остатки двух конвертов.
+      // Копилка сразу переводится в сбережения и не остаётся в кошельке.
+      remainingFoodAndCareCoins: 50,
+      remainingFunAndGamesCoins: 30,
       isConfirmed: false
     },
     period: 1, // 1..5
     isGameFinished: false,
     currentLocation: 'setup', // 'setup' | 'myroom' | 'citymap' | 'shop' | 'bank' | 'hospital' | 'friend_1'..'friend_7'
+    playerPosition: { location: 'myroom', x: 36, y: 21 },
     puzzles: createDefaultPuzzles(),
     friendships: createDefaultFriendships(),
     inventory: [
@@ -129,7 +135,7 @@ class GameStateManager {
         // Проверяем минимальную валидность
         if (parsed && typeof parsed.period === 'number') {
           parsed.isGameFinished = Boolean(parsed.isGameFinished || parsed.periodReports?.some((report) => report.isGameFinished));
-          return parsed;
+          return this.migrateLoadedState(parsed);
         }
       }
     } catch (e) {
@@ -138,12 +144,111 @@ class GameStateManager {
     return createInitialState();
   }
 
+  // Старые сохранения были созданы до появления настоящих конвертов бюджета
+  // и позиции игрока. Миграция сохраняет прогресс ребёнка и добавляет недостающие поля.
+  migrateLoadedState(state) {
+    const initial = createInitialState();
+    // Запоминаем наличие полей до объединения с начальными значениями. Иначе
+    // spread ниже подставит остатки по умолчанию и старая запись будет выглядеть
+    // как будто уже умеет хранить конверты.
+    const hadSavedBuckets = Number.isFinite(state.budget?.remainingFoodAndCareCoins)
+      && Number.isFinite(state.budget?.remainingFunAndGamesCoins);
+    state.pet = {
+      ...initial.pet,
+      ...(state.pet || {}),
+      equippedAccessories: {
+        ...initial.pet.equippedAccessories,
+        ...(state.pet?.equippedAccessories || {})
+      }
+    };
+    state.wallet = { ...initial.wallet, ...(state.wallet || {}) };
+    state.budget = { ...initial.budget, ...(state.budget || {}) };
+    state.puzzles = { ...initial.puzzles, ...(state.puzzles || {}) };
+    state.friendships = { ...initial.friendships, ...(state.friendships || {}) };
+    state.inventory = Array.isArray(state.inventory) ? state.inventory : initial.inventory;
+    state.transactions = Array.isArray(state.transactions) ? state.transactions : initial.transactions;
+    state.completedLessonIds = Array.isArray(state.completedLessonIds) ? state.completedLessonIds : [];
+    state.periodReports = Array.isArray(state.periodReports) ? state.periodReports : [];
+    state.achievedGoalIds = Array.isArray(state.achievedGoalIds) ? state.achievedGoalIds : [];
+
+    const b = state.budget;
+    if (!hadSavedBuckets) {
+      const available = Math.max(0, Number(state.wallet.coins) || 0);
+      if (b.isConfirmed) {
+        // В прошлой версии покупка не хранила категорию. При миграции сначала
+        // резервируем деньги на обязательный уход, а остаток относим к радостям.
+        b.remainingFoodAndCareCoins = Math.min(Math.max(0, b.foodAndCareCoins || 0), available);
+        b.remainingFunAndGamesCoins = Math.max(0, available - b.remainingFoodAndCareCoins);
+        b.funAndGamesCoins = Math.max(b.funAndGamesCoins || 0, b.remainingFunAndGamesCoins);
+        b.totalStartingCoins = b.foodAndCareCoins + b.funAndGamesCoins + b.piggyBankCoins;
+      } else {
+        b.remainingFoodAndCareCoins = Math.max(0, b.foodAndCareCoins || 0);
+        b.remainingFunAndGamesCoins = Math.max(0, b.funAndGamesCoins || 0);
+      }
+    }
+
+    const position = state.playerPosition;
+    if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y)) {
+      state.playerPosition = { ...initial.playerPosition };
+    } else {
+      // В комнатах герой ходит по полу, а не забирается на мебель фона.
+      state.playerPosition.x = Math.min(92, Math.max(8, position.x));
+      state.playerPosition.y = Math.min(38, Math.max(14, position.y));
+    }
+
+    return state;
+  }
+
   save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
     } catch (e) {
       console.error('Ошибка записи сохранения в localStorage', e);
     }
+  }
+
+  setPlayerPosition(x, y) {
+    const safeX = Math.round(Math.min(92, Math.max(8, Number(x) || 36)));
+    const safeY = Math.round(Math.min(38, Math.max(14, Number(y) || 21)));
+    this.state.playerPosition = {
+      location: this.state.currentLocation,
+      x: safeX,
+      y: safeY
+    };
+    // Позиция должна переживать закрытие браузера, но движение не должно
+    // пересобирать весь интерфейс на каждом касании.
+    this.save();
+  }
+
+  answerLesson(lessonId, optionId) {
+    const s = this.state;
+    const lesson = FINANCIAL_LESSONS.find((item) => item.id === lessonId);
+    if (!lesson) return { success: false, reason: 'not_found' };
+
+    if (s.completedLessonIds.includes(lessonId)) {
+      return { success: true, reason: 'already_completed' };
+    }
+
+    const nextLesson = FINANCIAL_LESSONS.find((item) => !s.completedLessonIds.includes(item.id));
+    if (nextLesson && nextLesson.id !== lessonId) {
+      s.advisorTip = `Подручный предлагает начать с урока «${nextLesson.title}».`;
+      this.notify();
+      return { success: false, reason: 'locked', nextLesson };
+    }
+
+    const option = lesson.options?.find((item) => item.id === optionId);
+    if (!option) return { success: false, reason: 'option_not_found' };
+
+    if (!option.isCorrect) {
+      s.advisorTip = `Подручный: «Почти! Вспомни правило: ${lesson.rule}»`;
+      this.notify();
+      return { success: false, reason: 'wrong', lesson };
+    }
+
+    s.completedLessonIds.push(lessonId);
+    s.advisorTip = `Подручный: «Верно! Ты освоил тему “${lesson.title}”. Теперь можно применить её в городе.»`;
+    this.notify();
+    return { success: true, lesson };
   }
 
   // --- ДЕЙСТВИЯ ИГРЫ ---
@@ -162,6 +267,7 @@ class GameStateManager {
     s.pet.isHungry = true;
     s.isGameFinished = false;
     s.currentLocation = 'myroom';
+    s.playerPosition = { location: 'myroom', x: 36, y: 21 };
     s.advisorTip = `Знакомься: твой питомец ${safePetName}! Разложи монетки по горшочкам и подтверди план, чтобы выйти в город.`;
 
     this.notify();
@@ -179,6 +285,16 @@ class GameStateManager {
     }
 
     s.currentLocation = locationId;
+    const defaultPositions = {
+      myroom: { x: 36, y: 21 },
+      shop: { x: 28, y: 20 },
+      bank: { x: 28, y: 20 },
+      hospital: { x: 28, y: 20 }
+    };
+    s.playerPosition = {
+      location: locationId,
+      ...(defaultPositions[locationId] || (locationId.startsWith('friend_') ? { x: 26, y: 20 } : { x: 36, y: 21 }))
+    };
 
     if (locationId === 'myroom') {
       s.advisorTip = `Ты дома с ${s.pet.name}! Покорми питомца, примери наряды или составь план.`;
@@ -277,8 +393,11 @@ class GameStateManager {
     }
 
     const totalAllocated = b.foodAndCareCoins + b.funAndGamesCoins + b.piggyBankCoins;
-    if (totalAllocated > s.wallet.coins) {
-      s.advisorTip = 'В кошельке меньше монет, чем запланировано. Уменьши суммы в горшочках.';
+    if (totalAllocated !== s.wallet.coins) {
+      const difference = Math.abs(s.wallet.coins - totalAllocated);
+      s.advisorTip = totalAllocated > s.wallet.coins
+        ? 'В кошельке меньше монет, чем запланировано. Уменьши суммы в горшочках.'
+        : `Нужно распределить ещё ${difference} м., чтобы ни одна монетка не потерялась.`;
       this.notify();
       return false;
     }
@@ -287,6 +406,8 @@ class GameStateManager {
     const savingsAmount = b.piggyBankCoins;
     s.wallet.savings += savingsAmount;
     s.wallet.coins -= savingsAmount;
+    b.remainingFoodAndCareCoins = b.foodAndCareCoins;
+    b.remainingFunAndGamesCoins = b.funAndGamesCoins;
 
     b.isConfirmed = true;
     s.pet.mood = 'happy';
@@ -359,6 +480,11 @@ class GameStateManager {
         return { success: false, reason: 'no_item' };
       }
 
+      careItem.count = (careItem.count || 1) - 1;
+      if (careItem.count <= 0) {
+        s.inventory = s.inventory.filter((item) => item.id !== careItem.id);
+      }
+
       s.pet.cleanliness = 100;
       s.pet.mood = 'happy';
       s.pet.growthPoints += 1;
@@ -398,6 +524,12 @@ class GameStateManager {
     const item = SHOP_CATALOG.find((i) => i.id === itemId);
     if (!item) return { success: false, reason: 'not_found' };
 
+    if (!s.budget.isConfirmed) {
+      s.advisorTip = 'Сначала составь и утверди план расходов: тогда каждая покупка будет осознанной.';
+      this.notify();
+      return { success: false, reason: 'budget_not_confirmed' };
+    }
+
     // Если это предмет гардероба и он уже куплен
     if (item.wardrobeId && s.pet.unlockedWardrobeIds.includes(item.wardrobeId)) {
       s.advisorTip = `«${item.title}» уже есть в гардеробе! Выбери что-нибудь новенькое.`;
@@ -405,16 +537,25 @@ class GameStateManager {
       return { success: false, reason: 'already_owned' };
     }
 
-    // Проверяем, хватает ли монет
-    if (s.wallet.coins < item.price) {
-      const missing = item.price - s.wallet.coins;
-      s.advisorTip = `Не хватает ${missing} монет на «${item.title}». Сходи к друзьям и реши интересные задачки!`;
+    const budget = s.budget;
+    const isCarePurchase = item.category === 'food' || item.category === 'care';
+    const bucketKey = isCarePurchase ? 'remainingFoodAndCareCoins' : 'remainingFunAndGamesCoins';
+    const bucketTitle = isCarePurchase ? 'Миске и Заботе' : 'Сундучке Радостей';
+    const available = budget[bucketKey] || 0;
+
+    // Проверяем не общий кошелёк, а нужный конверт: иначе план остаётся декорацией.
+    if (available < item.price || s.wallet.coins < item.price) {
+      const missing = Math.max(0, item.price - available);
+      s.advisorTip = missing > 0
+        ? `В «${bucketTitle}» не хватает ${missing} м. Попробуй выбрать покупку по плану или заработай награду у друга.`
+        : `Не хватает ${item.price - s.wallet.coins} монет на «${item.title}».`;
       this.notify();
       return { success: false, reason: 'no_money', missing };
     }
 
     // Списываем монеты
     s.wallet.coins -= item.price;
+    budget[bucketKey] -= item.price;
 
     // Добавляем в инвентарь или гардероб
     if (item.wardrobeId) {
@@ -446,13 +587,17 @@ class GameStateManager {
   depositSavings(amount) {
     const s = this.state;
     if (amount <= 0) return false;
-    if (s.wallet.coins < amount) {
-      s.advisorTip = `В кошельке только ${s.wallet.coins} монет. Нельзя положить больше, чем есть!`;
+    const available = s.budget.remainingFunAndGamesCoins || 0;
+    if (!s.budget.isConfirmed || available < amount || s.wallet.coins < amount) {
+      s.advisorTip = !s.budget.isConfirmed
+        ? 'Сначала утверди план расходов.'
+        : `В «Сундучке Радостей» сейчас ${available} м. В копилку можно положить только свободные монеты из него.`;
       this.notify();
       return false;
     }
 
     s.wallet.coins -= amount;
+    s.budget.remainingFunAndGamesCoins -= amount;
     s.wallet.savings += amount;
     s.pet.mood = 'proud_saver';
 
@@ -483,6 +628,10 @@ class GameStateManager {
 
     s.wallet.savings -= amount;
     s.wallet.coins += amount;
+    // Снятие допустимо только для обязательной заботы и непредвиденных расходов.
+    s.budget.totalStartingCoins += amount;
+    s.budget.foodAndCareCoins += amount;
+    s.budget.remainingFoodAndCareCoins += amount;
 
     s.transactions.push({
       period: s.period,
@@ -558,14 +707,18 @@ class GameStateManager {
       return { success: false, reason: 'not_needed' };
     }
 
-    if (s.wallet.coins < TREATMENT_COST) {
-      const missing = TREATMENT_COST - s.wallet.coins;
-      s.advisorTip = `Для процедуры нужно ${TREATMENT_COST} монет. Не хватает ${missing} м. Заработай у друзей!`;
+    const availableCare = s.budget.remainingFoodAndCareCoins || 0;
+    if (s.wallet.coins < TREATMENT_COST || availableCare < TREATMENT_COST) {
+      const missing = Math.max(0, TREATMENT_COST - availableCare);
+      s.advisorTip = missing > 0
+        ? `Для процедуры не хватает ${missing} м. в «Миске и Заботе». Можно использовать резерв из копилки.`
+        : `Для процедуры нужно ${TREATMENT_COST} монет.`;
       this.notify();
       return { success: false, reason: 'no_money', missing };
     }
 
     s.wallet.coins -= TREATMENT_COST;
+    s.budget.remainingFoodAndCareCoins -= TREATMENT_COST;
     s.pet.health = 'healthy';
     s.pet.mood = 'happy';
     s.pet.growthPoints += 1;
@@ -625,6 +778,10 @@ class GameStateManager {
 
     pState.state = 'completed';
     s.wallet.coins += puzzle.rewardCoins;
+    // Награда — заработанные деньги на желания; она расширяет только этот конверт.
+    s.budget.totalStartingCoins += puzzle.rewardCoins;
+    s.budget.funAndGamesCoins += puzzle.rewardCoins;
+    s.budget.remainingFunAndGamesCoins += puzzle.rewardCoins;
     s.pet.growthPoints += 1;
     s.pet.mood = 'playful';
 
@@ -786,8 +943,12 @@ class GameStateManager {
         foodAndCareCoins: Math.floor(s.wallet.coins * 0.5),
         funAndGamesCoins: Math.floor(s.wallet.coins * 0.3),
         piggyBankCoins: Math.floor(s.wallet.coins * 0.2),
+        remainingFoodAndCareCoins: Math.floor(s.wallet.coins * 0.5),
+        remainingFunAndGamesCoins: Math.floor(s.wallet.coins * 0.3),
         isConfirmed: false
       };
+      // Из-за округления последняя монета всегда остаётся в копилке, чтобы план был точным.
+      s.budget.piggyBankCoins = s.wallet.coins - s.budget.foodAndCareCoins - s.budget.funAndGamesCoins;
       s.pet.isHungry = true;
       s.pet.cleanliness = Math.max(30, s.pet.cleanliness - 35);
       s.pet.happiness = Math.max(30, s.pet.happiness - 25);

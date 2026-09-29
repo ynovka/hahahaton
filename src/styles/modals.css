@@ -11,7 +11,8 @@
   height: 100vh;
   background: rgba(40, 25, 20, 0.45);
   backdrop-filter: blur(8px);
-  z-index: 1000;
+  /* HUD держится на 9999, поэтому диалог всегда должен быть выше него. */
+  z-index: 10000;
   display: none;
   align-items: center;
   justify-content: center;
